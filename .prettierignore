@@ -1,0 +1,9 @@
+node_modules
+dist
+coverage
+.expo
+android
+ios
+legal-site/node_modules
+legal-site/dist
+legal-site/.wrangler

@@ -1,0 +1,83 @@
+import type { ConfigContext, ExpoConfig } from 'expo/config';
+
+const PACKAGE_ID = process.env.EXPO_PUBLIC_PACKAGE_ID ?? 'com.barkin.dugunplanim';
+const PUBLIC_BASE_URL = process.env.EXPO_PUBLIC_LEGAL_BASE_URL ?? 'https://example.com/dugun-planim';
+const SUPPORT_EMAIL = process.env.EXPO_PUBLIC_SUPPORT_EMAIL ?? 'destek@example.com';
+
+export default ({ config }: ConfigContext): ExpoConfig => ({
+  ...config,
+  name: 'Düğün Planım',
+  slug: 'dugun-planim',
+  version: '1.0.0',
+  orientation: 'default',
+  icon: './assets/images/icon.png',
+  scheme: 'dugunplanim',
+  userInterfaceStyle: 'automatic',
+  description: 'Görev, davetli, bütçe ve masa planını cihazınızda yönetin.',
+  primaryColor: '#6F1D3A',
+  ios: {
+    bundleIdentifier: PACKAGE_ID,
+    buildNumber: '1',
+    supportsTablet: true,
+    icon: './assets/images/icon.png',
+    infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
+      NSAppTransportSecurity: { NSAllowsArbitraryLoads: false, NSAllowsLocalNetworking: true },
+    },
+    privacyManifests: {
+      NSPrivacyTracking: false,
+      NSPrivacyTrackingDomains: [],
+      NSPrivacyCollectedDataTypes: [],
+      NSPrivacyAccessedAPITypes: [],
+    },
+  },
+  android: {
+    package: PACKAGE_ID,
+    versionCode: 1,
+    blockedPermissions: [
+      'android.permission.READ_EXTERNAL_STORAGE',
+      'android.permission.WRITE_EXTERNAL_STORAGE',
+      'android.permission.SYSTEM_ALERT_WINDOW',
+    ],
+    adaptiveIcon: {
+      backgroundColor: '#F8F3EA',
+      foregroundImage: './assets/images/android-icon-foreground.png',
+      backgroundImage: './assets/images/android-icon-background.png',
+      monochromeImage: './assets/images/android-icon-monochrome.png',
+    },
+    predictiveBackGestureEnabled: true,
+  },
+  web: { output: 'static', favicon: './assets/images/favicon.png' },
+  plugins: [
+    [
+      'expo-router',
+      { headers: { 'Cross-Origin-Embedder-Policy': 'credentialless', 'Cross-Origin-Opener-Policy': 'same-origin' } },
+    ],
+    [
+      'expo-splash-screen',
+      {
+        backgroundColor: '#F8F3EA',
+        dark: { backgroundColor: '#181315' },
+        image: './assets/images/splash-icon.png',
+        imageWidth: 180,
+      },
+    ],
+    'expo-sqlite',
+    ['expo-secure-store', { configureAndroidBackup: true, faceIDPermission: false }],
+    [
+      'expo-notifications',
+      {
+        icon: './assets/images/notification-icon.png',
+        color: '#6F1D3A',
+        defaultChannel: 'reminders',
+        mode: 'production',
+        enableBackgroundRemoteNotifications: false,
+      },
+    ],
+    'expo-document-picker',
+    'expo-sharing',
+    'expo-localization',
+  ],
+  experiments: { typedRoutes: true, reactCompiler: true },
+  extra: { legalBaseUrl: PUBLIC_BASE_URL, supportEmail: SUPPORT_EMAIL },
+});
