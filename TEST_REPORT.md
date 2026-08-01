@@ -1,6 +1,6 @@
 # Test Raporu
 
-Tarih: 30 Temmuz 2026
+Tarih: 1 Ağustos 2026
 
 Sürüm: 1.0.0 (1)
 
@@ -14,9 +14,9 @@ Ortam: Windows, Node 24.4.1; Expo SDK 57 web runtime. Native SDK/emülatör ve m
 | ESLint                          | PASS   | `npm run lint`                                                                           |
 | Prettier                        | PASS   | `npm run format:check`                                                                   |
 | Expo Doctor                     | PASS   | v1.20.1, 20/20                                                                           |
-| Jest                            | PASS   | 10 suite, 26 test                                                                        |
-| Jest coverage                   | PASS   | %77,41 statement; domain %84,21 statement                                                |
-| Expo web production export      | PASS   | 24 statik rota, `dist/`                                                                  |
+| Jest                            | PASS   | 12 suite, 36 test                                                                        |
+| Jest coverage                   | PASS   | %78,09 statement; domain %83,12 statement                                                |
+| Expo web production export      | PASS   | 25 statik rota, `dist/`; Metro önbelleği okunamayınca tam taramayla başarıyla tamamlandı |
 | Android config-plugin prebuild  | PASS   | Engellenen legacy izinler `tools:node="remove"`; ikon/splash/manifest üretildi           |
 | Hukuki site build/rota testleri | PASS   | 5 rota                                                                                   |
 | Uygulama production audit       | REVIEW | Expo/Jest build araç zincirinde transitif advisory; kırıcı `--force` önerisi uygulanmadı |
@@ -28,6 +28,7 @@ Ortam: Windows, Node 24.4.1; Expo SDK 57 web runtime. Native SDK/emülatör ve m
 | ------------------------------------------ | --------------------- | -------------------------------------------------------------------------------- |
 | Bütçe toplam/gerçekleşen/ödenen/kalan/aşım | PASS                  | Kuruş tamsayılarıyla birim testleri                                              |
 | Davetli toplamları ve masa kapasitesi      | PASS                  | RSVP, parti büyüklüğü ve kapasite engeli                                         |
+| Özelleştirilebilir salon planı             | PASS                  | Normalize taşıma/boyut, dönüş, özet/PDF, erişilebilir canvas ve v2 migration     |
 | Tarih, geri sayım ve DST sınırı            | PASS                  | Yerel takvim günü karşılaştırması                                                |
 | Görev ilerleme/gecikme                     | PASS                  | Saf domain testleri + UI smoke                                                   |
 | Migration sırası/şema                      | PASS                  | Migration testleri ve web SQLite gerçek açılış                                   |
@@ -53,6 +54,8 @@ PASS:
 7. Telefon (430 CSS px) ve tablet (1024 CSS px) düzenleri görsel olarak incelendi; gerçek UI kaynakları mağaza görsellerine dönüştürüldü.
 8. Ham metin simgesinin `View` içine düşmesi ve dar ekran para satır kırması bulundu, düzeltildi ve yeniden doğrulandı.
 9. Hukuki sitenin beş rotası, mobil responsive DOM'u, skip link'i ve gizlilik içeriği doğrulandı; konsol hatası yok.
+10. Masa oluşturuldu; hızlı salon yerleşimiyle sahne, dans pisti, giriş ve masa eklendi. Masa dikdörtgene çevrildi, 15° döndürüldü, konumu değiştirildi ve kilitlendi.
+11. Salon düzenleyici ve masa ekranı önizlemesi yenileme sonrasında SQLite verilerini korudu; semantik DOM ve konsol hataları kontrol edildi.
 
 ## Çalıştırılmayan / hesapla bloklu kontroller
 
@@ -62,6 +65,7 @@ PASS:
 | Gerçek iPhone/iPad               | NOT RUN | Windows ortamında Xcode yok; EAS/TestFlight gerekli                 |
 | Native bildirim/izin             | NOT RUN | Development build ve fiziksel cihaz gerekli                         |
 | Native dosya seçici/paylaşım/PDF | NOT RUN | Android/iOS development build gerekli                               |
+| Native salon sürükleme/PDF       | NOT RUN | Fiziksel cihaz ve development build gerekli                         |
 | Gerçek uçak modu                 | NOT RUN | Fiziksel cihaz doğrulaması release checklist'te                     |
 | Android production `.aab`        | BLOCKED | EAS/Google hesabı ve imzalama girdisi verilmedi                     |
 | iOS production `.ipa`            | BLOCKED | EAS/Apple Developer hesabı ve imzalama girdisi verilmedi            |

@@ -23,7 +23,8 @@ Görevlerinizi tarih, kategori ve önceliğe göre düzenleyin; geciken işleri 
 - Düğün tarihine göre hazırlanan başlangıç görevleri
 - Arama ve ayrıntılı görev filtreleri
 - RSVP, grup, taraf ve masa bilgileriyle davetli yönetimi
-- Masa kapasitesi kontrolü ve paylaşılabilir PDF özeti
+- Masa kapasitesi kontrolü; sürüklenebilir masa, sahne ve salon alanları
+- Şekil, boyut, açı ve kilit ayarlı salon planı; paylaşılabilir görsel PDF özeti
 - Planlanan, gerçekleşen ve ödenen tutarlarla bütçe takibi
 - Tedarikçi teklifleri, sözleşme durumu ve ödeme planı
 - Görev ve ödeme tarihlerini birleştiren takvim
@@ -40,7 +41,7 @@ Bu uygulama profesyonel düğün, hukuk veya finans danışmanlığı sağlamaz.
 ## Sürüm bilgisi
 
 - Sürüm: `1.0.0`
-- Bu sürümdeki yenilikler: `Düğün Planım'ın ilk sürümü: görev, davetli, masa, bütçe, tedarikçi, takvim, not, yerel yedek ve isteğe bağlı hatırlatma özellikleri.`
+- Bu sürümdeki yenilikler: `Düğün Planım'ın ilk sürümü: görev, davetli, özelleştirilebilir salon/masa planı, bütçe, tedarikçi, takvim, not, yerel yedek ve isteğe bağlı hatırlatma özellikleri.`
 
 ## App Review notu
 

@@ -1,6 +1,6 @@
 # Release Checklist — 1.0.0 (1)
 
-Son güncelleme: 30 Temmuz 2026. İşaretli maddeler bu çalışma alanında doğrulandı; kullanıcı hesabı veya imza gerektirenler açık bırakıldı.
+Son güncelleme: 1 Ağustos 2026. İşaretli maddeler bu çalışma alanında doğrulandı; kullanıcı hesabı veya imza gerektirenler açık bırakıldı.
 
 ## Kod ve kalite
 
@@ -11,9 +11,11 @@ Son güncelleme: 30 Temmuz 2026. İşaretli maddeler bu çalışma alanında do�
 - [x] Web production export
 - [x] Hukuki site production build ve rota testleri
 - [x] Gerçek çalışan web uygulamasında onboarding, persistence ve CRUD smoke testi
+- [x] Özelleştirilebilir salon planında hızlı yerleşim, özellik düzenleme, kilitleme, önizleme ve yeniden açılış kalıcılık testi
 - [ ] Fiziksel Android telefon/tablet smoke testi
 - [ ] Fiziksel iPhone/iPad smoke testi
 - [ ] Native bildirim, dosya seçici, paylaşım ve PDF smoke testi
+- [ ] Fiziksel cihazlarda salon öğelerini sürükleme ve salon planlı PDF smoke testi
 
 ## Kimlik ve kullanıcı girdileri
 

@@ -12,6 +12,7 @@ import {
   type SeatingTable,
   type TaskItem,
   type Vendor,
+  type VenueLayoutItem,
   type WeddingProfile,
 } from '@/domain/models';
 import {
@@ -23,6 +24,7 @@ import {
   validateTable,
   validateTask,
   validateVendor,
+  validateVenueLayoutItem,
 } from '@/domain/validation';
 import {
   cancelTaskReminder,
@@ -31,7 +33,7 @@ import {
   scheduleTaskReminder,
 } from '@/services/notifications';
 
-type EntityKey = 'tasks' | 'guests' | 'tables' | 'budgetItems' | 'vendors' | 'notes';
+type EntityKey = 'tasks' | 'guests' | 'tables' | 'venueLayoutItems' | 'budgetItems' | 'vendors' | 'notes';
 
 interface AppContextValue {
   data: AppData;
@@ -46,6 +48,8 @@ interface AppContextValue {
   deleteGuest: (id: string) => Promise<void>;
   saveTable: (table: SeatingTable) => Promise<void>;
   deleteTable: (id: string) => Promise<void>;
+  saveVenueLayoutItem: (item: VenueLayoutItem) => Promise<void>;
+  deleteVenueLayoutItem: (id: string) => Promise<void>;
   saveBudgetItem: (item: BudgetItem) => Promise<void>;
   deleteBudgetItem: (id: string) => Promise<void>;
   saveVendor: (vendor: Vendor) => Promise<void>;
@@ -163,11 +167,21 @@ export function AppProvider({ children }: PropsWithChildren) {
       },
       deleteTable: async (id) => {
         await repository.deleteTable(id);
-        removeEntity('tables', id);
         setData((current) => ({
           ...current,
+          tables: current.tables.filter((table) => table.id !== id),
           guests: current.guests.map((guest) => (guest.tableId === id ? { ...guest, tableId: undefined } : guest)),
+          venueLayoutItems: current.venueLayoutItems.filter((item) => item.tableId !== id),
         }));
+      },
+      saveVenueLayoutItem: async (item) => {
+        const valid = validateVenueLayoutItem(item);
+        await repository.upsertVenueLayoutItem(valid);
+        updateEntity('venueLayoutItems', valid);
+      },
+      deleteVenueLayoutItem: async (id) => {
+        await repository.deleteVenueLayoutItem(id);
+        removeEntity('venueLayoutItems', id);
       },
       saveBudgetItem: async (item) => {
         const valid = validateBudgetItem(item);

@@ -1,4 +1,14 @@
-import type { AppData, BudgetItem, Guest, NoteItem, SeatingTable, TaskItem, Vendor, WeddingProfile } from './models';
+import type {
+  AppData,
+  BudgetItem,
+  Guest,
+  NoteItem,
+  SeatingTable,
+  TaskItem,
+  Vendor,
+  VenueLayoutItem,
+  WeddingProfile,
+} from './models';
 import { isValidDateString } from './calculations';
 
 export class ValidationError extends Error {}
@@ -56,6 +66,29 @@ export function validateTable(table: SeatingTable): SeatingTable {
   return { ...table, name: required(table.name, 'Masa adı'), capacity };
 }
 
+export function validateVenueLayoutItem(item: VenueLayoutItem): VenueLayoutItem {
+  const allowedTypes = ['table', 'stage', 'danceFloor', 'entrance', 'dj', 'service'];
+  if (!allowedTypes.includes(item.type)) throw new ValidationError('Salon planı öğe türü geçersiz.');
+  if (item.shape !== 'round' && item.shape !== 'rectangle') throw new ValidationError('Salon planı şekli geçersiz.');
+  const values = [item.x, item.y, item.width, item.height, item.rotation];
+  if (values.some((value) => !Number.isFinite(value))) throw new ValidationError('Salon planı ölçüleri geçersiz.');
+  if (
+    item.x < 0 ||
+    item.y < 0 ||
+    item.width < 0.1 ||
+    item.height < 0.1 ||
+    item.x + item.width > 1.0001 ||
+    item.y + item.height > 1.0001
+  ) {
+    throw new ValidationError('Salon planı öğesi çizim alanının dışında.');
+  }
+  if (item.type === 'table' && !item.tableId)
+    throw new ValidationError('Salon planındaki masa bir masa kaydına bağlı olmalıdır.');
+  if (item.type !== 'table' && item.tableId)
+    throw new ValidationError('Yalnız masa öğeleri masa kaydına bağlanabilir.');
+  return { ...item, label: required(item.label, 'Salon planı etiketi'), rotation: Math.round(item.rotation) };
+}
+
 export function validateBudgetItem(item: BudgetItem): BudgetItem {
   const values = [item.plannedCents, item.actualCents, item.paidCents];
   values.forEach((value, index) => nonNegativeInteger(value, ['Planlanan', 'Gerçekleşen', 'Ödenen'][index]));
@@ -93,11 +126,25 @@ export function validateAppData(data: AppData): AppData {
   ) {
     throw new ValidationError('Yedek veri listeleri eksik veya bozuk.');
   }
+  const tables = data.tables.map(validateTable);
+  const tableIds = new Set(tables.map((table) => table.id));
+  const venueLayoutItems = (Array.isArray(data.venueLayoutItems) ? data.venueLayoutItems : []).map(
+    validateVenueLayoutItem,
+  );
+  const linkedTableIds = new Set<string>();
+  for (const item of venueLayoutItems) {
+    if (!item.tableId) continue;
+    if (!tableIds.has(item.tableId)) throw new ValidationError('Salon planındaki masa kaydı bulunamadı.');
+    if (linkedTableIds.has(item.tableId))
+      throw new ValidationError('Bir masa salon planına yalnız bir kez eklenebilir.');
+    linkedTableIds.add(item.tableId);
+  }
   return {
     profile: data.profile.onboardingCompleted ? validateProfile(data.profile) : data.profile,
     tasks: data.tasks.map(validateTask),
     guests: data.guests.map(validateGuest),
-    tables: data.tables.map(validateTable),
+    tables,
+    venueLayoutItems,
     budgetItems: data.budgetItems.map(validateBudgetItem),
     vendors: data.vendors.map(validateVendor),
     notes: data.notes.map(validateNote),

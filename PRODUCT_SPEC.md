@@ -9,6 +9,7 @@ Düğün Planım, nişanlı çiftlerin hazırlıklarını tek cihazda, hesap aç
 - Dört adımlı kurulum: çift isimleri, tarih, bütçe, davetli hedefi, para birimi ve açıklama sonrası isteğe bağlı bildirim izni.
 - Ana panel: geri sayım, hazırlık ilerlemesi, görev/davetli/bütçe özeti ve yaklaşan işler.
 - Görev, davetli, masa, bütçe/ödeme, tedarikçi ve not CRUD akışları.
+- Masaları, sahneyi, dans pistini, girişi, DJ ve ikram alanını sürükleyip boyutlandırmaya, döndürmeye ve kilitlemeye yarayan özelleştirilebilir salon planı.
 - Arama ve anlamlı filtreler; hazır görev başlangıç listesi.
 - Görev ve ödeme tarihlerini birleştiren takvim/liste görünümü.
 - CSV içe/dışa aktarma, PDF özetleri, sürümlü JSON yedekleme ve doğrulamalı geri yükleme.
@@ -36,6 +37,7 @@ Detay ve düzenleme ekranları kök yığında açılır; geri hareketi platform
 1. Veriler uygulama yeniden açıldığında korunur ve hiçbir dış sunucuya gönderilmez.
 2. Tamamlanan görev yüzdesi ve bütçe değerleri her ekranda aynı domain hesaplarından gelir.
 3. Masa ataması kapasiteyi aşamaz; davetli kişi sayısı yetişkin/çocuk alanlarından tutarlı hesaplanır.
-4. Bozuk veya desteklenmeyen yedek mevcut veriye dokunmadan reddedilir.
-5. İzin reddi hiçbir temel akışı engellemez.
-6. Silme işlemleri kullanıcı onayı ister; tüm veri silme iki ayrı onay gerektirir.
+4. Salon planındaki her masa mevcut bir masa kaydına bağlıdır; konum, boyut, açı, şekil ve kilit durumu yeniden açılışta korunur.
+5. Bozuk veya desteklenmeyen yedek mevcut veriye dokunmadan reddedilir.
+6. İzin reddi hiçbir temel akışı engellemez.
+7. Silme işlemleri kullanıcı onayı ister; tüm veri silme iki ayrı onay gerektirir.

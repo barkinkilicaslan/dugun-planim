@@ -23,6 +23,7 @@ UI içinde para, tarih, kapasite veya bütçe hesabı yapılmaz. `src/domain` sa
 - `tasks`: kategori, başlık, açıklama, son tarih, öncelik, durum, bildirim kimliği.
 - `guests`: taraf, grup, kişi/çocuk sayısı, RSVP, yemek/alerji, masa ilişkisi.
 - `tables`: ad ve kapasite.
+- `venue_layout_items`: masaların ve salon alanlarının normalize konum/boyut, açı, şekil ve kilit bilgisi; masa öğeleri `tables` ile bire bir ilişkilidir.
 - `budget_items`: kategori, planlanan/gerçekleşen/ödenen tutarlar, vade, tedarikçi ilişkisi.
 - `vendors`: kategori, iletişim, teklif, sözleşme durumu ve notlar.
 - `notes`: başlık, içerik, güncellenme zamanı.
@@ -32,7 +33,7 @@ Tutarlar kayan nokta hatasını önlemek için kuruş/cents cinsinden tamsayı t
 
 ## Migration ve bütünlük
 
-Migration’lar sıralı, tek transaction içinde ve tekrar çalıştırılabilir şekilde uygulanır. Native yazımlar transaction ile yapılır. Yabancı anahtarlar açıktır; kullanıcı girdisi parametre bağlama ile sorgulanır. `schemaVersion=1` ilk sürümdür.
+Migration’lar sıralı, tek transaction içinde ve tekrar çalıştırılabilir şekilde uygulanır. Native yazımlar transaction ile yapılır. Yabancı anahtarlar açıktır; kullanıcı girdisi parametre bağlama ile sorgulanır. `schemaVersion=1` ilk sürümdür; özelleştirilebilir salon planı `schemaVersion=2` migration'ıyla eklenmiştir. Sürüm 1 yedekleri boş salon düzeniyle geriye uyumlu olarak açılır.
 
 ## Yedekleme
 

@@ -6,6 +6,8 @@ export type RsvpStatus = 'pending' | 'attending' | 'declined';
 export type GuestSide = 'couple1' | 'couple2' | 'common';
 export type GuestGroup = 'family' | 'friends' | 'work' | 'other';
 export type ContractStatus = 'researching' | 'quoted' | 'signed' | 'completed';
+export type VenueLayoutItemType = 'table' | 'stage' | 'danceFloor' | 'entrance' | 'dj' | 'service';
+export type VenueLayoutItemShape = 'round' | 'rectangle';
 
 export interface WeddingProfile {
   couple1Name: string;
@@ -57,6 +59,22 @@ export interface SeatingTable {
   updatedAt: string;
 }
 
+export interface VenueLayoutItem {
+  id: string;
+  type: VenueLayoutItemType;
+  label: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
+  shape: VenueLayoutItemShape;
+  locked: boolean;
+  tableId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface BudgetItem {
   id: string;
   category: string;
@@ -98,13 +116,14 @@ export interface AppData {
   tasks: TaskItem[];
   guests: Guest[];
   tables: SeatingTable[];
+  venueLayoutItems: VenueLayoutItem[];
   budgetItems: BudgetItem[];
   vendors: Vendor[];
   notes: NoteItem[];
 }
 
 export const APP_VERSION = '1.0.0';
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export const EMPTY_PROFILE: WeddingProfile = {
   couple1Name: '',
@@ -124,6 +143,7 @@ export const EMPTY_APP_DATA: AppData = {
   tasks: [],
   guests: [],
   tables: [],
+  venueLayoutItems: [],
   budgetItems: [],
   vendors: [],
   notes: [],

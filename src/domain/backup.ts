@@ -33,7 +33,11 @@ export function parseBackup(raw: string): AppData {
   if (!parsed || typeof parsed !== 'object') throw new ValidationError('Yedek yapısı geçersiz.');
   const envelope = parsed as Partial<BackupEnvelope>;
   if (envelope.format !== BACKUP_FORMAT) throw new ValidationError('Bu dosya Düğün Planım yedeği değil.');
-  if (envelope.schemaVersion !== SCHEMA_VERSION)
+  if (
+    typeof envelope.schemaVersion !== 'number' ||
+    envelope.schemaVersion < 1 ||
+    envelope.schemaVersion > SCHEMA_VERSION
+  )
     throw new ValidationError(`Yedek şema sürümü desteklenmiyor: ${String(envelope.schemaVersion)}.`);
   return validateAppData(envelope.payload as AppData);
 }

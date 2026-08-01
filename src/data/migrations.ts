@@ -62,6 +62,28 @@ export const MIGRATIONS: Migration[] = [
       CREATE INDEX IF NOT EXISTS idx_budget_due_date ON budget_items(due_date);
     `,
   },
+  {
+    version: 2,
+    name: 'customizable_venue_layout',
+    sql: `
+      CREATE TABLE IF NOT EXISTS venue_layout_items (
+        id TEXT PRIMARY KEY,
+        item_type TEXT NOT NULL CHECK (item_type IN ('table', 'stage', 'danceFloor', 'entrance', 'dj', 'service')),
+        label TEXT NOT NULL,
+        x REAL NOT NULL CHECK (x >= 0 AND x <= 1),
+        y REAL NOT NULL CHECK (y >= 0 AND y <= 1),
+        width REAL NOT NULL CHECK (width > 0 AND width <= 1),
+        height REAL NOT NULL CHECK (height > 0 AND height <= 1),
+        rotation INTEGER NOT NULL,
+        shape TEXT NOT NULL CHECK (shape IN ('round', 'rectangle')),
+        locked INTEGER NOT NULL DEFAULT 0,
+        table_id TEXT UNIQUE REFERENCES seating_tables(id) ON DELETE CASCADE,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_venue_layout_item_type ON venue_layout_items(item_type);
+    `,
+  },
 ];
 
 export function pendingMigrations(currentVersion: number): Migration[] {

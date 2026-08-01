@@ -1,6 +1,6 @@
 # Gizlilik ve Veri Akışı Haritası
 
-Son doğrulama: 30 Temmuz 2026.
+Son doğrulama: 1 Ağustos 2026.
 
 | Veri                        | Amaç                             | Saklama                               | Ağ aktarımı                                   | Silme                             |
 | --------------------------- | -------------------------------- | ------------------------------------- | --------------------------------------------- | --------------------------------- |
@@ -8,6 +8,7 @@ Son doğrulama: 30 Temmuz 2026.
 | Bütçe ve ödemeler           | Planlama                         | SQLite, cihaz içi                     | Yok                                           | Tekil silme veya tüm veri         |
 | Davetli adı/telefon/not     | Davetli yönetimi                 | SQLite, cihaz içi                     | Yok                                           | Tekil silme veya tüm veri         |
 | Görev, tedarikçi, not, masa | Planlama                         | SQLite, cihaz içi                     | Yok                                           | Tekil silme veya tüm veri         |
+| Salon düzeni ve konumları   | Mekân/masa yerleşimi             | SQLite, cihaz içi                     | Yok                                           | Çizimden silme veya tüm veri      |
 | Tema ve plan tercihleri     | Uygulama tercihi                 | SQLite, cihaz içi                     | Yok                                           | Tüm veri silme                    |
 | Bildirim izin kararı        | Tekrar izin istememe/yerel ayar  | SecureStore                           | Yok                                           | Tüm veri silme                    |
 | Yedek/CSV/PDF               | Kullanıcının dışa aktarma isteği | Kullanıcının seçtiği/paylaştığı konum | Yalnız OS paylaşım hedefini kullanıcı seçerse | Kullanıcı dosya sisteminden siler |

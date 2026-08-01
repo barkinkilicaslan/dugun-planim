@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
+import { router } from 'expo-router';
+import { VenueCanvas } from '@/components/venue/venue-canvas';
 import { AppText } from '@/components/ui/app-text';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -13,6 +15,7 @@ import { useApp } from '@/context/app-context';
 import { useAppTheme } from '@/context/theme-context';
 import { canAssignGuest, tableOccupancy } from '@/domain/calculations';
 import type { SeatingTable } from '@/domain/models';
+import { venueLayoutHtml, venueLayoutSummary } from '@/domain/venue-layout';
 import { escapeHtml, pdfDocument, shareHtmlAsPdf } from '@/services/export';
 
 export default function TablesScreen() {
@@ -58,6 +61,7 @@ export default function TablesScreen() {
   }
   async function exportPdf() {
     const body =
+      venueLayoutHtml(data.venueLayoutItems, data.tables, data.guests) +
       data.tables
         .map(
           (table) =>
@@ -82,6 +86,21 @@ export default function TablesScreen() {
       subtitle={`${data.tables.length} masa · ${unassigned.length} atanmamış`}
       action={<Button label="PDF" variant="ghost" onPress={() => void exportPdf()} disabled={!data.tables.length} />}
     >
+      <Card>
+        <View style={styles.header}>
+          <View style={styles.grow}>
+            <AppText variant="subtitle">Salon düzeni</AppText>
+            <AppText variant="caption" color={theme.colors.muted}>
+              {venueLayoutSummary(data.venueLayoutItems)}
+            </AppText>
+          </View>
+          <Button label="Düzenle" variant="secondary" onPress={() => router.push('/venue-editor')} />
+        </View>
+        <VenueCanvas compact items={data.venueLayoutItems} tables={data.tables} guests={data.guests} />
+        <AppText variant="caption" color={theme.colors.muted}>
+          Masa, sahne, dans pisti ve diğer alanları düğün mekânınıza göre yerleştirin.
+        </AppText>
+      </Card>
       <Card>
         <AppText variant="subtitle">Yeni masa</AppText>
         <View style={styles.form}>

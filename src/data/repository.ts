@@ -10,6 +10,7 @@ import {
   type SeatingTable,
   type TaskItem,
   type Vendor,
+  type VenueLayoutItem,
   type WeddingProfile,
 } from '@/domain/models';
 import { pendingMigrations } from './migrations';
@@ -103,6 +104,29 @@ async function upsertTableWithDb(db: Db, table: SeatingTable): Promise<void> {
   );
 }
 
+async function upsertVenueLayoutItemWithDb(db: Db, item: VenueLayoutItem): Promise<void> {
+  await db.runAsync(
+    `INSERT INTO venue_layout_items (id, item_type, label, x, y, width, height, rotation, shape, locked, table_id, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET item_type=excluded.item_type,label=excluded.label,x=excluded.x,y=excluded.y,
+     width=excluded.width,height=excluded.height,rotation=excluded.rotation,shape=excluded.shape,locked=excluded.locked,
+     table_id=excluded.table_id,updated_at=excluded.updated_at`,
+    item.id,
+    item.type,
+    item.label,
+    item.x,
+    item.y,
+    item.width,
+    item.height,
+    item.rotation,
+    item.shape,
+    item.locked ? 1 : 0,
+    item.tableId ?? null,
+    item.createdAt,
+    item.updatedAt,
+  );
+}
+
 async function upsertBudgetWithDb(db: Db, item: BudgetItem): Promise<void> {
   await db.runAsync(
     `INSERT INTO budget_items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -167,6 +191,9 @@ export const repository = {
     const tableRows = await db.getAllAsync<Record<string, string | number>>(
       'SELECT * FROM seating_tables ORDER BY name COLLATE NOCASE',
     );
+    const venueLayoutRows = await db.getAllAsync<Record<string, string | number | null>>(
+      'SELECT * FROM venue_layout_items ORDER BY created_at',
+    );
     const budgetRows = await db.getAllAsync<Record<string, string | number | null>>(
       'SELECT * FROM budget_items ORDER BY due_date, created_at',
     );
@@ -222,6 +249,21 @@ export const repository = {
         id: String(r.id),
         name: String(r.name),
         capacity: Number(r.capacity),
+        createdAt: String(r.created_at),
+        updatedAt: String(r.updated_at),
+      })),
+      venueLayoutItems: venueLayoutRows.map((r) => ({
+        id: String(r.id),
+        type: String(r.item_type) as VenueLayoutItem['type'],
+        label: String(r.label),
+        x: Number(r.x),
+        y: Number(r.y),
+        width: Number(r.width),
+        height: Number(r.height),
+        rotation: Number(r.rotation),
+        shape: String(r.shape) as VenueLayoutItem['shape'],
+        locked: Boolean(r.locked),
+        tableId: r.table_id ? String(r.table_id) : undefined,
         createdAt: String(r.created_at),
         updatedAt: String(r.updated_at),
       })),
@@ -282,6 +324,12 @@ export const repository = {
   async deleteTable(id: string) {
     await (await database()).runAsync('DELETE FROM seating_tables WHERE id = ?', id);
   },
+  async upsertVenueLayoutItem(item: VenueLayoutItem) {
+    await upsertVenueLayoutItemWithDb(await database(), item);
+  },
+  async deleteVenueLayoutItem(id: string) {
+    await (await database()).runAsync('DELETE FROM venue_layout_items WHERE id = ?', id);
+  },
   async upsertBudgetItem(item: BudgetItem) {
     await upsertBudgetWithDb(await database(), item);
   },
@@ -305,11 +353,12 @@ export const repository = {
     const db = await database();
     await db.withTransactionAsync(async () => {
       await db.execAsync(
-        'DELETE FROM guests; DELETE FROM budget_items; DELETE FROM tasks; DELETE FROM notes; DELETE FROM seating_tables; DELETE FROM vendors; DELETE FROM profile;',
+        'DELETE FROM guests; DELETE FROM budget_items; DELETE FROM tasks; DELETE FROM notes; DELETE FROM venue_layout_items; DELETE FROM seating_tables; DELETE FROM vendors; DELETE FROM profile;',
       );
       await saveProfileWithDb(db, data.profile);
       for (const vendor of data.vendors) await upsertVendorWithDb(db, vendor);
       for (const table of data.tables) await upsertTableWithDb(db, table);
+      for (const item of data.venueLayoutItems) await upsertVenueLayoutItemWithDb(db, item);
       for (const task of data.tasks) await upsertTaskWithDb(db, task);
       for (const guest of data.guests) await upsertGuestWithDb(db, guest);
       for (const item of data.budgetItems) await upsertBudgetWithDb(db, item);

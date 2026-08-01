@@ -17,7 +17,7 @@ GÖREVLER
 Düğün tarihinize göre hazırlanan başlangıç görevlerini kullanın veya kendi görevinizi ekleyin. Tarih, kategori, öncelik ve duruma göre filtreleyin; geciken işleri ve genel ilerlemenizi görün.
 
 DAVETLİLER VE MASALAR
-RSVP durumu, taraf, grup, kişi/çocuk sayısı, yemek-alerji notu ve masa bilgilerini yönetin. Masa kapasitesi aşılırsa uygulama yerleşimi engeller. Davetli listesini CSV ile taşıyın ve masa planını PDF olarak paylaşın.
+RSVP durumu, taraf, grup, kişi/çocuk sayısı, yemek-alerji notu ve masa bilgilerini yönetin. Masa kapasitesi aşılırsa uygulama yerleşimi engeller. Masaları, sahneyi, dans pistini, girişi, DJ ve ikram alanını düğün mekânınıza göre yerleştirin; şekil, boyut ve açılarını düzenleyin. Davetli listesini CSV ile taşıyın ve görsel masa planını PDF olarak paylaşın.
 
 BÜTÇE VE TEDARİKÇİLER
 Planlanan, gerçekleşen ve ödenen tutarları ayrı izleyin. Kategori dağılımını ve kalan ödemeleri görün. Teklif, sözleşme durumu, ödeme planı ve notlarla tedarikçileri düzenleyin.
@@ -32,7 +32,7 @@ Bu uygulama profesyonel düğün, hukuk veya finans danışmanlığı sağlamaz.
 
 ## Sürüm notu
 
-`İlk sürüm: görev, davetli, masa planı, bütçe, tedarikçi, takvim, not, yerel yedekleme ve isteğe bağlı hatırlatmalar.`
+`İlk sürüm: görev, davetli, özelleştirilebilir salon/masa planı, bütçe, tedarikçi, takvim, not, yerel yedekleme ve isteğe bağlı hatırlatmalar.`
 
 ## Console beyanları
 

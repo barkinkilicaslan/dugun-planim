@@ -1,5 +1,12 @@
 # Değişiklik Günlüğü
 
+## 1.0.0 — 1 Ağustos 2026
+
+- Masalar, sahne, dans pisti, giriş, DJ ve ikram alanı için özelleştirilebilir salon planı eklendi.
+- Sürükleme, adlandırma, boyutlandırma, 15° döndürme, yuvarlak/dikdörtgen masa ve konum kilidi eklendi.
+- Salon planı SQLite/yedek şemasına, masa ekranı önizlemesine ve PDF çıktısına bağlandı.
+- Salon planı migration, domain, component, erişilebilirlik ve tarayıcı kalıcılık kontrolleri eklendi.
+
 ## 1.0.0 — 30 Temmuz 2026
 
 - Hesapsız, offline-first düğün planlama temeli.

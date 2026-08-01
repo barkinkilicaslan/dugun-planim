@@ -20,6 +20,7 @@ jest.mock('@/data/repository', () => ({
       tasks: [],
       guests: [],
       tables: [],
+      venueLayoutItems: [],
       budgetItems: [],
       vendors: [],
       notes: [{ id: 'n1', title: 'Test', content: 'Yerel', createdAt: 'x', updatedAt: 'x' }],
@@ -33,6 +34,8 @@ jest.mock('@/data/repository', () => ({
     deleteGuest: jest.fn(),
     upsertTable: jest.fn(),
     deleteTable: jest.fn(),
+    upsertVenueLayoutItem: jest.fn(),
+    deleteVenueLayoutItem: jest.fn(),
     upsertBudgetItem: jest.fn(),
     deleteBudgetItem: jest.fn(),
     upsertVendor: jest.fn(),
@@ -58,5 +61,69 @@ describe('all data deletion', () => {
     expect(repository.clearAll).toHaveBeenCalled();
     expect(result.current.data.notes).toEqual([]);
     expect(result.current.data.profile.onboardingCompleted).toBe(false);
+  });
+
+  it('removes the linked drawing item and unassigns guests when a seating table is deleted', async () => {
+    const now = '2026-08-01T12:00:00.000Z';
+    (repository.load as jest.Mock).mockResolvedValueOnce({
+      profile: {
+        couple1Name: 'Ada',
+        couple2Name: 'Deniz',
+        weddingDate: '2027-01-01',
+        estimatedBudgetCents: 100,
+        estimatedGuestCount: 2,
+        currency: 'TRY',
+        theme: 'system',
+        dateFormat: 'DD.MM.YYYY',
+        notificationsEnabled: false,
+        onboardingCompleted: true,
+      },
+      tasks: [],
+      guests: [
+        {
+          id: 'g1',
+          name: 'Ada',
+          phone: '',
+          side: 'common',
+          partySize: 2,
+          childCount: 0,
+          rsvp: 'attending',
+          notes: '',
+          mealNotes: '',
+          group: 'friends',
+          tableId: 't1',
+          createdAt: now,
+          updatedAt: now,
+        },
+      ],
+      tables: [{ id: 't1', name: 'Masa 1', capacity: 8, createdAt: now, updatedAt: now }],
+      venueLayoutItems: [
+        {
+          id: 'layout-1',
+          type: 'table',
+          label: 'Masa 1',
+          x: 0.1,
+          y: 0.1,
+          width: 0.2,
+          height: 0.2,
+          rotation: 0,
+          shape: 'round',
+          locked: false,
+          tableId: 't1',
+          createdAt: now,
+          updatedAt: now,
+        },
+      ],
+      budgetItems: [],
+      vendors: [],
+      notes: [],
+    });
+    const wrapper = ({ children }: { children: React.ReactNode }) => <AppProvider>{children}</AppProvider>;
+    const { result } = await renderHook(() => useApp(), { wrapper });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    await act(async () => result.current.deleteTable('t1'));
+    expect(result.current.data.tables).toEqual([]);
+    expect(result.current.data.venueLayoutItems).toEqual([]);
+    expect(result.current.data.guests[0].tableId).toBeUndefined();
   });
 });

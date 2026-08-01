@@ -60,6 +60,7 @@ function AppNavigator() {
         <Stack.Screen name="edit/vendor" options={{ title: t('nav.vendor') }} />
         <Stack.Screen name="edit/note" options={{ title: t('nav.note') }} />
         <Stack.Screen name="tables" options={{ title: t('nav.tables') }} />
+        <Stack.Screen name="venue-editor" options={{ title: 'Salon düzeni' }} />
         <Stack.Screen name="vendors" options={{ title: t('nav.vendors') }} />
         <Stack.Screen name="calendar" options={{ title: t('nav.calendar') }} />
         <Stack.Screen name="notes" options={{ title: t('nav.notes') }} />

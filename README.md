@@ -1,6 +1,8 @@
 # Düğün Planım
 
-Hesap gerektirmeyen, offline-first düğün planlama uygulaması. Görevler, davetliler, masa planı, bütçe, ödemeler, tedarikçiler, takvim ve notlar tek bir yerel SQLite veritabanında tutulur.
+Hesap gerektirmeyen, offline-first düğün planlama uygulaması. Görevler, davetliler, özelleştirilebilir salon/masa planı, bütçe, ödemeler, tedarikçiler, takvim ve notlar tek bir yerel SQLite veritabanında tutulur.
+
+Salon düzenleyicisinde masalar, sahne, dans pisti, giriş, DJ ve ikram alanı mekâna göre sürüklenebilir; boyut, açı ve masa şekli değiştirilebilir, öğeler yanlışlıkla taşınmaması için kilitlenebilir. Düzen cihazda saklanır, masa ekranında önizlenir ve PDF masa planına eklenir.
 
 ## Teknoloji ve gereksinimler
 
