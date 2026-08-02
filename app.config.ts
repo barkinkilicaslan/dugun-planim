@@ -8,6 +8,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Düğün Planım',
   slug: 'dugun-planim',
+  owner: 'barcopolo',
   version: '1.0.0',
   orientation: 'default',
   icon: './assets/images/icon.png',
@@ -79,5 +80,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-localization',
   ],
   experiments: { typedRoutes: true, reactCompiler: true },
-  extra: { legalBaseUrl: PUBLIC_BASE_URL, supportEmail: SUPPORT_EMAIL },
+  extra: {
+    legalBaseUrl: PUBLIC_BASE_URL,
+    supportEmail: SUPPORT_EMAIL,
+    eas: { projectId: '0c2ab3c2-ea63-40f1-a77c-b93e2530c7d2' },
+  },
 });
