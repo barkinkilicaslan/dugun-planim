@@ -2,6 +2,7 @@ import type {
   AppData,
   BudgetItem,
   Guest,
+  InvitationDesign,
   NoteItem,
   SeatingTable,
   TaskItem,
@@ -10,6 +11,10 @@ import type {
   WeddingProfile,
 } from './models';
 import { isValidDateString } from './calculations';
+import { isValidEmail, normalizeEmail } from './contacts';
+import { INVITATION_TEMPLATE_IDS } from './invitation-templates';
+import { INVITE_CHANNELS, INVITE_STATUSES, RSVP_SOURCES, RSVP_STATUSES } from './rsvp';
+import { isValidTimeString } from './wedding-date';
 
 export class ValidationError extends Error {}
 
@@ -32,6 +37,12 @@ function date(value: string, label: string, optional = false): string {
   return value;
 }
 
+function boundedText(value: string, label: string, max: number): string {
+  const trimmed = value.trim();
+  if (trimmed.length > max) throw new ValidationError(`${label} en fazla ${max} karakter olabilir.`);
+  return trimmed;
+}
+
 export function validateProfile(profile: WeddingProfile): WeddingProfile {
   return {
     ...profile,
@@ -40,6 +51,8 @@ export function validateProfile(profile: WeddingProfile): WeddingProfile {
     weddingDate: date(profile.weddingDate, 'Düğün tarihi'),
     estimatedBudgetCents: nonNegativeInteger(profile.estimatedBudgetCents, 'Bütçe'),
     estimatedGuestCount: nonNegativeInteger(profile.estimatedGuestCount, 'Davetli sayısı'),
+    adultsOnly: Boolean(profile.adultsOnly),
+    adultsOnlyMessage: boundedText(profile.adultsOnlyMessage ?? '', 'Çocuksuz düğün mesajı', 400),
   };
 }
 
@@ -57,7 +70,41 @@ export function validateGuest(guest: Guest): Guest {
   if (partySize < 1) throw new ValidationError('Kişi sayısı en az 1 olmalıdır.');
   const childCount = nonNegativeInteger(guest.childCount, 'Çocuk sayısı');
   if (childCount > partySize) throw new ValidationError('Çocuk sayısı toplam kişi sayısını aşamaz.');
-  return { ...guest, name: required(guest.name, 'Davetli adı'), partySize, childCount };
+  if (!RSVP_STATUSES.includes(guest.rsvp)) throw new ValidationError('Davet durumu geçersiz.');
+  if (!RSVP_SOURCES.includes(guest.rsvpSource)) throw new ValidationError('Yanıt kaynağı geçersiz.');
+  if (!INVITE_STATUSES.includes(guest.inviteStatus)) throw new ValidationError('Davetiye gönderim durumu geçersiz.');
+  if (guest.lastInviteChannel !== '' && !INVITE_CHANNELS.includes(guest.lastInviteChannel))
+    throw new ValidationError('Davetiye gönderim kanalı geçersiz.');
+  const email = guest.email.trim();
+  if (email && !isValidEmail(email)) throw new ValidationError('E-posta adresi geçerli değil.');
+  return {
+    ...guest,
+    name: required(guest.name, 'Davetli adı'),
+    phone: guest.phone.trim(),
+    email: email ? normalizeEmail(email) : '',
+    partySize,
+    childCount,
+  };
+}
+
+export function validateInvitationDesign(design: InvitationDesign): InvitationDesign {
+  if (!INVITATION_TEMPLATE_IDS.includes(design.templateId)) throw new ValidationError('Davetiye şablonu geçersiz.');
+  if (!design.paletteId) throw new ValidationError('Davetiye renk paleti geçersiz.');
+  if (design.weddingDate && !isValidDateString(design.weddingDate))
+    throw new ValidationError('Davetiye tarihi geçerli bir takvim tarihi olmalıdır.');
+  if (design.rsvpDeadline && !isValidDateString(design.rsvpDeadline))
+    throw new ValidationError('Son cevap tarihi geçerli bir takvim tarihi olmalıdır.');
+  if (design.weddingTime && !isValidTimeString(design.weddingTime))
+    throw new ValidationError('Düğün saati SS:DD biçiminde olmalıdır.');
+  return {
+    ...design,
+    name: required(design.name, 'Tasarım adı'),
+    coupleNames: boundedText(design.coupleNames, 'Çift isimleri', 80),
+    venueName: boundedText(design.venueName, 'Mekân adı', 120),
+    venueAddress: boundedText(design.venueAddress, 'Mekân adresi', 240),
+    message: boundedText(design.message, 'Davet metni', 600),
+    adultsOnlyMessage: boundedText(design.adultsOnlyMessage, 'Çocuksuz düğün mesajı', 400),
+  };
 }
 
 export function validateTable(table: SeatingTable): SeatingTable {
@@ -114,6 +161,25 @@ export function validateNote(note: NoteItem): NoteItem {
   return { ...note, title: required(note.title, 'Not başlığı'), content: required(note.content, 'Not içeriği') };
 }
 
+/** Şema 1-2 yedeklerinde bulunmayan misafir alanlarını güvenli varsayılanlarla tamamlar. */
+function withGuestDefaults(guest: Guest): Guest {
+  const legacy: Partial<Guest> = guest;
+  return {
+    ...guest,
+    email: legacy.email ?? '',
+    rsvpSource: legacy.rsvpSource ?? (guest.rsvp === 'pending' ? 'none' : 'manual'),
+    rsvpRespondedAt: legacy.rsvpRespondedAt ?? '',
+    lastInviteSentAt: legacy.lastInviteSentAt ?? '',
+    lastInviteChannel: legacy.lastInviteChannel ?? '',
+    inviteStatus: legacy.inviteStatus ?? 'none',
+  };
+}
+
+function withProfileDefaults(profile: WeddingProfile): WeddingProfile {
+  const legacy: Partial<WeddingProfile> = profile;
+  return { ...profile, adultsOnly: legacy.adultsOnly ?? false, adultsOnlyMessage: legacy.adultsOnlyMessage ?? '' };
+}
+
 export function validateAppData(data: AppData): AppData {
   if (!data || typeof data !== 'object') throw new ValidationError('Yedek verisi bulunamadı.');
   if (
@@ -139,14 +205,22 @@ export function validateAppData(data: AppData): AppData {
       throw new ValidationError('Bir masa salon planına yalnız bir kez eklenebilir.');
     linkedTableIds.add(item.tableId);
   }
+  const designs = (Array.isArray(data.invitationDesigns) ? data.invitationDesigns : []).map((design) =>
+    validateInvitationDesign({ ...design, photoUri: '' }),
+  );
+  if (designs.filter((design) => design.isDefault).length > 1)
+    throw new ValidationError('Yalnız bir davetiye varsayılan olabilir.');
   return {
-    profile: data.profile.onboardingCompleted ? validateProfile(data.profile) : data.profile,
+    profile: data.profile.onboardingCompleted
+      ? validateProfile(withProfileDefaults(data.profile))
+      : withProfileDefaults(data.profile),
     tasks: data.tasks.map(validateTask),
-    guests: data.guests.map(validateGuest),
+    guests: data.guests.map((guest) => validateGuest(withGuestDefaults(guest))),
     tables,
     venueLayoutItems,
     budgetItems: data.budgetItems.map(validateBudgetItem),
     vendors: data.vendors.map(validateVendor),
     notes: data.notes.map(validateNote),
+    invitationDesigns: designs,
   };
 }

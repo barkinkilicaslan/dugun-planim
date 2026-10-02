@@ -17,7 +17,8 @@ export function createBackup(data: AppData, now = new Date()): string {
     schemaVersion: SCHEMA_VERSION,
     appVersion: APP_VERSION,
     exportedAt: now.toISOString(),
-    payload: data,
+    // Davetiye fotoğrafları yedeğe dahil edilmez; cihaz içi dosya yolu da dosyaya yazılmaz.
+    payload: { ...data, invitationDesigns: data.invitationDesigns.map((design) => ({ ...design, photoUri: '' })) },
   };
   return JSON.stringify(envelope, null, 2);
 }

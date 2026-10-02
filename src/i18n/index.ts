@@ -18,6 +18,10 @@ const tr = {
   'nav.notes': 'Notlar',
   'nav.settings': 'Ayarlar',
   'nav.legal': 'Bilgilendirme',
+  'nav.contactsImport': 'Rehberden davetli ekle',
+  'nav.invitations': 'Davetiyeler',
+  'nav.invitationEditor': 'Davetiye tasarımı',
+  'nav.inviteSend': 'Davetiye gönder',
 } as const;
 
 export type MessageKey = keyof typeof tr;
@@ -40,6 +44,10 @@ const en: Record<MessageKey, string> = {
   'nav.notes': 'Notes',
   'nav.settings': 'Settings',
   'nav.legal': 'Information',
+  'nav.contactsImport': 'Add guests from contacts',
+  'nav.invitations': 'Invitations',
+  'nav.invitationEditor': 'Invitation design',
+  'nav.inviteSend': 'Send invitation',
 };
 
 const dictionaries = { tr, en } as const;

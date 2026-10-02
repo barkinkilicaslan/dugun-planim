@@ -1,4 +1,5 @@
 import type { AppData, BudgetItem, CurrencyCode, DateFormatPreference, Guest, SeatingTable, TaskItem } from './models';
+import { formatNumericTr, parseIsoDate } from './wedding-date';
 
 const DAY_MS = 86_400_000;
 
@@ -7,11 +8,7 @@ export function localDateStart(value: Date): Date {
 }
 
 export function isValidDateString(value: string): boolean {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (!match) return false;
-  const [year, month, day] = match.slice(1).map(Number);
-  const check = new Date(Date.UTC(year, month - 1, day));
-  return check.getUTCFullYear() === year && check.getUTCMonth() === month - 1 && check.getUTCDate() === day;
+  return parseIsoDate(value) !== undefined;
 }
 
 export function daysUntil(dateString: string, now = new Date()): number {
@@ -24,8 +21,7 @@ export function daysUntil(dateString: string, now = new Date()): number {
 
 export function formatDate(value: string, preference: DateFormatPreference): string {
   if (!isValidDateString(value) || preference === 'YYYY-MM-DD') return value;
-  const [year, month, day] = value.split('-');
-  return `${day}.${month}.${year}`;
+  return formatNumericTr(value);
 }
 
 export function taskProgress(tasks: TaskItem[]): { completed: number; remaining: number; percentage: number } {
@@ -48,9 +44,10 @@ export function guestSummary(guests: Guest[]) {
       if (guest.rsvp === 'attending') summary.attending += guest.partySize;
       if (guest.rsvp === 'pending') summary.pending += guest.partySize;
       if (guest.rsvp === 'declined') summary.declined += guest.partySize;
+      if (guest.rsvp === 'maybe') summary.maybe += guest.partySize;
       return summary;
     },
-    { invitations: 0, people: 0, children: 0, attending: 0, pending: 0, declined: 0 },
+    { invitations: 0, people: 0, children: 0, attending: 0, pending: 0, declined: 0, maybe: 0 },
   );
 }
 

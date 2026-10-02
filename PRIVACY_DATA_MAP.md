@@ -2,23 +2,32 @@
 
 Son doğrulama: 1 Ağustos 2026.
 
-| Veri                        | Amaç                             | Saklama                               | Ağ aktarımı                                   | Silme                             |
-| --------------------------- | -------------------------------- | ------------------------------------- | --------------------------------------------- | --------------------------------- |
-| Çift isimleri, düğün tarihi | Kişiselleştirme/geri sayım       | SQLite, cihaz içi                     | Yok                                           | Ayarlar → Tüm verileri sil        |
-| Bütçe ve ödemeler           | Planlama                         | SQLite, cihaz içi                     | Yok                                           | Tekil silme veya tüm veri         |
-| Davetli adı/telefon/not     | Davetli yönetimi                 | SQLite, cihaz içi                     | Yok                                           | Tekil silme veya tüm veri         |
-| Görev, tedarikçi, not, masa | Planlama                         | SQLite, cihaz içi                     | Yok                                           | Tekil silme veya tüm veri         |
-| Salon düzeni ve konumları   | Mekân/masa yerleşimi             | SQLite, cihaz içi                     | Yok                                           | Çizimden silme veya tüm veri      |
-| Tema ve plan tercihleri     | Uygulama tercihi                 | SQLite, cihaz içi                     | Yok                                           | Tüm veri silme                    |
-| Bildirim izin kararı        | Tekrar izin istememe/yerel ayar  | SecureStore                           | Yok                                           | Tüm veri silme                    |
-| Yedek/CSV/PDF               | Kullanıcının dışa aktarma isteği | Kullanıcının seçtiği/paylaştığı konum | Yalnız OS paylaşım hedefini kullanıcı seçerse | Kullanıcı dosya sisteminden siler |
+| Veri                                          | Amaç                             | Saklama                                                | Ağ aktarımı                                   | Silme                             |
+| --------------------------------------------- | -------------------------------- | ------------------------------------------------------ | --------------------------------------------- | --------------------------------- |
+| Çift isimleri, düğün tarihi                   | Kişiselleştirme/geri sayım       | SQLite, cihaz içi                                      | Yok                                           | Ayarlar → Tüm verileri sil        |
+| Bütçe ve ödemeler                             | Planlama                         | SQLite, cihaz içi                                      | Yok                                           | Tekil silme veya tüm veri         |
+| Davetli adı/telefon/not                       | Davetli yönetimi                 | SQLite, cihaz içi                                      | Yok                                           | Tekil silme veya tüm veri         |
+| Görev, tedarikçi, not, masa                   | Planlama                         | SQLite, cihaz içi                                      | Yok                                           | Tekil silme veya tüm veri         |
+| Salon düzeni ve konumları                     | Mekân/masa yerleşimi             | SQLite, cihaz içi                                      | Yok                                           | Çizimden silme veya tüm veri      |
+| Rehberden seçilen kişi (ad, telefon, e-posta) | Davetli ekleme                   | SQLite, cihaz içi; yalnız kullanıcının seçtiği kişiler | Yok                                           | Tekil silme veya tüm veri         |
+| Davetli RSVP durumu, gönderim durumu/kanalı   | Katılım takibi                   | SQLite, cihaz içi                                      | Yok                                           | Tekil silme veya tüm veri         |
+| Davetiye tasarımları ve fotoğrafı             | Davetiye                         | SQLite + uygulama klasörü (fotoğraf), cihaz içi        | Yok                                           | Tasarım silme veya tüm veri       |
+| Çocuksuz düğün tercihi ve mesajı              | Davetiye/mesaj metni             | SQLite, cihaz içi                                      | Yok                                           | Tüm veri silme                    |
+| Davetiye PNG/PDF (geçici)                     | Paylaşım                         | Önbellek; sonraki üretim/uygulama açılışında silinir   | Yalnız kullanıcı seçtiği hedefe               | Otomatik temizlik                 |
+| Tema ve plan tercihleri                       | Uygulama tercihi                 | SQLite, cihaz içi                                      | Yok                                           | Tüm veri silme                    |
+| Bildirim izin kararı                          | Tekrar izin istememe/yerel ayar  | SecureStore                                            | Yok                                           | Tüm veri silme                    |
+| Yedek/CSV/PDF                                 | Kullanıcının dışa aktarma isteği | Kullanıcının seçtiği/paylaştığı konum                  | Yalnız OS paylaşım hedefini kullanıcı seçerse | Kullanıcı dosya sisteminden siler |
 
 ## İzinler
 
 - **Bildirim:** Sadece fayda açıklandıktan ve kullanıcı “İzin ver” dediğinde istenir. Ret temel işlevleri etkilemez. Yerel görev hatırlatmaları içindir.
 - **Dosya seçici:** Yalnız “Yedeği geri yükle” veya “CSV içe aktar” eyleminde sistem belge seçici açılır.
 - **Paylaşım:** Yalnız kullanıcının dışa aktarma/PDF eyleminde işletim sistemi paylaşım sayfası açılır.
-- Rehber, konum, kamera, mikrofon, fotoğraf kitaplığı, reklam kimliği veya izleme izni istenmez.
+- **Rehber:** yalnız “Rehberden davetli ekle” eyleminde ve açıklama ekranından sonra istenir. iOS 18 sınırlı erişimi desteklenir. Android'de yalnız `READ_CONTACTS` vardır (`WRITE_CONTACTS` kaldırıldı). Rehber yalnız bellekte listelenir; kullanıcı seçmedikçe kaydedilmez, loglanmaz, gönderilmez. Gmail/Outlook bulut rehberi (OAuth) desteklenmez.
+- **E-posta/SMS/WhatsApp/paylaşım:** davetiye metni (ve e-postada PNG eki) yalnız kullanıcı gönder düğmesine basınca işletim sisteminin ekranına verilir; son onay kullanıcıdadır. Sonuç doğrulanamazsa kayıt “Gönderim ekranı açıldı” olur.
+- **Davetiye fotoğrafı:** sistem dosya seçicisiyle seçilir (fotoğraf izni yok) ve uygulama klasörüne kopyalanır. JSON yedeğe **dahil edilmez**; yedek alınmadan önce ve geri yüklemeden sonra kullanıcıya bildirilir, geri yüklenen tasarımlarda fotoğraf alanı boş olur. Kaydedilmeyen yeni fotoğraflar düzenleyiciden çıkınca ve uygulama açılışında temizlenir.
+- Konum, kamera, mikrofon, fotoğraf kitaplığı, reklam kimliği veya izleme izni istenmez.
+- **Çevrimiçi RSVP kapalıdır.** Açılırsa “veriler yalnız cihazda kalır” ifadesi geçersiz olur; belge, gizlilik politikası ve mağaza beyanları güncellenmeden etkinleştirilmemelidir.
 
 ## SDK incelemesi
 

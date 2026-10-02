@@ -20,7 +20,7 @@ Düğün Planım, nişanlı çiftlerin hazırlıklarını tek cihazda, hesap aç
 ## Kapsam dışı kararlar
 
 - Hesap, backend, bulut eşitleme, reklam, abonelik, analiz ve izleme SDK’sı yoktur.
-- Rehber erişimi ilk sürümde yoktur. Manuel/CSV giriş aynı ihtiyacı daha düşük izin ve mağaza riskiyle karşılar.
+- Rehber erişimi yalnızca kullanıcı “Rehberden davetli ekle” dediğinde, açıklama ekranından sonra istenir; yalnız seçilen kişiler kaydedilir. Gmail/Outlook bulut rehberi (OAuth) kapsam dışıdır.
 - Sözleşme eki saklama ilk sürümde yoktur; dosya yaşam döngüsü ve hassas belge kapsamı gereksiz risk yaratır.
 - Uygulama profesyonel düğün, hukuk veya finans danışmanlığı sağlamaz.
 

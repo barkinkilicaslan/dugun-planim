@@ -13,6 +13,8 @@ const profile: WeddingProfile = {
   dateFormat: 'DD.MM.YYYY',
   notificationsEnabled: false,
   onboardingCompleted: true,
+  adultsOnly: false,
+  adultsOnlyMessage: '',
 };
 
 it('rejects calendar rollover dates', () => {

@@ -1,5 +1,6 @@
 import { csvToGuests, guestsToCsv, parseCsvRows } from '@/domain/csv';
 import type { Guest } from '@/domain/models';
+import { GUEST_DEFAULTS } from './fixtures';
 
 const guest: Guest = {
   id: 'g1',
@@ -12,6 +13,7 @@ const guest: Guest = {
   notes: 'Pencere "yanı"',
   mealNotes: 'Glütensiz',
   group: 'family',
+  ...GUEST_DEFAULTS,
   createdAt: '2026-01-01',
   updatedAt: '2026-01-01',
 };

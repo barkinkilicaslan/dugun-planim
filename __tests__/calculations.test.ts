@@ -9,6 +9,8 @@ import {
 } from '@/domain/calculations';
 import type { BudgetItem, Guest, SeatingTable, TaskItem } from '@/domain/models';
 
+import { GUEST_DEFAULTS } from './fixtures';
+
 const timestamp = '2026-07-30T10:00:00.000Z';
 const guest = (overrides: Partial<Guest> = {}): Guest => ({
   id: 'g1',
@@ -21,6 +23,7 @@ const guest = (overrides: Partial<Guest> = {}): Guest => ({
   notes: '',
   mealNotes: '',
   group: 'family',
+  ...GUEST_DEFAULTS,
   createdAt: timestamp,
   updatedAt: timestamp,
   ...overrides,
@@ -76,7 +79,7 @@ describe('guest and seating calculations', () => {
         guest({ id: 'g2', partySize: 3, childCount: 0, rsvp: 'attending' }),
         guest({ id: 'g3', partySize: 1, childCount: 0, rsvp: 'declined' }),
       ]),
-    ).toEqual({ invitations: 3, people: 6, children: 1, attending: 3, pending: 2, declined: 1 });
+    ).toEqual({ invitations: 3, people: 6, children: 1, attending: 3, pending: 2, declined: 1, maybe: 0 });
   });
   it('prevents assignments that exceed table capacity and ignores declined people in occupancy', () => {
     const table: SeatingTable = { id: 't1', name: 'Masa 1', capacity: 4, createdAt: timestamp, updatedAt: timestamp };

@@ -8,6 +8,7 @@ import {
   type AppData,
   type BudgetItem,
   type Guest,
+  type InvitationDesign,
   type NoteItem,
   type SeatingTable,
   type TaskItem,
@@ -19,6 +20,7 @@ import {
   validateAppData,
   validateBudgetItem,
   validateGuest,
+  validateInvitationDesign,
   validateNote,
   validateProfile,
   validateTable,
@@ -32,8 +34,14 @@ import {
   requestNotificationConsent,
   scheduleTaskReminder,
 } from '@/services/notifications';
+import {
+  removeAllInvitationPhotos,
+  removeInvitationPhoto,
+  removeUnreferencedInvitationPhotos,
+} from '@/services/invitation-photos';
 
-type EntityKey = 'tasks' | 'guests' | 'tables' | 'venueLayoutItems' | 'budgetItems' | 'vendors' | 'notes';
+type EntityKey =
+  'tasks' | 'guests' | 'tables' | 'venueLayoutItems' | 'budgetItems' | 'vendors' | 'notes' | 'invitationDesigns';
 
 interface AppContextValue {
   data: AppData;
@@ -56,6 +64,9 @@ interface AppContextValue {
   deleteVendor: (id: string) => Promise<void>;
   saveNote: (note: NoteItem) => Promise<void>;
   deleteNote: (id: string) => Promise<void>;
+  saveInvitationDesign: (design: InvitationDesign) => Promise<void>;
+  deleteInvitationDesign: (id: string) => Promise<void>;
+  setDefaultInvitationDesign: (id: string) => Promise<void>;
   replaceAll: (next: AppData) => Promise<void>;
   clearAll: () => Promise<void>;
   createId: () => string;
@@ -86,6 +97,7 @@ export function AppProvider({ children }: PropsWithChildren) {
         await repository.initialize();
         const loaded = await repository.load();
         if (active) setData(loaded);
+        await removeUnreferencedInvitationPhotos(loaded.invitationDesigns.map((design) => design.photoUri));
       } catch (reason) {
         if (active) setError(reason instanceof Error ? reason.message : 'Uygulama başlatılamadı.');
       } finally {
@@ -216,13 +228,46 @@ export function AppProvider({ children }: PropsWithChildren) {
         await repository.deleteNote(id);
         removeEntity('notes', id);
       },
+      saveInvitationDesign: async (design) => {
+        const valid = validateInvitationDesign(design);
+        const previousPhoto = data.invitationDesigns.find((item) => item.id === valid.id)?.photoUri;
+        await repository.upsertInvitationDesign(valid);
+        updateEntity('invitationDesigns', valid);
+        // Önceki fotoğraf yalnız kayıt başarıyla bittikten sonra silinir; kayıt hata verirse eski dosya korunur.
+        if (previousPhoto && previousPhoto !== valid.photoUri) await removeInvitationPhoto(previousPhoto);
+        if (valid.isDefault) {
+          await repository.setDefaultInvitationDesign(valid.id);
+          setData((current) => ({
+            ...current,
+            invitationDesigns: current.invitationDesigns.map((item) => ({ ...item, isDefault: item.id === valid.id })),
+          }));
+        }
+      },
+      deleteInvitationDesign: async (id) => {
+        const removed = data.invitationDesigns.find((item) => item.id === id);
+        await repository.deleteInvitationDesign(id);
+        await removeInvitationPhoto(removed?.photoUri);
+        removeEntity('invitationDesigns', id);
+      },
+      setDefaultInvitationDesign: async (id) => {
+        await repository.setDefaultInvitationDesign(id);
+        setData((current) => ({
+          ...current,
+          invitationDesigns: current.invitationDesigns.map((item) => ({ ...item, isDefault: item.id === id })),
+        }));
+      },
       replaceAll: async (next) => {
         const valid = validateAppData(next);
         await repository.replaceAll(valid);
+        // Yedek davetiye fotoğrafı içermez; yeni veride kullanılmayan eski fotoğraf dosyaları temizlenir.
+        const kept = new Set(valid.invitationDesigns.map((item) => item.photoUri));
+        for (const old of data.invitationDesigns)
+          if (old.photoUri && !kept.has(old.photoUri)) await removeInvitationPhoto(old.photoUri);
         setData(valid);
       },
       clearAll: async () => {
         await clearAllNotifications();
+        await removeAllInvitationPhotos();
         await repository.clearAll();
         setData({ ...EMPTY_APP_DATA, profile: { ...EMPTY_APP_DATA.profile } });
       },

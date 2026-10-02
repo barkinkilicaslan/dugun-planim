@@ -39,6 +39,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'android.permission.READ_EXTERNAL_STORAGE',
       'android.permission.WRITE_EXTERNAL_STORAGE',
       'android.permission.SYSTEM_ALERT_WINDOW',
+      // Rehber yalnız okunur; expo-contacts eklentisinin eklediği yazma izni kaldırılır.
+      'android.permission.WRITE_CONTACTS',
     ],
     adaptiveIcon: {
       backgroundColor: '#F8F3EA',
@@ -76,6 +78,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     'expo-document-picker',
+    [
+      'expo-contacts',
+      {
+        contactsPermission:
+          'Düğün Planım, yalnızca sizin seçtiğiniz kişileri davetli listenize eklemek için Kişiler’e erişir. Rehberiniz cihazdan dışarı gönderilmez.',
+      },
+    ],
+    'expo-mail-composer',
+    '@react-native-community/datetimepicker',
     'expo-sharing',
     'expo-localization',
   ],

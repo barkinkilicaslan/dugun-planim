@@ -14,6 +14,12 @@ export default function MoreScreen() {
           onPress={() => router.push('/tables')}
         />
         <ListRow
+          title="Davetiyeler"
+          subtitle="10 şablon, PNG/PDF ve davetli gönderimi"
+          leading="✉"
+          onPress={() => router.push('/invitations')}
+        />
+        <ListRow
           title="Tedarikçiler"
           subtitle="Teklifler, sözleşmeler ve iletişim"
           leading="◇"

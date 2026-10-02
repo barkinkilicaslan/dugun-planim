@@ -14,7 +14,8 @@ export default function SupportPage() {
       <h2>Yeni cihaza nasıl geçerim?</h2>
       <p>
         Eski cihazda Ayarlar → Yedek dosyası oluştur seçeneğini kullanın. Dosyayı güvenli bir hedefe kaydedin, yeni
-        cihazda “Yedekten geri yükle” ile seçin ve özetini onaylayın.
+        cihazda “Yedekten geri yükle” ile seçin ve özetini onaylayın. Davetiye fotoğrafları yedeğe dahil edilmez; yeni
+        cihazda yeniden eklemeniz gerekir.
       </p>
       <h2>Bildirim neden gelmedi?</h2>
       <p>

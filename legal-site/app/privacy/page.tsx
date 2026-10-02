@@ -22,8 +22,12 @@ export default function PrivacyPage() {
       <h2>3. İzinler</h2>
       <p>
         Bildirim izni, yerel görev hatırlatmalarının faydası açıklandıktan sonra ve yalnız açık seçiminizle istenir.
-        Dosya seçici, yedek veya CSV dosyası seçtiğiniz anda; paylaşım ekranı ise yalnız dışa aktarma düğmesine
-        bastığınızda açılır. Rehber, konum, kamera, mikrofon ve fotoğraf arşivi erişimi istenmez.
+        Rehber izni yalnızca “Rehberden davetli ekle” seçeneğine bastığınızda ve nedenini okuduktan sonra istenir;
+        yalnız sizin seçtiğiniz kişilerin ad, telefon ve e-posta bilgisi davetli listenize kaydedilir, rehberin tamamı
+        kopyalanmaz ve hiçbir rehber bilgisi sunucuya gönderilmez. Dosya seçici, yedek, CSV veya davetiye fotoğrafı
+        seçtiğiniz anda; paylaşım, e-posta, SMS ve WhatsApp ekranları ise yalnız ilgili gönder/paylaş düğmesine
+        bastığınızda açılır. Uygulama hiçbir mesajı sizin onayınız olmadan göndermez. Konum, kamera, mikrofon ve
+        fotoğraf arşivi erişimi istenmez.
       </p>
       <h2>4. Yedekler ve paylaşımlar</h2>
       <p>

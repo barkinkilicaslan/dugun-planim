@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { AppProvider, useApp } from '@/context/app-context';
 import { AppThemeProvider, useAppTheme } from '@/context/theme-context';
 import { t } from '@/i18n';
+import { cleanupInvitationTemp } from '@/services/invitation-files';
 import { configureNotifications } from '@/services/notifications';
 
 void SplashScreen.preventAutoHideAsync();
@@ -18,6 +19,7 @@ function AppNavigator() {
   const theme = useAppTheme();
   useEffect(() => {
     void configureNotifications();
+    cleanupInvitationTemp();
   }, []);
   useEffect(() => {
     if (!loading) void SplashScreen.hideAsync();
@@ -59,6 +61,10 @@ function AppNavigator() {
         <Stack.Screen name="edit/budget" options={{ title: t('nav.budgetItem') }} />
         <Stack.Screen name="edit/vendor" options={{ title: t('nav.vendor') }} />
         <Stack.Screen name="edit/note" options={{ title: t('nav.note') }} />
+        <Stack.Screen name="contacts-import" options={{ title: t('nav.contactsImport') }} />
+        <Stack.Screen name="invitations" options={{ title: t('nav.invitations') }} />
+        <Stack.Screen name="invitation-editor" options={{ title: t('nav.invitationEditor') }} />
+        <Stack.Screen name="invite-send" options={{ title: t('nav.inviteSend') }} />
         <Stack.Screen name="tables" options={{ title: t('nav.tables') }} />
         <Stack.Screen name="venue-editor" options={{ title: 'Salon düzeni' }} />
         <Stack.Screen name="vendors" options={{ title: t('nav.vendors') }} />

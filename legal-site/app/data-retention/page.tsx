@@ -16,7 +16,9 @@ export default function DataPage() {
       <h2>Taşınabilir yedek</h2>
       <p>
         Ayarlar’dan uygulama ve şema sürümünü içeren JSON yedek oluşturabilirsiniz. Geri yüklemede dosya boyutu, biçimi,
-        sürümü ve kayıtları doğrulanır; mevcut veriler ancak siz onayladıktan sonra değiştirilir.
+        sürümü ve kayıtları doğrulanır; mevcut veriler ancak siz onayladıktan sonra değiştirilir. Davetiye tasarımları
+        yedeğe girer, ancak davetiyelere eklediğiniz fotoğraflar yedek dosyasına dahil edilmez; geri yüklemeden sonra
+        fotoğrafları yeniden eklemeniz gerekir.
       </p>
       <h2>Kalıcı silme</h2>
       <p>

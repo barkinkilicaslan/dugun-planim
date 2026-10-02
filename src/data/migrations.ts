@@ -84,6 +84,40 @@ export const MIGRATIONS: Migration[] = [
       CREATE INDEX IF NOT EXISTS idx_venue_layout_item_type ON venue_layout_items(item_type);
     `,
   },
+  {
+    // Mevcut kayıtlar korunur: yalnız varsayılanlı sütunlar eklenir; wedding_date (YYYY-AA-GG) olduğu gibi kalır.
+    version: 3,
+    name: 'rsvp_invitations_adults_only',
+    sql: `
+      ALTER TABLE profile ADD COLUMN adults_only INTEGER NOT NULL DEFAULT 0;
+      ALTER TABLE profile ADD COLUMN adults_only_message TEXT NOT NULL DEFAULT '';
+      ALTER TABLE guests ADD COLUMN email TEXT NOT NULL DEFAULT '';
+      ALTER TABLE guests ADD COLUMN rsvp_source TEXT NOT NULL DEFAULT 'none';
+      ALTER TABLE guests ADD COLUMN rsvp_responded_at TEXT NOT NULL DEFAULT '';
+      ALTER TABLE guests ADD COLUMN last_invite_sent_at TEXT NOT NULL DEFAULT '';
+      ALTER TABLE guests ADD COLUMN last_invite_channel TEXT NOT NULL DEFAULT '';
+      ALTER TABLE guests ADD COLUMN invite_status TEXT NOT NULL DEFAULT 'none';
+      UPDATE guests SET rsvp_source = 'manual' WHERE rsvp <> 'pending';
+      CREATE TABLE IF NOT EXISTS invitation_designs (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        template_id TEXT NOT NULL,
+        palette_id TEXT NOT NULL,
+        couple_names TEXT NOT NULL,
+        wedding_date TEXT NOT NULL,
+        wedding_time TEXT NOT NULL,
+        venue_name TEXT NOT NULL,
+        venue_address TEXT NOT NULL,
+        message TEXT NOT NULL,
+        rsvp_deadline TEXT NOT NULL,
+        adults_only_message TEXT NOT NULL,
+        photo_uri TEXT NOT NULL,
+        is_default INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+    `,
+  },
 ];
 
 export function pendingMigrations(currentVersion: number): Migration[] {

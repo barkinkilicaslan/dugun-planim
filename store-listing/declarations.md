@@ -36,4 +36,12 @@ Uygulama özel veya standart dışı şifreleme uygulamaz. Sistem/Expo çalışm
 - Bildirim: yalnız açık seçimle yerel görev hatırlatması.
 - Belge seçici: JSON yedek veya CSV içe aktarma seçildiğinde.
 - Paylaşım/yazdırma: JSON, CSV veya PDF dışa aktarma seçildiğinde.
-- İstenmeyen izinler: kişi rehberi, konum, kamera, mikrofon, fotoğraf arşivi ve reklam kimliği yoktur.
+- Kişiler (iOS `NSContactsUsageDescription`, Android `READ_CONTACTS`): yalnız “Rehberden davetli ekle” eylemiyle, Türkçe açıklama ekranından sonra. Yalnız kullanıcının seçtiği kişiler cihazdaki veritabanına yazılır; sunucuya gönderilmez. `WRITE_CONTACTS` kaldırılmıştır.
+- E-posta, SMS, WhatsApp, paylaşım: kullanıcı eylemiyle işletim sistemi ekranı açılır; uygulama sessiz gönderim yapmaz.
+- Davetiye fotoğrafı: sistem dosya seçicisi; fotoğraf kitaplığı izni yoktur. Fotoğraflar JSON yedeğe dahil edilmez (kullanıcıya bildirilir).
+- İstenmeyen izinler: konum, kamera, mikrofon, fotoğraf arşivi ve reklam kimliği yoktur.
+
+## Taslak güncellemesi (rehber ve davetiye gönderimi)
+
+- Apple App Privacy: **Contacts** verisi uygulama tarafından toplanmaz (cihaz dışına çıkmaz). Davetiye metni/PNG/PDF yalnız kullanıcı seçtiği iletişim uygulamasına devredilir. Çevrimiçi RSVP etkinleştirilirse bu bölüm yeniden yazılmalıdır (bkz. docs/ONLINE_RSVP_DECISION.md).
+- Google Data Safety: “Kişi bilgileri” toplanmıyor/paylaşılmıyor (işlem yalnız cihazda). Çevrimiçi RSVP açılırsa ad, yanıt ve not “toplanan veri” olur ve bu bölüm değişmelidir.

@@ -6,6 +6,7 @@ import { AppText } from '@/components/ui/app-text';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Chips } from '@/components/ui/chips';
+import { DateField } from '@/components/ui/date-field';
 import { ProgressBar } from '@/components/ui/progress';
 import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
@@ -13,12 +14,14 @@ import { spacing } from '@/constants/theme';
 import { useApp } from '@/context/app-context';
 import { useAppTheme } from '@/context/theme-context';
 import { EMPTY_PROFILE, type CurrencyCode, type WeddingProfile } from '@/domain/models';
+import { todayIso, weddingDateError } from '@/domain/wedding-date';
 
 export default function OnboardingScreen() {
   const { completeOnboarding } = useApp();
   const theme = useAppTheme();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [dateError, setDateError] = useState<string>();
   const [profile, setProfile] = useState<WeddingProfile>({ ...EMPTY_PROFILE, currency: 'TRY' });
   const update = <K extends keyof WeddingProfile>(key: K, value: WeddingProfile[K]) =>
     setProfile((current) => ({ ...current, [key]: value }));
@@ -26,8 +29,11 @@ export default function OnboardingScreen() {
   function next() {
     if (step === 1 && (!profile.couple1Name.trim() || !profile.couple2Name.trim()))
       return Alert.alert('İsimler gerekli', 'Ana ekranı kişiselleştirmek için iki ismi de yazın.');
-    if (step === 2 && !/^\d{4}-\d{2}-\d{2}$/.test(profile.weddingDate))
-      return Alert.alert('Tarih gerekli', 'Düğün tarihini YYYY-AA-GG biçiminde yazın.');
+    const dateProblem = step === 2 ? weddingDateError(profile.weddingDate) : undefined;
+    if (dateProblem) {
+      setDateError(dateProblem);
+      return Alert.alert('Düğün tarihi gerekli', dateProblem);
+    }
     if (step === 2 && (profile.estimatedBudgetCents <= 0 || profile.estimatedGuestCount <= 0))
       return Alert.alert('Tahminleri tamamlayın', 'Bütçe ve davetli tahmini sıfırdan büyük olmalıdır.');
     setStep((current) => Math.min(3, current + 1));
@@ -96,12 +102,15 @@ export default function OnboardingScreen() {
       {step === 2 ? (
         <Card>
           <AppText variant="title">Temel plan</AppText>
-          <TextField
-            label="Düğün tarihi (YYYY-AA-GG)"
-            placeholder="2027-06-12"
+          <DateField
+            label="Düğün tarihi"
             value={profile.weddingDate}
-            onChangeText={(value) => update('weddingDate', value)}
-            keyboardType="numbers-and-punctuation"
+            minimumDate={todayIso()}
+            error={dateError}
+            onChange={(value) => {
+              setDateError(undefined);
+              update('weddingDate', value);
+            }}
           />
           <TextField
             label="Tahmini toplam bütçe"

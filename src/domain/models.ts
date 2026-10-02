@@ -2,7 +2,12 @@ export type CurrencyCode = 'TRY' | 'EUR' | 'USD' | 'GBP';
 export type ThemePreference = 'light' | 'dark' | 'system';
 export type DateFormatPreference = 'DD.MM.YYYY' | 'YYYY-MM-DD';
 export type TaskPriority = 'low' | 'medium' | 'high';
-export type RsvpStatus = 'pending' | 'attending' | 'declined';
+export type RsvpStatus = 'pending' | 'attending' | 'declined' | 'maybe';
+/** Yanıtın nereden geldiği: hiç yanıt yok, kullanıcı elle girdi veya çevrimiçi yanıttan geldi. */
+export type RsvpSource = 'none' | 'manual' | 'online';
+export type InviteChannel = 'email' | 'sms' | 'whatsapp' | 'share';
+/** İşletim sistemi gönderimi doğrulamadığı için yalnız "ekran açıldı" veya kullanıcı işaretli "gönderildi" tutulur. */
+export type InviteDispatchStatus = 'none' | 'opened' | 'markedSent';
 export type GuestSide = 'couple1' | 'couple2' | 'common';
 export type GuestGroup = 'family' | 'friends' | 'work' | 'other';
 export type ContractStatus = 'researching' | 'quoted' | 'signed' | 'completed';
@@ -20,6 +25,8 @@ export interface WeddingProfile {
   dateFormat: DateFormatPreference;
   notificationsEnabled: boolean;
   onboardingCompleted: boolean;
+  adultsOnly: boolean;
+  adultsOnlyMessage: string;
 }
 
 export interface TaskItem {
@@ -39,6 +46,7 @@ export interface Guest {
   id: string;
   name: string;
   phone: string;
+  email: string;
   side: GuestSide;
   partySize: number;
   childCount: number;
@@ -47,6 +55,12 @@ export interface Guest {
   mealNotes: string;
   group: GuestGroup;
   tableId?: string;
+  rsvpSource: RsvpSource;
+  /** Yanıt tarihi (ISO zaman damgası) veya boş metin. */
+  rsvpRespondedAt: string;
+  lastInviteSentAt: string;
+  lastInviteChannel: InviteChannel | '';
+  inviteStatus: InviteDispatchStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -111,6 +125,39 @@ export interface NoteItem {
   updatedAt: string;
 }
 
+export type InvitationTemplateId =
+  | 'classic'
+  | 'minimal'
+  | 'botanical'
+  | 'modern'
+  | 'boho'
+  | 'goldElegance'
+  | 'garden'
+  | 'geometric'
+  | 'night'
+  | 'romantic';
+
+export interface InvitationDesign {
+  id: string;
+  name: string;
+  templateId: InvitationTemplateId;
+  paletteId: string;
+  /** Boşsa düğün profilindeki değer kullanılır. */
+  coupleNames: string;
+  weddingDate: string;
+  weddingTime: string;
+  venueName: string;
+  venueAddress: string;
+  message: string;
+  rsvpDeadline: string;
+  adultsOnlyMessage: string;
+  /** Cihaz içi kalıcı kopya; yedek dosyasına dahil edilmez. */
+  photoUri: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AppData {
   profile: WeddingProfile;
   tasks: TaskItem[];
@@ -120,10 +167,11 @@ export interface AppData {
   budgetItems: BudgetItem[];
   vendors: Vendor[];
   notes: NoteItem[];
+  invitationDesigns: InvitationDesign[];
 }
 
 export const APP_VERSION = '1.0.0';
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 export const EMPTY_PROFILE: WeddingProfile = {
   couple1Name: '',
@@ -136,6 +184,8 @@ export const EMPTY_PROFILE: WeddingProfile = {
   dateFormat: 'DD.MM.YYYY',
   notificationsEnabled: false,
   onboardingCompleted: false,
+  adultsOnly: false,
+  adultsOnlyMessage: '',
 };
 
 export const EMPTY_APP_DATA: AppData = {
@@ -147,4 +197,5 @@ export const EMPTY_APP_DATA: AppData = {
   budgetItems: [],
   vendors: [],
   notes: [],
+  invitationDesigns: [],
 };

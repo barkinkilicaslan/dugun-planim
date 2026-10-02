@@ -7,6 +7,7 @@ import {
   venueLayoutSummary,
 } from '@/domain/venue-layout';
 import type { Guest, SeatingTable } from '@/domain/models';
+import { GUEST_DEFAULTS } from './fixtures';
 
 const now = '2026-08-01T12:00:00.000Z';
 
@@ -55,6 +56,7 @@ describe('customizable venue layout', () => {
       notes: '',
       mealNotes: '',
       group: 'friends',
+      ...GUEST_DEFAULTS,
       tableId: 't1',
       createdAt: now,
       updatedAt: now,

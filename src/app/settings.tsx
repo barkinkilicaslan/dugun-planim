@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Linking } from 'react-native';
+import { Alert, Linking, StyleSheet, Switch, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Application from 'expo-application';
 import Constants from 'expo-constants';
@@ -7,6 +7,7 @@ import { AppText } from '@/components/ui/app-text';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Chips } from '@/components/ui/chips';
+import { DateField } from '@/components/ui/date-field';
 import { ListRow } from '@/components/ui/list-row';
 import { Screen } from '@/components/ui/screen';
 import { SectionHeader } from '@/components/ui/section-header';
@@ -14,6 +15,7 @@ import { TextField } from '@/components/ui/text-field';
 import { useApp } from '@/context/app-context';
 import { useAppTheme } from '@/context/theme-context';
 import { createBackup, parseBackup } from '@/domain/backup';
+import { BACKUP_PHOTO_NOTICE_BODY, BACKUP_PHOTO_NOTICE_TITLE, restoreCompleteMessage } from '@/domain/backup-notices';
 import {
   APP_VERSION,
   type CurrencyCode,
@@ -21,6 +23,7 @@ import {
   type ThemePreference,
   type WeddingProfile,
 } from '@/domain/models';
+import { ADULTS_ONLY_PRESETS } from '@/domain/invitation-templates';
 import { requestNotificationConsent } from '@/services/notifications';
 import { pickTextFile, shareTextFile } from '@/services/export';
 const cents = (value: string) => Math.max(0, Math.round(Number(value.replace(',', '.')) * 100)) || 0;
@@ -58,7 +61,7 @@ export default function SettingsScreen() {
       Alert.alert('İzin kontrol edilemedi', (error as Error).message);
     }
   }
-  async function backup() {
+  async function shareBackup() {
     try {
       await shareTextFile(
         `dugun-planim-yedek-${new Date().toISOString().slice(0, 10)}.json`,
@@ -69,21 +72,32 @@ export default function SettingsScreen() {
       Alert.alert('Yedek oluşturulamadı', (error as Error).message);
     }
   }
+  /** Yedek alınmadan önce fotoğrafların dosyaya girmediği açıkça söylenir. */
+  function backup() {
+    Alert.alert(BACKUP_PHOTO_NOTICE_TITLE, BACKUP_PHOTO_NOTICE_BODY, [
+      { text: 'Vazgeç', style: 'cancel' },
+      { text: 'Yedeği oluştur', onPress: () => void shareBackup() },
+    ]);
+  }
   async function restore() {
     try {
       const raw = await pickTextFile(['application/json', 'text/json']);
       if (!raw) return;
       const restored = parseBackup(raw);
-      Alert.alert('Yedek geri yüklensin mi?', 'Mevcut cihaz verileri doğrulanmış yedekteki verilerle değiştirilecek.', [
-        { text: 'Vazgeç', style: 'cancel' },
-        {
-          text: 'Geri yükle',
-          onPress: () =>
-            void replaceAll(restored)
-              .then(() => Alert.alert('Tamamlandı', 'Yedek başarıyla geri yüklendi.'))
-              .catch((error) => Alert.alert('Geri yüklenemedi', error.message)),
-        },
-      ]);
+      Alert.alert(
+        'Yedek geri yüklensin mi?',
+        `Mevcut cihaz verileri doğrulanmış yedekteki verilerle değiştirilecek. ${BACKUP_PHOTO_NOTICE_BODY}`,
+        [
+          { text: 'Vazgeç', style: 'cancel' },
+          {
+            text: 'Geri yükle',
+            onPress: () =>
+              void replaceAll(restored)
+                .then(() => Alert.alert('Tamamlandı', restoreCompleteMessage(restored.invitationDesigns.length)))
+                .catch((error) => Alert.alert('Geri yüklenemedi', error.message)),
+          },
+        ],
+      );
     } catch (error) {
       Alert.alert('Yedek geçersiz', (error as Error).message);
     }
@@ -124,10 +138,10 @@ export default function SettingsScreen() {
           value={profile.couple2Name}
           onChangeText={(value) => update('couple2Name', value)}
         />
-        <TextField
-          label="Düğün tarihi (YYYY-AA-GG)"
+        <DateField
+          label="Düğün tarihi"
           value={profile.weddingDate}
-          onChangeText={(value) => update('weddingDate', value)}
+          onChange={(value) => update('weddingDate', value)}
         />
         <TextField
           label="Tahmini bütçe"
@@ -163,6 +177,52 @@ export default function SettingsScreen() {
         />
         <Button label="Bilgileri kaydet" onPress={() => void save()} loading={saving} />
       </Card>
+      <SectionHeader title="Çocuk politikası" />
+      <Card>
+        <View style={styles.switchRow}>
+          <View style={styles.switchCopy}>
+            <AppText variant="label">Düğünümüz yetişkinlere özeldir</AppText>
+            <AppText variant="caption" color={theme.colors.muted}>
+              Açıkken davetiye önizlemesinde, PNG/PDF çıktısında ve paylaşım mesajlarında nazik bir not görünür.
+            </AppText>
+          </View>
+          <Switch
+            accessibilityLabel="Düğünümüz yetişkinlere özeldir"
+            value={profile.adultsOnly}
+            onValueChange={(value) =>
+              setProfile((current) => ({
+                ...current,
+                adultsOnly: value,
+                adultsOnlyMessage:
+                  value && !current.adultsOnlyMessage ? ADULTS_ONLY_PRESETS[0] : current.adultsOnlyMessage,
+              }))
+            }
+            trackColor={{ true: theme.colors.primary, false: theme.colors.border }}
+          />
+        </View>
+        {profile.adultsOnly ? (
+          <>
+            <View style={styles.presets}>
+              {ADULTS_ONLY_PRESETS.map((preset, index) => (
+                <Button
+                  key={preset}
+                  label={`Hazır mesaj ${index + 1}`}
+                  variant={profile.adultsOnlyMessage === preset ? 'primary' : 'secondary'}
+                  onPress={() => update('adultsOnlyMessage', preset)}
+                />
+              ))}
+            </View>
+            <TextField
+              label="Çocuksuz düğün mesajı"
+              value={profile.adultsOnlyMessage}
+              onChangeText={(value) => update('adultsOnlyMessage', value)}
+              multiline
+              maxLength={400}
+            />
+          </>
+        ) : null}
+        <Button label="Çocuk politikasını kaydet" variant="secondary" onPress={() => void save()} loading={saving} />
+      </Card>
       <SectionHeader title="Görünüm ve bildirim" />
       <Card>
         <Chips<ThemePreference>
@@ -187,8 +247,8 @@ export default function SettingsScreen() {
       <Card>
         <ListRow
           title="Yedek dosyası oluştur"
-          subtitle="Sürümlü JSON; işletim sistemi paylaşım ekranı"
-          onPress={() => void backup()}
+          subtitle="Sürümlü JSON; davetiye fotoğrafları dahil edilmez"
+          onPress={backup}
         />
         <ListRow
           title="Yedekten geri yükle"
@@ -226,3 +286,9 @@ export default function SettingsScreen() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  switchRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  switchCopy: { flex: 1, gap: 4 },
+  presets: { gap: 8 },
+});

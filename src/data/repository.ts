@@ -6,6 +6,7 @@ import {
   type AppData,
   type BudgetItem,
   type Guest,
+  type InvitationDesign,
   type NoteItem,
   type SeatingTable,
   type TaskItem,
@@ -36,13 +37,14 @@ async function migrate(db: Db): Promise<void> {
 
 async function saveProfileWithDb(db: Db, profile: WeddingProfile): Promise<void> {
   await db.runAsync(
-    `INSERT INTO profile (id, couple1_name, couple2_name, wedding_date, estimated_budget_cents, estimated_guest_count, currency, theme, date_format, notifications_enabled, onboarding_completed)
-     VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `INSERT INTO profile (id, couple1_name, couple2_name, wedding_date, estimated_budget_cents, estimated_guest_count, currency, theme, date_format, notifications_enabled, onboarding_completed, adults_only, adults_only_message)
+     VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT(id) DO UPDATE SET couple1_name=excluded.couple1_name, couple2_name=excluded.couple2_name,
      wedding_date=excluded.wedding_date, estimated_budget_cents=excluded.estimated_budget_cents,
      estimated_guest_count=excluded.estimated_guest_count, currency=excluded.currency, theme=excluded.theme,
      date_format=excluded.date_format, notifications_enabled=excluded.notifications_enabled,
-     onboarding_completed=excluded.onboarding_completed`,
+     onboarding_completed=excluded.onboarding_completed, adults_only=excluded.adults_only,
+     adults_only_message=excluded.adults_only_message`,
     profile.couple1Name,
     profile.couple2Name,
     profile.weddingDate,
@@ -53,6 +55,8 @@ async function saveProfileWithDb(db: Db, profile: WeddingProfile): Promise<void>
     profile.dateFormat,
     profile.notificationsEnabled ? 1 : 0,
     profile.onboardingCompleted ? 1 : 0,
+    profile.adultsOnly ? 1 : 0,
+    profile.adultsOnlyMessage,
   );
 }
 
@@ -75,11 +79,19 @@ async function upsertTaskWithDb(db: Db, task: TaskItem): Promise<void> {
 
 async function upsertGuestWithDb(db: Db, guest: Guest): Promise<void> {
   await db.runAsync(
-    `INSERT INTO guests VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-     ON CONFLICT(id) DO UPDATE SET name=excluded.name,phone=excluded.phone,side=excluded.side,party_size=excluded.party_size,child_count=excluded.child_count,rsvp=excluded.rsvp,notes=excluded.notes,meal_notes=excluded.meal_notes,guest_group=excluded.guest_group,table_id=excluded.table_id,updated_at=excluded.updated_at`,
+    `INSERT INTO guests (id, name, phone, email, side, party_size, child_count, rsvp, notes, meal_notes, guest_group, table_id,
+       rsvp_source, rsvp_responded_at, last_invite_sent_at, last_invite_channel, invite_status, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET name=excluded.name,phone=excluded.phone,email=excluded.email,side=excluded.side,
+     party_size=excluded.party_size,child_count=excluded.child_count,rsvp=excluded.rsvp,notes=excluded.notes,
+     meal_notes=excluded.meal_notes,guest_group=excluded.guest_group,table_id=excluded.table_id,
+     rsvp_source=excluded.rsvp_source,rsvp_responded_at=excluded.rsvp_responded_at,
+     last_invite_sent_at=excluded.last_invite_sent_at,last_invite_channel=excluded.last_invite_channel,
+     invite_status=excluded.invite_status,updated_at=excluded.updated_at`,
     guest.id,
     guest.name,
     guest.phone,
+    guest.email,
     guest.side,
     guest.partySize,
     guest.childCount,
@@ -88,6 +100,11 @@ async function upsertGuestWithDb(db: Db, guest: Guest): Promise<void> {
     guest.mealNotes,
     guest.group,
     guest.tableId ?? null,
+    guest.rsvpSource,
+    guest.rsvpRespondedAt,
+    guest.lastInviteSentAt,
+    guest.lastInviteChannel,
+    guest.inviteStatus,
     guest.createdAt,
     guest.updatedAt,
   );
@@ -163,6 +180,35 @@ async function upsertVendorWithDb(db: Db, vendor: Vendor): Promise<void> {
   );
 }
 
+async function upsertInvitationDesignWithDb(db: Db, design: InvitationDesign): Promise<void> {
+  await db.runAsync(
+    `INSERT INTO invitation_designs (id, name, template_id, palette_id, couple_names, wedding_date, wedding_time, venue_name,
+       venue_address, message, rsvp_deadline, adults_only_message, photo_uri, is_default, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET name=excluded.name,template_id=excluded.template_id,palette_id=excluded.palette_id,
+     couple_names=excluded.couple_names,wedding_date=excluded.wedding_date,wedding_time=excluded.wedding_time,
+     venue_name=excluded.venue_name,venue_address=excluded.venue_address,message=excluded.message,
+     rsvp_deadline=excluded.rsvp_deadline,adults_only_message=excluded.adults_only_message,photo_uri=excluded.photo_uri,
+     is_default=excluded.is_default,updated_at=excluded.updated_at`,
+    design.id,
+    design.name,
+    design.templateId,
+    design.paletteId,
+    design.coupleNames,
+    design.weddingDate,
+    design.weddingTime,
+    design.venueName,
+    design.venueAddress,
+    design.message,
+    design.rsvpDeadline,
+    design.adultsOnlyMessage,
+    design.photoUri,
+    design.isDefault ? 1 : 0,
+    design.createdAt,
+    design.updatedAt,
+  );
+}
+
 async function upsertNoteWithDb(db: Db, note: NoteItem): Promise<void> {
   await db.runAsync(
     `INSERT INTO notes VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET title=excluded.title,content=excluded.content,updated_at=excluded.updated_at`,
@@ -203,6 +249,9 @@ export const repository = {
     const noteRows = await db.getAllAsync<Record<string, string | number>>(
       'SELECT * FROM notes ORDER BY updated_at DESC',
     );
+    const designRows = await db.getAllAsync<Record<string, string | number>>(
+      'SELECT * FROM invitation_designs ORDER BY created_at',
+    );
     return {
       profile: profileRow
         ? {
@@ -216,6 +265,8 @@ export const repository = {
             dateFormat: String(profileRow.date_format) as WeddingProfile['dateFormat'],
             notificationsEnabled: Boolean(profileRow.notifications_enabled),
             onboardingCompleted: Boolean(profileRow.onboarding_completed),
+            adultsOnly: Boolean(profileRow.adults_only),
+            adultsOnlyMessage: String(profileRow.adults_only_message ?? ''),
           }
         : { ...EMPTY_PROFILE },
       tasks: taskRows.map((r) => ({
@@ -234,6 +285,7 @@ export const repository = {
         id: String(r.id),
         name: String(r.name),
         phone: String(r.phone),
+        email: String(r.email ?? ''),
         side: String(r.side) as Guest['side'],
         partySize: Number(r.party_size),
         childCount: Number(r.child_count),
@@ -242,6 +294,11 @@ export const repository = {
         mealNotes: String(r.meal_notes),
         group: String(r.guest_group) as Guest['group'],
         tableId: r.table_id ? String(r.table_id) : undefined,
+        rsvpSource: String(r.rsvp_source) as Guest['rsvpSource'],
+        rsvpRespondedAt: String(r.rsvp_responded_at ?? ''),
+        lastInviteSentAt: String(r.last_invite_sent_at ?? ''),
+        lastInviteChannel: String(r.last_invite_channel ?? '') as Guest['lastInviteChannel'],
+        inviteStatus: String(r.invite_status) as Guest['inviteStatus'],
         createdAt: String(r.created_at),
         updatedAt: String(r.updated_at),
       })),
@@ -300,6 +357,24 @@ export const repository = {
         createdAt: String(r.created_at),
         updatedAt: String(r.updated_at),
       })),
+      invitationDesigns: designRows.map((r) => ({
+        id: String(r.id),
+        name: String(r.name),
+        templateId: String(r.template_id) as InvitationDesign['templateId'],
+        paletteId: String(r.palette_id),
+        coupleNames: String(r.couple_names),
+        weddingDate: String(r.wedding_date),
+        weddingTime: String(r.wedding_time),
+        venueName: String(r.venue_name),
+        venueAddress: String(r.venue_address),
+        message: String(r.message),
+        rsvpDeadline: String(r.rsvp_deadline),
+        adultsOnlyMessage: String(r.adults_only_message),
+        photoUri: String(r.photo_uri),
+        isDefault: Boolean(r.is_default),
+        createdAt: String(r.created_at),
+        updatedAt: String(r.updated_at),
+      })),
     };
   },
 
@@ -349,11 +424,24 @@ export const repository = {
     await (await database()).runAsync('DELETE FROM notes WHERE id = ?', id);
   },
 
+  async upsertInvitationDesign(design: InvitationDesign) {
+    await upsertInvitationDesignWithDb(await database(), design);
+  },
+  async deleteInvitationDesign(id: string) {
+    await (await database()).runAsync('DELETE FROM invitation_designs WHERE id = ?', id);
+  },
+  /** Varsayılan davetiyeyi tek kayıt olarak işaretler. */
+  async setDefaultInvitationDesign(id: string) {
+    await (
+      await database()
+    ).runAsync('UPDATE invitation_designs SET is_default = CASE WHEN id = ? THEN 1 ELSE 0 END', id);
+  },
+
   async replaceAll(data: AppData): Promise<void> {
     const db = await database();
     await db.withTransactionAsync(async () => {
       await db.execAsync(
-        'DELETE FROM guests; DELETE FROM budget_items; DELETE FROM tasks; DELETE FROM notes; DELETE FROM venue_layout_items; DELETE FROM seating_tables; DELETE FROM vendors; DELETE FROM profile;',
+        'DELETE FROM guests; DELETE FROM budget_items; DELETE FROM tasks; DELETE FROM notes; DELETE FROM venue_layout_items; DELETE FROM seating_tables; DELETE FROM vendors; DELETE FROM invitation_designs; DELETE FROM profile;',
       );
       await saveProfileWithDb(db, data.profile);
       for (const vendor of data.vendors) await upsertVendorWithDb(db, vendor);
@@ -363,6 +451,7 @@ export const repository = {
       for (const guest of data.guests) await upsertGuestWithDb(db, guest);
       for (const item of data.budgetItems) await upsertBudgetWithDb(db, item);
       for (const note of data.notes) await upsertNoteWithDb(db, note);
+      for (const design of data.invitationDesigns) await upsertInvitationDesignWithDb(db, design);
     });
   },
   async clearAll(): Promise<void> {

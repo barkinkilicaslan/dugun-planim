@@ -1,5 +1,15 @@
 # Değişiklik Günlüğü
 
+## Yayınlanmamış (1.1.0 adayı)
+
+- Düğün tarihi artık takvim seçicisiyle seçilir (GG.AA.YYYY, Türkçe uzun biçim); saat dilimi kaymasına karşı takvim tarihi olarak saklanır; yeni düğünde geçmiş tarih engellenir.
+- Rehberden davetli ekleme (kullanıcı eyleminden sonra izin, çoklu seçim, telefon/e-posta seçimi, yinelenen denetimi/birleştirme).
+- 10 davetiye şablonu, kaydet/düzenle/varsayılan, PNG ve PDF üretimi, isteğe bağlı fotoğraf.
+- “Düğünümüz yetişkinlere özeldir” seçeneği (davetiye, PNG/PDF ve mesajlarda).
+- E-posta, SMS, WhatsApp ve paylaşım menüsüyle kullanıcı onaylı sıralı gönderim.
+- RSVP: Belki durumu, yanıt kaynağı/tarihi, gönderim durumu, sayaçlar ve filtreler. Çevrimiçi RSVP kapalı (karar: docs/ONLINE_RSVP_DECISION.md).
+- SQLite şema sürümü 3 (geriye dönük uyumlu migration; yedek şeması 3).
+
 ## 1.0.0 — 1 Ağustos 2026
 
 - Masalar, sahne, dans pisti, giriş, DJ ve ikram alanı için özelleştirilebilir salon planı eklendi.

@@ -3,6 +3,7 @@ import { act, fireEvent, render } from '@testing-library/react-native';
 import { VenueCanvas } from '@/components/venue/venue-canvas';
 import { createVenueLayoutItem } from '@/domain/venue-layout';
 import type { Guest, SeatingTable } from '@/domain/models';
+import { GUEST_DEFAULTS } from './fixtures';
 
 jest.mock('@/context/theme-context', () => ({
   useAppTheme: () => ({
@@ -33,6 +34,7 @@ const guest: Guest = {
   notes: '',
   mealNotes: '',
   group: 'friends',
+  ...GUEST_DEFAULTS,
   tableId: 't1',
   createdAt: now,
   updatedAt: now,

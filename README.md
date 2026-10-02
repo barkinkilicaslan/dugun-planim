@@ -57,6 +57,7 @@ Toplu kontrol: `npm run check`. Gerçekleşen sonuçlar [TEST_REPORT.md](./TEST_
 - Kullanıcı verileri `dugun-planim.db` SQLite veritabanında cihaz içinde kalır.
 - Bildirim izni ancak onboarding açıklamasından sonra açık kullanıcı seçimiyle istenir.
 - JSON yedek, CSV ve PDF yalnız kullanıcı eylemiyle sistem dosya/paylaşım arayüzüne çıkar.
+- JSON yedek davetiye tasarımlarını içerir ancak davetiye fotoğraflarını içermez; uygulama bunu yedek almadan önce ve geri yüklemeden sonra açıkça bildirir. Geri yüklemede fotoğraf alanı boş kalır.
 - İçe aktarılan dosyalar boyut, format, sürüm ve entity düzeyinde doğrulanır.
 - “Tüm verilerimi sil” iki onaydan sonra veritabanını ve planlanmış yerel bildirimleri temizler.
 
@@ -110,4 +111,4 @@ Production Android profili AAB üretir. Hesap, imzalama ve mağaza sahibi girdil
 
 ## Kapsam kararları
 
-Telefon rehberi içe aktarma ve sözleşme dosyası ekleme ilk sürümden çıkarılmıştır; gereksiz kişi/fotoğraf izni istememek mağaza ve gizlilik riskini azaltır. Tedarikçi arama/e-posta eylemi ancak ilgili satıra kullanıcı dokunduğunda işletim sistemine devredilir.
+Sözleşme dosyası ekleme kapsam dışıdır. Telefon rehberi yalnızca kullanıcı “Rehberden davetli ekle” dediğinde okunur (iOS NSContactsUsageDescription, Android yalnız READ_CONTACTS); davetiye fotoğrafı sistem dosya seçicisiyle seçilir ve fotoğraf izni istenmez. Tedarikçi arama/e-posta eylemi ancak ilgili satıra kullanıcı dokunduğunda işletim sistemine devredilir.

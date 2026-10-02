@@ -61,14 +61,23 @@ export function csvToGuests(input: string, idFactory: () => string): Guest[] {
   }
   const now = new Date().toISOString();
   return rows.slice(1).map((cells, index) => {
+    const rsvp = (
+      ['pending', 'attending', 'declined', 'maybe'].includes(cells[5]) ? cells[5] : 'pending'
+    ) as Guest['rsvp'];
     const guest: Guest = {
       id: idFactory(),
       name: cells[0] ?? '',
       phone: cells[1] ?? '',
+      email: '',
       side: (['couple1', 'couple2', 'common'].includes(cells[2]) ? cells[2] : 'common') as Guest['side'],
       partySize: Number(cells[3]),
       childCount: Number(cells[4]),
-      rsvp: (['pending', 'attending', 'declined'].includes(cells[5]) ? cells[5] : 'pending') as Guest['rsvp'],
+      rsvp,
+      rsvpSource: rsvp === 'pending' ? 'none' : 'manual',
+      rsvpRespondedAt: '',
+      lastInviteSentAt: '',
+      lastInviteChannel: '',
+      inviteStatus: 'none',
       group: (['family', 'friends', 'work', 'other'].includes(cells[6]) ? cells[6] : 'other') as Guest['group'],
       mealNotes: cells[7] ?? '',
       notes: cells[8] ?? '',
