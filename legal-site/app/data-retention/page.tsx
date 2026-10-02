@@ -1,9 +1,17 @@
 import type { Metadata } from 'next';
 import { LegalLayout } from '../legal-layout';
-export const metadata: Metadata = { title: 'Veri Saklama ve Silme' };
+import { pageMetadata } from '../metadata';
+export const metadata: Metadata = pageMetadata(
+  'tr',
+  'data-retention',
+  'Veri Saklama ve Silme',
+  'Düğün Planım verilerinin cihazda nasıl saklandığı, yedeklendiği ve silindiği.',
+);
 export default function DataPage() {
   return (
     <LegalLayout
+      locale="tr"
+      page="data-retention"
       eyebrow="Veri kontrolü"
       title="Veri Saklama ve Silme"
       intro="Düğün Planım’da veri yaşam döngüsünü siz yönetirsiniz."

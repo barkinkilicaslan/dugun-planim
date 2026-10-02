@@ -11,7 +11,7 @@ npm run lint
 npm test
 ```
 
-`npm test` production build oluşturur ve beş rotanın HTML çıktısını doğrular.
+`npm test` production build oluşturur; Türkçe ve İngilizce on rotanın HTML çıktısını, dil değiştirme bağlantılarını, kanonik/alternatif dil bağlantılarını ve statik export içindeki tüm dahili bağlantıları doğrular. GitHub Pages yoluyla doğrulamak için `NEXT_PUBLIC_SITE_BASE_PATH=/dugun-planim` ortam değişkeniyle hem build hem test çalıştırılabilir.
 
 ## Tek noktadan yapılandırma
 
@@ -25,10 +25,16 @@ Alan adı verilmediği için teslim yereldir. Yayın öncesi gerçek alan adı, 
 
 ## Rotalar
 
+Türkçe (mevcut adresler, değişmez):
+
 - `/` — gizlilik ve destek merkezi
 - `/privacy` — Gizlilik Politikası
 - `/terms` — Kullanım Koşulları
 - `/data-retention` — Veri Saklama ve Silme
 - `/support` — Destek ve SSS
+
+İngilizce (Türkçe sayfaların sadık çevirisi): `/en`, `/en/privacy`, `/en/terms`, `/en/data-retention`, `/en/support`.
+
+Her sayfada karşı dile bağlantı (`English` / `Türkçe`), içerik alanında `lang` özniteliği ve kanonik/`hreflang` bağlantıları bulunur. Metinler `app/` altındaki sayfa dosyalarında, ortak kabuk metinleri `app/locale.ts` içindedir.
 
 `.openai/hosting.json` Sites uyumluluğu için korunur; D1/R2 bağlaması yoktur.

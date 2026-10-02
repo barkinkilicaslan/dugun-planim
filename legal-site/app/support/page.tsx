@@ -1,10 +1,18 @@
 import type { Metadata } from 'next';
 import { LegalLayout } from '../legal-layout';
+import { pageMetadata } from '../metadata';
 import { siteConfig } from '../../site-config';
-export const metadata: Metadata = { title: 'Destek ve SSS' };
+export const metadata: Metadata = pageMetadata(
+  'tr',
+  'support',
+  'Destek ve SSS',
+  'Düğün Planım için destek, yedekleme, bildirimler, dil ve veri silme hakkında sık sorulan sorular.',
+);
 export default function SupportPage() {
   return (
     <LegalLayout
+      locale="tr"
+      page="support"
       eyebrow="Yardım merkezi"
       title="Destek ve Sık Sorulan Sorular"
       intro="Planınızı güvende tutmak ve yaygın sorunları çözmek için kısa yanıtlar."
@@ -22,6 +30,11 @@ export default function SupportPage() {
         Sistem ayarlarında Düğün Planım bildirim iznini kontrol edin. Görevin gelecekte bir son tarihi olmalı ve
         düzenleme ekranında bir gün önce hatırlatma açık olmalıdır. İzin reddedilse bile uygulamanın diğer özellikleri
         çalışır.
+      </p>
+      <h2>Uygulama dilini nasıl değiştirebilirim?</h2>
+      <p>
+        Ayarlar → Dil bölümünden Otomatik, Türkçe veya English seçebilirsiniz. Otomatik seçenek cihaz dilini kullanır;
+        desteklenmeyen dillerde Türkçe gösterilir. Yazdığınız isimler, notlar ve davet metinleri çevrilmez.
       </p>
       <h2>Bozuk yedek uyarısı alıyorum</h2>
       <p>

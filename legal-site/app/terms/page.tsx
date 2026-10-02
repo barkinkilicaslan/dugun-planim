@@ -1,9 +1,17 @@
 import type { Metadata } from 'next';
 import { LegalLayout } from '../legal-layout';
-export const metadata: Metadata = { title: 'Kullanım Koşulları' };
+import { pageMetadata } from '../metadata';
+export const metadata: Metadata = pageMetadata(
+  'tr',
+  'terms',
+  'Kullanım Koşulları',
+  'Düğün Planım uygulamasının kullanım koşulları, kullanıcı sorumlulukları ve danışmanlık sınırları.',
+);
 export default function TermsPage() {
   return (
     <LegalLayout
+      locale="tr"
+      page="terms"
       eyebrow="Koşullar"
       title="Kullanım Koşulları"
       intro="Bu taslak, Düğün Planım uygulamasının kişisel planlama amacıyla kullanımına ilişkin temel çerçeveyi açıklar."

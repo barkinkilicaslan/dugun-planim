@@ -3,4 +3,5 @@ export const siteConfig = {
   supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? 'appsupportline@gmail.com',
   publisherName: process.env.NEXT_PUBLIC_PUBLISHER_NAME ?? 'Barkın Kılıçaslan',
   effectiveDate: '30 Temmuz 2026',
+  effectiveDateEn: 'July 30, 2026',
 } as const;
