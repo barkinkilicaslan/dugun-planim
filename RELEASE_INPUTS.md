@@ -8,7 +8,7 @@ Kod ve yerel teslim bu bilgiler olmadan tamamlanır; mağaza hesabı/alan adı g
 - [ ] iOS dağıtım sertifikası/provisioning ve Android upload key (EAS yönetebilir)
 - [ ] Yayıncı görünen adı: `{{YAYINCI_ADI}}`
 - [ ] Hukuki kişi/şirket ve adres: `{{HUKUKI_BILGILER}}`
-- [ ] Destek e-postası: `destek@example.com`
+- [ ] Destek e-postası: `appsupportline@gmail.com`
 - [ ] Gizlilik/destek adresi: `https://barkinkilicaslan.github.io/dugun-planim`
 - [ ] Apple SKU ve nihai benzersiz bundle ID doğrulaması
 - [ ] Google Play paket adı benzersizlik doğrulaması

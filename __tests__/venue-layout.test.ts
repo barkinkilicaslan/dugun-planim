@@ -3,6 +3,7 @@ import {
   moveVenueLayoutItem,
   resizeVenueLayoutItem,
   rotateVenueLayoutItem,
+  shouldShowVenueCaption,
   venueLayoutHtml,
   venueLayoutSummary,
 } from '@/domain/venue-layout';
@@ -66,5 +67,14 @@ describe('customizable venue layout', () => {
     expect(html).toContain('&lt;Masa 1&gt; 2/8');
     expect(html).not.toContain('<Masa 1>');
     expect(venueLayoutSummary([item], TR.t)).toBe('1 masa · 0 alan yerleştirildi');
+  });
+
+  it('shows a venue item caption only when it adds information and fits', () => {
+    expect(shouldShowVenueCaption('Sahne', 'Sahne', 80, false)).toBe(false);
+    expect(shouldShowVenueCaption('Dans pisti', 'Dans pisti', 80, false)).toBe(false);
+    expect(shouldShowVenueCaption('Ana sahne', 'Sahne', 33, false)).toBe(false);
+    expect(shouldShowVenueCaption('Ana sahne', 'Sahne', 58, false)).toBe(true);
+    expect(shouldShowVenueCaption('Masa 1', '6/8', 30, true)).toBe(true);
+    expect(shouldShowVenueCaption('Masa 1', '', 60, true)).toBe(false);
   });
 });

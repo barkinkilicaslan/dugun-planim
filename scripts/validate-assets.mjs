@@ -37,4 +37,18 @@ if (phone.length !== 4 || tablet.length !== 4) {
 for (const name of phone) await expectPng(`store-listing/screenshots/${name}`, 1290, 2796, false);
 for (const name of tablet) await expectPng(`store-listing/screenshots/${name}`, 2048, 2732, false);
 
-console.log('Release assets PASS: icons, feature graphic, 4 phone and 4 tablet screenshots.');
+// App Store: dile ve cihaza göre 6'şar ekran görüntüsü (1-10 arası kabul edilir).
+const localizedSets = [
+  ['tr', 'iPhone', 1290, 2796],
+  ['tr', 'iPad', 2048, 2732],
+  ['en-US', 'iPhone', 1290, 2796],
+  ['en-US', 'iPad', 2048, 2732],
+];
+for (const [language, device, width, height] of localizedSets) {
+  const relative = `store-listing/screenshots/${language}/${device}`;
+  const names = (await readdir(resolve(root, relative))).filter((name) => name.endsWith('.png')).sort();
+  if (names.length !== 6) throw new Error(`${relative}: 6 ekran görüntüsü bekleniyordu, ${names.length} bulundu`);
+  for (const name of names) await expectPng(`${relative}/${name}`, width, height, false);
+}
+
+console.log('Release assets PASS: icons, feature graphic, legacy 4+4 screenshots, and 6 screenshots for each TR/EN iPhone/iPad set.');

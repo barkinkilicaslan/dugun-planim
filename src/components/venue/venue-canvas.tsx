@@ -7,7 +7,7 @@ import { useI18n } from '@/context/language-context';
 import { useAppTheme } from '@/context/theme-context';
 import { tableOccupancy } from '@/domain/calculations';
 import type { Guest, SeatingTable, VenueLayoutItem } from '@/domain/models';
-import { moveVenueLayoutItem, venueDisplayLabel, venueItemLabel } from '@/domain/venue-layout';
+import { moveVenueLayoutItem, shouldShowVenueCaption, venueDisplayLabel, venueItemLabel } from '@/domain/venue-layout';
 
 interface CanvasSize {
   width: number;
@@ -55,6 +55,8 @@ function DraggableVenueItem({
   const occupancy = table ? tableOccupancy(table.id, guests) : undefined;
   const label = table?.name ?? venueDisplayLabel(t, item);
   const description = table ? `${occupancy}/${table.capacity}` : venueItemLabel(t, item.type);
+  const caption = item.locked ? t('venue.canvas.lockedBadge') : description;
+  const showCaption = shouldShowVenueCaption(label, caption, item.height * canvasSize.height, Boolean(table));
   const backgroundColor =
     item.type === 'table'
       ? theme.colors.surface
@@ -123,9 +125,11 @@ function DraggableVenueItem({
       <AppText variant="label" numberOfLines={2} style={styles.itemLabel}>
         {label}
       </AppText>
-      <AppText variant="caption" color={theme.colors.muted} numberOfLines={1}>
-        {item.locked ? t('venue.canvas.lockedBadge') : description}
-      </AppText>
+      {showCaption ? (
+        <AppText variant="caption" color={theme.colors.muted} numberOfLines={1}>
+          {caption}
+        </AppText>
+      ) : null}
       {selected ? <View style={[styles.selectionDot, { backgroundColor: theme.colors.accent }]} /> : null}
     </View>
   );

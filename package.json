@@ -57,8 +57,9 @@
     "test:coverage": "jest --runInBand --coverage",
     "doctor": "expo-doctor",
     "assets:check": "node scripts/validate-assets.mjs",
+    "metadata:check": "node scripts/check-store-metadata.mjs",
     "export:web": "expo export --platform web",
-    "check": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run assets:check && npm run doctor"
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run assets:check && npm run metadata:check && npm run doctor"
   },
   "private": true
 }

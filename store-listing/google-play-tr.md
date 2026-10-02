@@ -5,7 +5,7 @@
 - Uygulama adı: `Düğün Planım`
 - Kısa açıklama: `Görev, davetli, bütçe ve masa planınızı cihazınızda yönetin.`
 - Kategori: `Yaşam Tarzı`
-- Destek e-postası: `destek@example.com`
+- Destek e-postası: `appsupportline@gmail.com`
 - Web sitesi: `https://barkinkilicaslan.github.io/dugun-planim/`
 - Gizlilik politikası: `https://barkinkilicaslan.github.io/dugun-planim/privacy/`
 

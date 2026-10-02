@@ -41,7 +41,7 @@ export default function SettingsScreen() {
   const { t, locale, preference, setPreference } = useI18n();
   const [profile, setProfile] = useState<WeddingProfile>({ ...data.profile });
   const [saving, setSaving] = useState(false);
-  const supportEmail = String(Constants.expoConfig?.extra?.supportEmail ?? 'destek@example.com');
+  const supportEmail = String(Constants.expoConfig?.extra?.supportEmail ?? 'appsupportline@gmail.com');
   const update = <K extends keyof WeddingProfile>(key: K, value: WeddingProfile[K]) =>
     setProfile((current) => ({ ...current, [key]: value }));
   async function save() {

@@ -58,7 +58,7 @@ export default function LegalPageScreen() {
   const theme = useAppTheme();
   const { t } = useI18n();
   const content = (Object.prototype.hasOwnProperty.call(PAGES, page) ? PAGES[page] : undefined) ?? PAGES.support;
-  const supportEmail = String(Constants.expoConfig?.extra?.supportEmail ?? 'destek@example.com');
+  const supportEmail = String(Constants.expoConfig?.extra?.supportEmail ?? 'appsupportline@gmail.com');
   return (
     <Screen title={t(content.title)}>
       <Card>

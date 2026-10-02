@@ -27,6 +27,18 @@ export function venueDisplayLabel(t: Translator, item: Pick<VenueLayoutItem, 'ty
   return isBuiltInName ? venueItemLabel(t, item.type) : item.label;
 }
 
+/** Bu yüksekliğin (px) altındaki alanlarda ikinci satır sığmaz; yalnız ad gösterilir. */
+export const MIN_CAPTION_HEIGHT = 40;
+
+/**
+ * Öğenin ikinci satırının (doluluk, tür adı, kilit rozeti) gösterilip gösterilmeyeceği. Alanın adı zaten tür adıyla
+ * aynıysa ("Dans pisti" / "Dans pisti") tekrar edilmez; alçak alanlarda ikinci satır etiketi kesmesin diye gizlenir.
+ */
+export function shouldShowVenueCaption(label: string, caption: string, heightPx: number, isTable: boolean): boolean {
+  if (!caption || caption === label) return false;
+  return isTable || heightPx >= MIN_CAPTION_HEIGHT;
+}
+
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(Math.max(value, minimum), maximum);
 }
