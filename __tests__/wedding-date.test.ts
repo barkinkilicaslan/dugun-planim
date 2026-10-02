@@ -2,9 +2,9 @@ import { formatDate } from '@/domain/calculations';
 import {
   compareIsoDates,
   daysInMonth,
-  formatLongTr,
-  formatLongTrWithWeekday,
-  formatNumericTr,
+  formatLong,
+  formatLongWithWeekday,
+  formatNumeric,
   isLeapYear,
   isoFromLocalDate,
   isPastDate,
@@ -17,18 +17,18 @@ import {
 
 describe('Turkish wedding date helpers', () => {
   it('formats numeric GG.AA.YYYY and long Turkish dates', () => {
-    expect(formatNumericTr('2026-10-02')).toBe('02.10.2026');
-    expect(formatLongTr('2026-10-02')).toBe('2 Ekim 2026');
-    expect(formatLongTrWithWeekday('2026-10-02')).toBe('2 Ekim 2026 Cuma');
-    expect(formatLongTr('2027-03-09')).toBe('9 Mart 2027');
-    expect(formatLongTr('2027-12-31')).toBe('31 Aralık 2027');
+    expect(formatNumeric('2026-10-02')).toBe('02.10.2026');
+    expect(formatLong('2026-10-02')).toBe('2 Ekim 2026');
+    expect(formatLongWithWeekday('2026-10-02')).toBe('2 Ekim 2026 Cuma');
+    expect(formatLong('2027-03-09')).toBe('9 Mart 2027');
+    expect(formatLong('2027-12-31')).toBe('31 Aralık 2027');
     expect(formatDate('2026-10-02', 'DD.MM.YYYY')).toBe('02.10.2026');
     expect(formatDate('2026-10-02', 'YYYY-MM-DD')).toBe('2026-10-02');
   });
 
   it('leaves invalid values untouched instead of inventing a date', () => {
-    expect(formatNumericTr('02.10.2026')).toBe('02.10.2026');
-    expect(formatLongTr('')).toBe('');
+    expect(formatNumeric('02.10.2026')).toBe('02.10.2026');
+    expect(formatLong('')).toBe('');
   });
 
   it('handles leap years and month ends', () => {
@@ -74,7 +74,7 @@ describe('Turkish wedding date helpers', () => {
     try {
       for (const zone of ['Europe/Istanbul', 'Pacific/Kiritimati', 'Pacific/Pago_Pago', 'America/Los_Angeles']) {
         process.env.TZ = zone;
-        expect(formatNumericTr('2027-06-12')).toBe('12.06.2027');
+        expect(formatNumeric('2027-06-12')).toBe('12.06.2027');
         const picker = localDateFromIso('2027-06-12');
         expect(picker && isoFromLocalDate(picker)).toBe('2027-06-12');
         expect(todayIso(new Date(2026, 9, 2, 23, 59))).toBe('2026-10-02');

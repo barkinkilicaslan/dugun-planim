@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import { radius, spacing } from '@/constants/theme';
+import { useI18n } from '@/context/language-context';
 import { useAppTheme } from '@/context/theme-context';
 import { AppText } from './app-text';
 
@@ -20,6 +21,7 @@ export function Chips<T extends string>({
   onChange: (value: T) => void;
 }) {
   const theme = useAppTheme();
+  const { t } = useI18n();
   return (
     <View style={styles.group}>
       {label ? <AppText variant="label">{label}</AppText> : null}
@@ -31,7 +33,7 @@ export function Chips<T extends string>({
               key={option.value}
               accessibilityRole="radio"
               accessibilityState={{ checked: selected }}
-              accessibilityLabel={`${label ?? 'Seçim'}: ${option.label}`}
+              accessibilityLabel={`${label ?? t('common.choice')}: ${option.label}`}
               onPress={() => onChange(option.value)}
               style={({ pressed }) => [
                 styles.chip,

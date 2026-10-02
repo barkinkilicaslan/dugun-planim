@@ -1,0 +1,9 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Düğün Planım",
+    "NSContactsUsageDescription": "Düğün Planım only accesses Contacts so you can add the people you choose to your guest list. Your contacts are never sent off your device."
+  },
+  "android": {
+    "app_name": "Düğün Planım"
+  }
+}

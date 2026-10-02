@@ -9,6 +9,7 @@ import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
 import { spacing } from '@/constants/theme';
 import { useApp } from '@/context/app-context';
+import { useI18n } from '@/context/language-context';
 import { useAppTheme } from '@/context/theme-context';
 import type { TaskItem, TaskPriority } from '@/domain/models';
 
@@ -16,6 +17,7 @@ export default function TaskEditor() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { data, createId, saveTask, deleteTask } = useApp();
   const theme = useAppTheme();
+  const { t } = useI18n();
   const existing = data.tasks.find((item) => item.id === id);
   const now = new Date().toISOString();
   const [form, setForm] = useState<TaskItem>(
@@ -41,67 +43,78 @@ export default function TaskEditor() {
       await saveTask({ ...form, updatedAt: new Date().toISOString() }, reminder);
       router.back();
     } catch (error) {
-      Alert.alert('Görev kaydedilemedi', (error as Error).message);
+      Alert.alert(t('taskEditor.saveFailed'), (error as Error).message);
     } finally {
       setSaving(false);
     }
   }
   function confirmDelete() {
-    Alert.alert('Görev silinsin mi?', 'Bu işlem geri alınamaz.', [
-      { text: 'Vazgeç', style: 'cancel' },
-      { text: 'Sil', style: 'destructive', onPress: () => void deleteTask(form.id).then(() => router.back()) },
+    Alert.alert(t('taskEditor.deleteTitle'), t('common.irreversible'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('common.delete'),
+        style: 'destructive',
+        onPress: () => void deleteTask(form.id).then(() => router.back()),
+      },
     ]);
   }
   return (
-    <Screen title={existing ? 'Görevi düzenle' : 'Yeni görev'}>
+    <Screen title={existing ? t('taskEditor.edit') : t('taskEditor.new')}>
       <Card>
-        <TextField label="Başlık" value={form.title} onChangeText={(value) => update('title', value)} autoFocus />
         <TextField
-          label="Kategori"
-          placeholder="Örn. Mekân"
+          label={t('taskEditor.title')}
+          value={form.title}
+          onChangeText={(value) => update('title', value)}
+          autoFocus
+        />
+        <TextField
+          label={t('taskEditor.category')}
+          placeholder={t('taskEditor.categoryPlaceholder')}
           value={form.category}
           onChangeText={(value) => update('category', value)}
         />
         <TextField
-          label="Açıklama"
+          label={t('taskEditor.description')}
           value={form.description}
           onChangeText={(value) => update('description', value)}
           multiline
         />
         <TextField
-          label="Son tarih (YYYY-AA-GG)"
+          label={t('taskEditor.dueDate')}
           value={form.dueDate}
           onChangeText={(value) => update('dueDate', value)}
-          placeholder="2027-06-01"
+          placeholder={t('taskEditor.dueDatePlaceholder')}
           keyboardType="numbers-and-punctuation"
         />
         <Chips<TaskPriority>
-          label="Öncelik"
+          label={t('taskEditor.priority')}
           value={form.priority}
           onChange={(value) => update('priority', value)}
           options={[
-            { value: 'low', label: 'Düşük' },
-            { value: 'medium', label: 'Orta' },
-            { value: 'high', label: 'Yüksek' },
+            { value: 'low', label: t('common.priority.low') },
+            { value: 'medium', label: t('common.priority.medium') },
+            { value: 'high', label: t('common.priority.high') },
           ]}
         />
         <Chips<'no' | 'yes'>
-          label="Bir gün önce hatırlat"
+          label={t('taskEditor.reminder')}
           value={reminder ? 'yes' : 'no'}
           onChange={(value) => setReminder(value === 'yes')}
           options={[
-            { value: 'no', label: 'Kapalı' },
-            { value: 'yes', label: 'Açık' },
+            { value: 'no', label: t('common.off') },
+            { value: 'yes', label: t('common.on') },
           ]}
         />
         {!data.profile.notificationsEnabled && reminder ? (
           <AppText variant="caption" color={theme.colors.warning}>
-            Bildirim izni kapalı. Ayarlardan izin tercihlerini güncelledikten sonra hatırlatma kurulabilir.
+            {t('taskEditor.notificationsOff')}
           </AppText>
         ) : null}
         <View style={styles.actions}>
-          <Button label="Kaydet" onPress={() => void submit()} loading={saving} style={styles.grow} />
-          {existing ? <Button label="Sil" variant="danger" onPress={confirmDelete} disabled={saving} /> : null}
+          <Button label={t('common.save')} onPress={() => void submit()} loading={saving} style={styles.grow} />
+          {existing ? (
+            <Button label={t('common.delete')} variant="danger" onPress={confirmDelete} disabled={saving} />
+          ) : null}
         </View>
       </Card>
     </Screen>

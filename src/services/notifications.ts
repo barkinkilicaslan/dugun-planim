@@ -3,6 +3,7 @@ import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
 
 import type { TaskItem } from '@/domain/models';
+import { t } from '@/i18n';
 
 const CONSENT_KEY = 'dugun-planim.notification-consent';
 
@@ -18,8 +19,8 @@ export async function configureNotifications(): Promise<void> {
   });
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('reminders', {
-      name: 'Planlama hatırlatmaları',
-      description: 'Kullanıcının seçtiği görev hatırlatmaları',
+      name: t('notifications.channelName'),
+      description: t('notifications.channelDescription'),
       importance: Notifications.AndroidImportance.DEFAULT,
     });
   }
@@ -40,8 +41,8 @@ export async function scheduleTaskReminder(task: TaskItem): Promise<string | und
   if (triggerDate.getTime() <= Date.now()) return undefined;
   return Notifications.scheduleNotificationAsync({
     content: {
-      title: 'Yaklaşan göreviniz var',
-      body: `${task.title} yarın için planlandı.`,
+      title: t('notifications.taskTitle'),
+      body: t('notifications.taskBody', { title: task.title }),
       data: { taskId: task.id },
     },
     trigger: {

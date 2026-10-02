@@ -1,81 +1,83 @@
+import { t as translateActive, type MessageKey, type Translator } from '@/i18n';
 import type { TaskItem, TaskPriority } from './models';
 
 interface TaskTemplate {
-  category: string;
-  title: string;
-  description: string;
+  categoryKey: MessageKey;
+  titleKey: MessageKey;
+  descriptionKey: MessageKey;
   monthsBeforeWedding: number;
   priority: TaskPriority;
 }
 
+/** Başlangıç görevleri: metinler görevlerin oluşturulduğu andaki dilde üretilir ve kullanıcının kendi verisi olarak saklanır. */
 export const TASK_TEMPLATES: TaskTemplate[] = [
   {
-    category: 'Planlama',
-    title: 'Düğün bütçesini netleştirin',
-    description: 'Ana bütçe sınırını ve öncelikli kategorileri birlikte belirleyin.',
+    categoryKey: 'starter.planning',
+    titleKey: 'starter.t1.title',
+    descriptionKey: 'starter.t1.desc',
     monthsBeforeWedding: 12,
     priority: 'high',
   },
   {
-    category: 'Mekân',
-    title: 'Mekân seçeneklerini değerlendirin',
-    description: 'Kapasite, ulaşım, tarih ve sözleşme koşullarını karşılaştırın.',
+    categoryKey: 'starter.venue',
+    titleKey: 'starter.t2.title',
+    descriptionKey: 'starter.t2.desc',
     monthsBeforeWedding: 11,
     priority: 'high',
   },
   {
-    category: 'Davetli',
-    title: 'İlk davetli listesini hazırlayın',
-    description: 'Her iki tarafın taslak listesini ve tahmini kişi sayılarını birleştirin.',
+    categoryKey: 'starter.guests',
+    titleKey: 'starter.t3.title',
+    descriptionKey: 'starter.t3.desc',
     monthsBeforeWedding: 10,
     priority: 'medium',
   },
   {
-    category: 'Tedarikçi',
-    title: 'Fotoğrafçıyla görüşün',
-    description: 'Portföy, teslim kapsamı ve yedek ekipman planını sorun.',
+    categoryKey: 'starter.vendor',
+    titleKey: 'starter.t4.title',
+    descriptionKey: 'starter.t4.desc',
     monthsBeforeWedding: 9,
     priority: 'medium',
   },
   {
-    category: 'Tedarikçi',
-    title: 'Müzik planını oluşturun',
-    description: 'Canlı müzik veya DJ seçeneklerini ve teknik ihtiyaçları belirleyin.',
+    categoryKey: 'starter.vendor',
+    titleKey: 'starter.t5.title',
+    descriptionKey: 'starter.t5.desc',
     monthsBeforeWedding: 8,
     priority: 'medium',
   },
   {
-    category: 'Kıyafet',
-    title: 'Gelinlik ve damatlık planını başlatın',
-    description: 'Prova ve değişiklik sürelerini hesaba katarak randevuları planlayın.',
+    categoryKey: 'starter.attire',
+    titleKey: 'starter.t6.title',
+    descriptionKey: 'starter.t6.desc',
     monthsBeforeWedding: 7,
     priority: 'medium',
   },
   {
-    category: 'Davetli',
-    title: 'Davetiyeleri son haline getirin',
-    description: 'Metin, baskı adedi ve dağıtım yöntemini doğrulayın.',
+    categoryKey: 'starter.guests',
+    titleKey: 'starter.t7.title',
+    descriptionKey: 'starter.t7.desc',
     monthsBeforeWedding: 5,
     priority: 'medium',
   },
   {
-    category: 'Masa',
-    title: 'Masa planı taslağını oluşturun',
-    description: 'Katılım durumlarına ve mekân kapasitesine göre ilk yerleşimi yapın.',
+    categoryKey: 'starter.seating',
+    titleKey: 'starter.t8.title',
+    descriptionKey: 'starter.t8.desc',
     monthsBeforeWedding: 2,
     priority: 'medium',
   },
   {
-    category: 'Final',
-    title: 'Tedarikçi ödemelerini doğrulayın',
-    description: 'Vade, bakiye ve ödeme kanallarını sözleşmelerle karşılaştırın.',
+    categoryKey: 'starter.final',
+    titleKey: 'starter.t9.title',
+    descriptionKey: 'starter.t9.desc',
     monthsBeforeWedding: 1,
     priority: 'high',
   },
   {
-    category: 'Final',
-    title: 'Düğün günü zaman çizelgesini paylaşın',
-    description: 'Önemli saatleri yakınlar ve tedarikçilerle paylaşın.',
+    categoryKey: 'starter.final',
+    titleKey: 'starter.t10.title',
+    descriptionKey: 'starter.t10.desc',
     monthsBeforeWedding: 0,
     priority: 'high',
   },
@@ -87,13 +89,17 @@ function shiftMonths(dateString: string, months: number): string {
   return wedding.toISOString().slice(0, 10);
 }
 
-export function createTemplateTasks(weddingDate: string, idFactory: () => string): TaskItem[] {
+export function createTemplateTasks(
+  weddingDate: string,
+  idFactory: () => string,
+  t: Translator = translateActive,
+): TaskItem[] {
   const now = new Date().toISOString();
   return TASK_TEMPLATES.map((template) => ({
     id: idFactory(),
-    category: template.category,
-    title: template.title,
-    description: template.description,
+    category: t(template.categoryKey),
+    title: t(template.titleKey),
+    description: t(template.descriptionKey),
     dueDate: shiftMonths(weddingDate, template.monthsBeforeWedding),
     priority: template.priority,
     completed: false,

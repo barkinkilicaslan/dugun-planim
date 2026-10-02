@@ -8,12 +8,15 @@ import { ListRow } from '@/components/ui/list-row';
 import { Screen } from '@/components/ui/screen';
 import { SectionHeader } from '@/components/ui/section-header';
 import { useApp } from '@/context/app-context';
+import { useI18n } from '@/context/language-context';
 import { formatDate, formatMoney } from '@/domain/calculations';
+import { formatMonthYear } from '@/domain/wedding-date';
 
 type Mode = 'month' | 'list';
 
 export default function CalendarScreen() {
   const { data } = useApp();
+  const { t, locale, intl } = useI18n();
   const [mode, setMode] = useState<Mode>('month');
   const events = useMemo(
     () =>
@@ -24,7 +27,7 @@ export default function CalendarScreen() {
             id: `t-${task.id}`,
             date: task.dueDate,
             title: task.title,
-            detail: task.completed ? 'Görev · Tamamlandı' : 'Görev',
+            detail: task.completed ? t('calendar.taskDone') : t('calendar.task'),
             href: `/edit/task?id=${task.id}` as const,
           })),
         ...data.budgetItems
@@ -33,11 +36,13 @@ export default function CalendarScreen() {
             id: `b-${item.id}`,
             date: item.dueDate,
             title: item.title,
-            detail: `Ödeme · ${formatMoney(Math.max(0, item.actualCents - item.paidCents), data.profile.currency)} kalan`,
+            detail: t('calendar.payment', {
+              amount: formatMoney(Math.max(0, item.actualCents - item.paidCents), data.profile.currency, intl),
+            }),
             href: `/edit/budget?id=${item.id}` as const,
           })),
       ].sort((a, b) => a.date.localeCompare(b.date)),
-    [data],
+    [data, intl, t],
   );
   const grouped = events.reduce((map, event) => {
     const month = event.date.slice(0, 7);
@@ -46,17 +51,17 @@ export default function CalendarScreen() {
   }, new Map<string, typeof events>());
 
   return (
-    <Screen title="Takvim" subtitle="Görev ve ödemeler birlikte">
+    <Screen title={t('nav.calendar')} subtitle={t('calendar.subtitle')}>
       <Chips<Mode>
         value={mode}
         onChange={setMode}
         options={[
-          { value: 'month', label: 'Aylık' },
-          { value: 'list', label: 'Liste' },
+          { value: 'month', label: t('calendar.month') },
+          { value: 'list', label: t('calendar.list') },
         ]}
       />
       {!events.length ? (
-        <EmptyState title="Takvim boş" description="Tarihli görevler ve ödeme vadeleri burada birlikte görünür." />
+        <EmptyState title={t('calendar.emptyTitle')} description={t('calendar.emptyHint')} />
       ) : mode === 'list' ? (
         <Card>
           {events.map((event) => (
@@ -72,11 +77,7 @@ export default function CalendarScreen() {
       ) : (
         [...grouped.entries()].map(([month, monthEvents]) => (
           <Card key={month}>
-            <SectionHeader
-              title={new Intl.DateTimeFormat('tr-TR', { month: 'long', year: 'numeric' }).format(
-                new Date(`${month}-15T12:00:00`),
-              )}
-            />
+            <SectionHeader title={formatMonthYear(month, locale)} />
             {monthEvents.map((event) => (
               <ListRow
                 key={event.id}

@@ -1,6 +1,7 @@
 import type { Ref } from 'react';
 import { Image, Platform, StyleSheet, Text, View, type TextStyle } from 'react-native';
 
+import { useI18n } from '@/context/language-context';
 import type { InvitationContent } from '@/domain/invitation-content';
 import {
   INVITATION_CARD_HEIGHT,
@@ -33,10 +34,11 @@ export function InvitationCard({
   palette: InvitationPalette;
   cardRef?: Ref<View>;
 }) {
+  const { t, locale } = useI18n();
   const hasPhoto = Boolean(content.photoUri) && template.photoShape !== 'none';
   const align = template.align === 'left' ? 'left' : 'center';
   const alignItems = template.align === 'left' ? 'flex-start' : 'center';
-  const tracked = (value: string) => (template.uppercaseTitle ? value.toLocaleUpperCase('tr') : value);
+  const tracked = (value: string) => (template.uppercaseTitle ? value.toLocaleUpperCase(locale) : value);
   const text = (size: number, color: string, extra?: TextStyle): TextStyle => ({
     color,
     fontSize: size,
@@ -45,7 +47,7 @@ export function InvitationCard({
     ...extra,
   });
   const summary = [
-    'Düğün davetiyesi',
+    t('invitation.card.a11yPrefix'),
     content.coupleNames,
     content.dateLong,
     content.time,
@@ -84,7 +86,7 @@ export function InvitationCard({
           allowFontScaling={false}
           style={text(12, palette.muted, { letterSpacing: 3, fontWeight: '600', marginTop: 4 })}
         >
-          {tracked('Düğün davetiyesi')}
+          {tracked(t('invitation.card.eyebrow'))}
         </Text>
         <Text
           allowFontScaling={false}
@@ -92,7 +94,7 @@ export function InvitationCard({
           adjustsFontSizeToFit
           style={[text(hasPhoto ? 28 : 34, palette.ink, { marginVertical: 6 }), titleStyle(template.titleFont)]}
         >
-          {tracked(content.coupleNames || 'İsimler')}
+          {tracked(content.coupleNames || t('invitation.card.namesFallback'))}
         </Text>
         <DividerOrnament kind={template.divider} color={palette.accent} />
         <Text
@@ -110,7 +112,7 @@ export function InvitationCard({
           ) : null}
           {content.time ? (
             <Text allowFontScaling={false} style={text(15, palette.ink)}>
-              Saat {content.time}
+              {t('invitation.card.time', { time: content.time })}
             </Text>
           ) : null}
           {content.venueName ? (
@@ -136,7 +138,7 @@ export function InvitationCard({
           ) : null}
           {content.rsvpDeadline ? (
             <Text allowFontScaling={false} style={text(11, palette.ink, { fontWeight: '600' })}>
-              Son cevap tarihi: {content.rsvpDeadline}
+              {t('invitation.card.deadline', { date: content.rsvpDeadline })}
             </Text>
           ) : null}
         </View>

@@ -2,6 +2,7 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
 import InvitationEditor from '@/app/invitation-editor';
 import { createInvitationDesign } from '@/domain/invitation-content';
+import { TR } from './fixtures';
 import { EMPTY_APP_DATA, EMPTY_PROFILE, type InvitationDesign } from '@/domain/models';
 
 const OLD = 'file:///docs/invitation-photos/d1-100.jpg';
@@ -9,7 +10,10 @@ const NEW = 'file:///docs/invitation-photos/d1-200.jpg';
 const NEWER = 'file:///docs/invitation-photos/d1-300.jpg';
 const now = '2026-10-02T10:00:00.000Z';
 const profile = { ...EMPTY_PROFILE, couple1Name: 'Ada', couple2Name: 'Deniz', weddingDate: '2027-06-12' };
-const designWithPhoto = (): InvitationDesign => ({ ...createInvitationDesign('d1', 'boho', now, true), photoUri: OLD });
+const designWithPhoto = (): InvitationDesign => ({
+  ...createInvitationDesign('d1', 'boho', now, true, TR.t),
+  photoUri: OLD,
+});
 
 const mockRemovePhoto = jest.fn().mockResolvedValue(true);
 const mockPickPhoto = jest.fn();

@@ -1,3 +1,4 @@
+import { SUPPORTED_LOCALES, t as translateActive, translate, type Translator } from '@/i18n';
 import type { Guest, SeatingTable, VenueLayoutItem, VenueLayoutItemType } from './models';
 
 const GRID_STEP = 0.025;
@@ -12,14 +13,19 @@ const DEFAULT_SIZES: Record<VenueLayoutItemType, { width: number; height: number
   service: { width: 0.24, height: 0.12 },
 };
 
-export const VENUE_ITEM_LABELS: Record<VenueLayoutItemType, string> = {
-  table: 'Masa',
-  stage: 'Sahne',
-  danceFloor: 'Dans pisti',
-  entrance: 'Giriş',
-  dj: 'DJ',
-  service: 'İkram',
-};
+export function venueItemLabel(t: Translator, type: VenueLayoutItemType): string {
+  return t(`venue.item.${type}`);
+}
+
+/**
+ * Öğenin ekranda gösterilen adı. Uygulamanın kendi varsayılan adıyla (ör. "Sahne"/"Stage") kaydedilmiş alanlar
+ * etkin dile çevrilir; kullanıcının yazdığı veya masaya bağlı adlar olduğu gibi gösterilir.
+ */
+export function venueDisplayLabel(t: Translator, item: Pick<VenueLayoutItem, 'type' | 'label'>): string {
+  if (item.type === 'table') return item.label;
+  const isBuiltInName = SUPPORTED_LOCALES.some((locale) => translate(locale, `venue.item.${item.type}`) === item.label);
+  return isBuiltInName ? venueItemLabel(t, item.type) : item.label;
+}
 
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(Math.max(value, minimum), maximum);
@@ -50,7 +56,7 @@ export function createVenueLayoutItem({
   return {
     id,
     type,
-    label: label?.trim() || VENUE_ITEM_LABELS[type],
+    label: label?.trim() || venueItemLabel(translateActive, type),
     x: clamp(0.05 + column * 0.23, 0, 1 - size.width),
     y: clamp(0.08 + row * 0.22, 0, 1 - size.height),
     width: size.width,
@@ -83,11 +89,11 @@ export function rotateVenueLayoutItem(item: VenueLayoutItem, delta: number): Ven
   return { ...item, rotation };
 }
 
-export function venueLayoutSummary(items: VenueLayoutItem[]): string {
+export function venueLayoutSummary(items: VenueLayoutItem[], t: Translator): string {
   const tableCount = items.filter((item) => item.type === 'table').length;
   const areaCount = items.length - tableCount;
-  if (!items.length) return 'Henüz salon düzeni oluşturulmadı.';
-  return `${tableCount} masa · ${areaCount} alan yerleştirildi`;
+  if (!items.length) return t('venue.summaryEmpty');
+  return t('venue.summary', { tables: tableCount, areas: areaCount });
 }
 
 function escapeHtml(value: string): string {
@@ -97,7 +103,12 @@ function escapeHtml(value: string): string {
   );
 }
 
-export function venueLayoutHtml(items: VenueLayoutItem[], tables: SeatingTable[], guests: Guest[]): string {
+export function venueLayoutHtml(
+  items: VenueLayoutItem[],
+  tables: SeatingTable[],
+  guests: Guest[],
+  t: Translator,
+): string {
   if (!items.length) return '';
   const shapes = items
     .map((item) => {
@@ -107,11 +118,11 @@ export function venueLayoutHtml(items: VenueLayoutItem[], tables: SeatingTable[]
             .filter((guest) => guest.tableId === table.id && guest.rsvp !== 'declined')
             .reduce((sum, guest) => sum + guest.partySize, 0)
         : undefined;
-      const label = table ? `${table.name} ${occupancy}/${table.capacity}` : item.label;
+      const label = table ? `${table.name} ${occupancy}/${table.capacity}` : venueDisplayLabel(t, item);
       const borderRadius = item.shape === 'round' ? '999px' : '12px';
       const background = item.type === 'table' ? '#fffdfc' : item.type === 'danceFloor' ? '#ead9c4' : '#f3e8dc';
       return `<div style="position:absolute;left:${item.x * 100}%;top:${item.y * 100}%;width:${item.width * 100}%;height:${item.height * 100}%;transform:rotate(${item.rotation}deg);border:2px solid #6f1d3a;border-radius:${borderRadius};background:${background};display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;font-weight:700;padding:4px;box-sizing:border-box;overflow:hidden">${escapeHtml(label)}</div>`;
     })
     .join('');
-  return `<h2>Salon düzeni</h2><div style="position:relative;width:100%;height:480px;border:2px solid #ded2c5;border-radius:16px;background:#f8f3ea;overflow:hidden">${shapes}</div>`;
+  return `<h2>${escapeHtml(t('venue.pdfHeading'))}</h2><div style="position:relative;width:100%;height:480px;border:2px solid #ded2c5;border-radius:16px;background:#f8f3ea;overflow:hidden">${shapes}</div>`;
 }

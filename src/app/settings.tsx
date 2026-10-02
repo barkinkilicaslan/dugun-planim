@@ -13,9 +13,10 @@ import { Screen } from '@/components/ui/screen';
 import { SectionHeader } from '@/components/ui/section-header';
 import { TextField } from '@/components/ui/text-field';
 import { useApp } from '@/context/app-context';
+import { useI18n } from '@/context/language-context';
 import { useAppTheme } from '@/context/theme-context';
 import { createBackup, parseBackup } from '@/domain/backup';
-import { BACKUP_PHOTO_NOTICE_BODY, BACKUP_PHOTO_NOTICE_TITLE, restoreCompleteMessage } from '@/domain/backup-notices';
+import { backupPhotoNoticeBody, backupPhotoNoticeTitle, restoreCompleteMessage } from '@/domain/backup-notices';
 import {
   APP_VERSION,
   type CurrencyCode,
@@ -23,13 +24,21 @@ import {
   type ThemePreference,
   type WeddingProfile,
 } from '@/domain/models';
-import { ADULTS_ONLY_PRESETS } from '@/domain/invitation-templates';
+import {
+  ADULTS_ONLY_PRESET_COUNT,
+  adultsOnlyPreset,
+  adultsOnlyPresetIndex,
+  adultsOnlyPresetMarker,
+  resolveAdultsOnlyText,
+} from '@/domain/invitation-templates';
+import { type LanguagePreference } from '@/i18n';
 import { requestNotificationConsent } from '@/services/notifications';
 import { pickTextFile, shareTextFile } from '@/services/export';
 const cents = (value: string) => Math.max(0, Math.round(Number(value.replace(',', '.')) * 100)) || 0;
 export default function SettingsScreen() {
   const { data, saveProfile, replaceAll, clearAll } = useApp();
   const theme = useAppTheme();
+  const { t, locale, preference, setPreference } = useI18n();
   const [profile, setProfile] = useState<WeddingProfile>({ ...data.profile });
   const [saving, setSaving] = useState(false);
   const supportEmail = String(Constants.expoConfig?.extra?.supportEmail ?? 'destek@example.com');
@@ -39,9 +48,9 @@ export default function SettingsScreen() {
     try {
       setSaving(true);
       await saveProfile(profile);
-      Alert.alert('Kaydedildi', 'Ayarlarınız güncellendi.');
+      Alert.alert(t('settings.saved'), t('settings.savedBody'));
     } catch (error) {
-      Alert.alert('Ayarlar kaydedilemedi', (error as Error).message);
+      Alert.alert(t('settings.saveFailed'), (error as Error).message);
     } finally {
       setSaving(false);
     }
@@ -52,31 +61,29 @@ export default function SettingsScreen() {
       update('notificationsEnabled', granted);
       await saveProfile({ ...profile, notificationsEnabled: granted });
       Alert.alert(
-        granted ? 'Bildirimler açık' : 'İzin verilmedi',
-        granted
-          ? 'Yeni görevlerde yerel hatırlatma seçebilirsiniz.'
-          : 'Uygulama bildirim olmadan çalışmaya devam eder.',
+        granted ? t('settings.notificationsGranted') : t('settings.notificationsDenied'),
+        granted ? t('settings.notificationsGrantedBody') : t('settings.notificationsDeniedBody'),
       );
     } catch (error) {
-      Alert.alert('İzin kontrol edilemedi', (error as Error).message);
+      Alert.alert(t('settings.permissionCheckFailed'), (error as Error).message);
     }
   }
   async function shareBackup() {
     try {
       await shareTextFile(
-        `dugun-planim-yedek-${new Date().toISOString().slice(0, 10)}.json`,
+        t('settings.backupFile', { date: new Date().toISOString().slice(0, 10) }),
         createBackup(data),
         'application/json',
       );
     } catch (error) {
-      Alert.alert('Yedek oluşturulamadı', (error as Error).message);
+      Alert.alert(t('settings.backupFailed'), (error as Error).message);
     }
   }
   /** Yedek alınmadan önce fotoğrafların dosyaya girmediği açıkça söylenir. */
   function backup() {
-    Alert.alert(BACKUP_PHOTO_NOTICE_TITLE, BACKUP_PHOTO_NOTICE_BODY, [
-      { text: 'Vazgeç', style: 'cancel' },
-      { text: 'Yedeği oluştur', onPress: () => void shareBackup() },
+    Alert.alert(backupPhotoNoticeTitle(t), backupPhotoNoticeBody(t), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('settings.backupConfirm'), onPress: () => void shareBackup() },
     ]);
   }
   async function restore() {
@@ -84,79 +91,99 @@ export default function SettingsScreen() {
       const raw = await pickTextFile(['application/json', 'text/json']);
       if (!raw) return;
       const restored = parseBackup(raw);
-      Alert.alert(
-        'Yedek geri yüklensin mi?',
-        `Mevcut cihaz verileri doğrulanmış yedekteki verilerle değiştirilecek. ${BACKUP_PHOTO_NOTICE_BODY}`,
-        [
-          { text: 'Vazgeç', style: 'cancel' },
-          {
-            text: 'Geri yükle',
-            onPress: () =>
-              void replaceAll(restored)
-                .then(() => Alert.alert('Tamamlandı', restoreCompleteMessage(restored.invitationDesigns.length)))
-                .catch((error) => Alert.alert('Geri yüklenemedi', error.message)),
-          },
-        ],
-      );
+      Alert.alert(t('settings.restoreTitle'), t('settings.restoreBody', { note: backupPhotoNoticeBody(t) }), [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('settings.restoreConfirm'),
+          onPress: () =>
+            void replaceAll(restored)
+              .then(() =>
+                Alert.alert(t('settings.restoreDone'), restoreCompleteMessage(t, restored.invitationDesigns.length)),
+              )
+              .catch((error) => Alert.alert(t('settings.restoreFailed'), error.message)),
+        },
+      ]);
     } catch (error) {
-      Alert.alert('Yedek geçersiz', (error as Error).message);
+      Alert.alert(t('settings.backupInvalid'), (error as Error).message);
     }
   }
   function deleteEverything() {
-    Alert.alert(
-      'Tüm yerel veriler silinsin mi?',
-      'Görevler, davetliler, bütçe, masalar, tedarikçiler ve notlar kalıcı olarak silinir.',
-      [
-        { text: 'Vazgeç', style: 'cancel' },
-        {
-          text: 'Devam et',
-          style: 'destructive',
-          onPress: () =>
-            Alert.alert('Son onay', 'Bu işlem geri alınamaz. Gerçekten tüm verileri silmek istiyor musunuz?', [
-              { text: 'Vazgeç', style: 'cancel' },
-              {
-                text: 'Tümünü sil',
-                style: 'destructive',
-                onPress: () => void clearAll().then(() => router.replace('/onboarding')),
-              },
-            ]),
-        },
-      ],
-    );
+    Alert.alert(t('settings.deleteTitle'), t('settings.deleteBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('settings.deleteContinue'),
+        style: 'destructive',
+        onPress: () =>
+          Alert.alert(t('settings.deleteFinalTitle'), t('settings.deleteFinalBody'), [
+            { text: t('common.cancel'), style: 'cancel' },
+            {
+              text: t('settings.deleteEverything'),
+              style: 'destructive',
+              onPress: () => void clearAll().then(() => router.replace('/onboarding')),
+            },
+          ]),
+      },
+    ]);
   }
+  const storedPresetIndex = adultsOnlyPresetIndex(profile.adultsOnlyMessage);
+  const selectedPreset = profile.adultsOnlyMessage.trim() === '' ? 0 : storedPresetIndex;
+  const languageNames: Record<LanguagePreference, string> = {
+    auto: t('language.auto'),
+    tr: t('language.tr'),
+    en: t('language.en'),
+  };
   return (
-    <Screen title="Ayarlar" subtitle="Plan, görünüm, veri ve yardım">
-      <SectionHeader title="Düğün bilgileri" />
+    <Screen title={t('nav.settings')} subtitle={t('settings.subtitle')}>
+      <SectionHeader title={t('language.sectionTitle')} />
+      <Card>
+        <Chips<LanguagePreference>
+          label={t('language.label')}
+          value={preference}
+          onChange={setPreference}
+          options={[
+            { value: 'auto', label: languageNames.auto },
+            { value: 'tr', label: languageNames.tr },
+            { value: 'en', label: languageNames.en },
+          ]}
+        />
+        <AppText variant="caption" color={theme.colors.muted}>
+          {t('language.current', { language: languageNames[locale] })}
+        </AppText>
+        <AppText variant="caption" color={theme.colors.muted}>
+          {t('language.hint')}
+        </AppText>
+      </Card>
+      <SectionHeader title={t('settings.sectionWedding')} />
       <Card>
         <TextField
-          label="Birinci isim"
+          label={t('onboarding.name1')}
           value={profile.couple1Name}
           onChangeText={(value) => update('couple1Name', value)}
         />
         <TextField
-          label="İkinci isim"
+          label={t('onboarding.name2')}
           value={profile.couple2Name}
           onChangeText={(value) => update('couple2Name', value)}
         />
         <DateField
-          label="Düğün tarihi"
+          label={t('onboarding.weddingDate')}
           value={profile.weddingDate}
           onChange={(value) => update('weddingDate', value)}
         />
         <TextField
-          label="Tahmini bütçe"
+          label={t('settings.estimatedBudget')}
           value={profile.estimatedBudgetCents ? String(profile.estimatedBudgetCents / 100) : ''}
           onChangeText={(value) => update('estimatedBudgetCents', cents(value))}
           keyboardType="decimal-pad"
         />
         <TextField
-          label="Tahmini davetli"
+          label={t('settings.estimatedGuests')}
           value={String(profile.estimatedGuestCount)}
           onChangeText={(value) => update('estimatedGuestCount', Number.parseInt(value, 10) || 0)}
           keyboardType="number-pad"
         />
         <Chips<CurrencyCode>
-          label="Para birimi"
+          label={t('onboarding.currency')}
           value={profile.currency}
           onChange={(value) => update('currency', value)}
           options={[
@@ -167,120 +194,116 @@ export default function SettingsScreen() {
           ]}
         />
         <Chips<DateFormatPreference>
-          label="Tarih biçimi"
+          label={t('settings.dateFormat')}
           value={profile.dateFormat}
           onChange={(value) => update('dateFormat', value)}
           options={[
-            { value: 'DD.MM.YYYY', label: 'GG.AA.YYYY' },
-            { value: 'YYYY-MM-DD', label: 'YYYY-AA-GG' },
+            { value: 'DD.MM.YYYY', label: t('settings.dateFormatDmy') },
+            { value: 'YYYY-MM-DD', label: t('settings.dateFormatIso') },
           ]}
         />
-        <Button label="Bilgileri kaydet" onPress={() => void save()} loading={saving} />
+        <Button label={t('settings.saveDetails')} onPress={() => void save()} loading={saving} />
       </Card>
-      <SectionHeader title="Çocuk politikası" />
+      <SectionHeader title={t('settings.sectionChildren')} />
       <Card>
         <View style={styles.switchRow}>
           <View style={styles.switchCopy}>
-            <AppText variant="label">Düğünümüz yetişkinlere özeldir</AppText>
+            <AppText variant="label">{t('settings.adultsOnly')}</AppText>
             <AppText variant="caption" color={theme.colors.muted}>
-              Açıkken davetiye önizlemesinde, PNG/PDF çıktısında ve paylaşım mesajlarında nazik bir not görünür.
+              {t('settings.adultsOnlyHint')}
             </AppText>
           </View>
           <Switch
-            accessibilityLabel="Düğünümüz yetişkinlere özeldir"
+            accessibilityLabel={t('settings.adultsOnly')}
             value={profile.adultsOnly}
-            onValueChange={(value) =>
-              setProfile((current) => ({
-                ...current,
-                adultsOnly: value,
-                adultsOnlyMessage:
-                  value && !current.adultsOnlyMessage ? ADULTS_ONLY_PRESETS[0] : current.adultsOnlyMessage,
-              }))
-            }
+            onValueChange={(value) => update('adultsOnly', value)}
             trackColor={{ true: theme.colors.primary, false: theme.colors.border }}
           />
         </View>
         {profile.adultsOnly ? (
           <>
             <View style={styles.presets}>
-              {ADULTS_ONLY_PRESETS.map((preset, index) => (
+              {Array.from({ length: ADULTS_ONLY_PRESET_COUNT }, (_, index) => (
                 <Button
-                  key={preset}
-                  label={`Hazır mesaj ${index + 1}`}
-                  variant={profile.adultsOnlyMessage === preset ? 'primary' : 'secondary'}
-                  onPress={() => update('adultsOnlyMessage', preset)}
+                  key={index}
+                  label={t('settings.presetMessage', { n: index + 1 })}
+                  variant={selectedPreset === index ? 'primary' : 'secondary'}
+                  onPress={() => update('adultsOnlyMessage', adultsOnlyPresetMarker(index))}
                 />
               ))}
             </View>
             <TextField
-              label="Çocuksuz düğün mesajı"
-              value={profile.adultsOnlyMessage}
+              label={t('settings.adultsMessage')}
+              value={resolveAdultsOnlyText(t, profile.adultsOnlyMessage) || adultsOnlyPreset(t, 0)}
               onChangeText={(value) => update('adultsOnlyMessage', value)}
               multiline
               maxLength={400}
             />
           </>
         ) : null}
-        <Button label="Çocuk politikasını kaydet" variant="secondary" onPress={() => void save()} loading={saving} />
+        <Button
+          label={t('settings.saveChildPolicy')}
+          variant="secondary"
+          onPress={() => void save()}
+          loading={saving}
+        />
       </Card>
-      <SectionHeader title="Görünüm ve bildirim" />
+      <SectionHeader title={t('settings.sectionAppearance')} />
       <Card>
         <Chips<ThemePreference>
-          label="Tema"
+          label={t('settings.theme')}
           value={profile.theme}
           onChange={(value) => update('theme', value)}
           options={[
-            { value: 'light', label: 'Açık' },
-            { value: 'dark', label: 'Koyu' },
-            { value: 'system', label: 'Sistem' },
+            { value: 'light', label: t('settings.themeLight') },
+            { value: 'dark', label: t('settings.themeDark') },
+            { value: 'system', label: t('settings.themeSystem') },
           ]}
         />
-        <Button label="Tema tercihini kaydet" variant="secondary" onPress={() => void save()} />
+        <Button label={t('settings.saveTheme')} variant="secondary" onPress={() => void save()} />
         <ListRow
-          title="Yerel bildirimler"
-          subtitle={data.profile.notificationsEnabled ? 'İzin verildi' : 'İzin yok; uygulama etkilenmez'}
-          meta={data.profile.notificationsEnabled ? 'Açık' : 'Kapalı'}
+          title={t('settings.notifications')}
+          subtitle={data.profile.notificationsEnabled ? t('settings.notificationsOn') : t('settings.notificationsOff')}
+          meta={data.profile.notificationsEnabled ? t('common.on') : t('common.off')}
           onPress={() => void enableNotifications()}
         />
       </Card>
-      <SectionHeader title="Veriler" />
+      <SectionHeader title={t('settings.sectionData')} />
       <Card>
+        <ListRow title={t('settings.createBackup')} subtitle={t('settings.createBackupHint')} onPress={backup} />
         <ListRow
-          title="Yedek dosyası oluştur"
-          subtitle="Sürümlü JSON; davetiye fotoğrafları dahil edilmez"
-          onPress={backup}
-        />
-        <ListRow
-          title="Yedekten geri yükle"
-          subtitle="Dosya önce doğrulanır, sonra onay istenir"
+          title={t('settings.restoreBackup')}
+          subtitle={t('settings.restoreBackupHint')}
           onPress={() => void restore()}
         />
         <ListRow
-          title="Tüm verilerimi sil"
-          subtitle="İki onaydan sonra cihaz verileri silinir"
-          meta="Kalıcı"
+          title={t('settings.deleteAll')}
+          subtitle={t('settings.deleteAllHint')}
+          meta={t('settings.permanent')}
           onPress={deleteEverything}
         />
       </Card>
-      <SectionHeader title="Yardım ve hukuki" />
+      <SectionHeader title={t('settings.sectionHelp')} />
       <Card>
-        <ListRow title="Gizlilik Politikası" onPress={() => router.push('/legal/privacy')} />
-        <ListRow title="Kullanım Koşulları" onPress={() => router.push('/legal/terms')} />
-        <ListRow title="Veri saklama ve silme" onPress={() => router.push('/legal/data')} />
-        <ListRow title="Açık kaynak lisansları" onPress={() => router.push('/legal/licenses')} />
-        <ListRow title="Destek ve SSS" onPress={() => router.push('/legal/support')} />
+        <ListRow title={t('legal.privacy.title')} onPress={() => router.push('/legal/privacy')} />
+        <ListRow title={t('legal.terms.title')} onPress={() => router.push('/legal/terms')} />
+        <ListRow title={t('legal.data.title')} onPress={() => router.push('/legal/data')} />
+        <ListRow title={t('legal.licenses.title')} onPress={() => router.push('/legal/licenses')} />
+        <ListRow title={t('legal.support.title')} onPress={() => router.push('/legal/support')} />
         <ListRow
-          title="Geri bildirim gönder"
+          title={t('settings.feedback')}
           subtitle={supportEmail}
           onPress={() =>
-            void Linking.openURL(`mailto:${supportEmail}?subject=${encodeURIComponent('Düğün Planım Geri Bildirim')}`)
+            void Linking.openURL(`mailto:${supportEmail}?subject=${encodeURIComponent(t('settings.feedbackSubject'))}`)
           }
         />
       </Card>
       <Card>
-        <AppText variant="label">Düğün Planım {Application.nativeApplicationVersion ?? APP_VERSION}</AppText>
+        <AppText variant="label">
+          {t('settings.version', { version: Application.nativeApplicationVersion ?? APP_VERSION })}
+        </AppText>
         <AppText variant="caption" color={theme.colors.muted}>
-          Bu uygulama profesyonel düğün, hukuk veya finans danışmanlığı sağlamaz.
+          {t('settings.disclaimer')}
         </AppText>
       </Card>
     </Screen>

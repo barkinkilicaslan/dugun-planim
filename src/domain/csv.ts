@@ -1,4 +1,5 @@
 import type { Guest } from './models';
+import { t } from '@/i18n';
 import { validateGuest, ValidationError } from './validation';
 
 const HEADERS = ['ad', 'telefon', 'taraf', 'kisi_sayisi', 'cocuk_sayisi', 'rsvp', 'grup', 'yemek_alerji', 'notlar'];
@@ -46,7 +47,7 @@ export function parseCsvRows(input: string): string[][] {
       cell = '';
     } else cell += char;
   }
-  if (quoted) throw new ValidationError('CSV dosyasında kapanmamış tırnak var.');
+  if (quoted) throw new ValidationError(t('csv.unclosedQuote'));
   if (cell || row.length) {
     row.push(cell);
     rows.push(row);
@@ -57,7 +58,7 @@ export function parseCsvRows(input: string): string[][] {
 export function csvToGuests(input: string, idFactory: () => string): Guest[] {
   const rows = parseCsvRows(input);
   if (rows.length < 2 || HEADERS.some((header, index) => rows[0]?.[index]?.trim().toLowerCase() !== header)) {
-    throw new ValidationError(`CSV başlıkları şu sırada olmalıdır: ${HEADERS.join(', ')}.`);
+    throw new ValidationError(t('csv.headers', { headers: HEADERS.join(', ') }));
   }
   const now = new Date().toISOString();
   return rows.slice(1).map((cells, index) => {
@@ -87,7 +88,7 @@ export function csvToGuests(input: string, idFactory: () => string): Guest[] {
     try {
       return validateGuest(guest);
     } catch (error) {
-      throw new ValidationError(`CSV ${index + 2}. satır: ${(error as Error).message}`);
+      throw new ValidationError(t('csv.row', { row: index + 2, message: (error as Error).message }));
     }
   });
 }

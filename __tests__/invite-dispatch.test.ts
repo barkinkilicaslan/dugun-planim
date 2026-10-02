@@ -11,7 +11,7 @@ import {
   smsRecipient,
 } from '@/domain/invite-dispatch';
 import type { Guest } from '@/domain/models';
-import { GUEST_DEFAULTS } from './fixtures';
+import { EN, GUEST_DEFAULTS, TR } from './fixtures';
 
 const now = '2026-10-02T10:00:00.000Z';
 const guest = (id: string, overrides: Partial<Guest> = {}): Guest => ({
@@ -37,9 +37,11 @@ describe('channel availability', () => {
   it('requires a usable email for email and a mail account on the device', () => {
     expect(channelAvailability(guest('a', { email: 'a@b.co' }), 'email', fullDevice).available).toBe(true);
     expect(channelAvailability(guest('a'), 'email', fullDevice)).toMatchObject({ available: false });
-    expect(channelAvailability(guest('a', { email: 'a@b.co' }), 'email', { mail: false, sms: true }).reason).toMatch(
-      /e-posta hesabı/,
-    );
+    const noMail = channelAvailability(guest('a', { email: 'a@b.co' }), 'email', { mail: false, sms: true });
+    expect(noMail.reason).toBe('dispatch.noMailAccount');
+    // Neden bir çeviri anahtarıdır; metin etkin dile göre arayüzde çevrilir.
+    expect(noMail.reason && TR.t(noMail.reason)).toMatch(/e-posta hesabı/);
+    expect(noMail.reason && EN.t(noMail.reason)).toMatch(/email account/);
   });
   it('requires a recognisable phone for SMS and WhatsApp', () => {
     const withPhone = guest('a', { phone: '0532 123 45 67' });
@@ -84,7 +86,7 @@ describe('sequential invite queue', () => {
   it('skips guests without contact info up front and never auto-advances', () => {
     const queue = createInviteQueue(guests, 'sms', fullDevice);
     expect(queue.entries.map((entry) => entry.state)).toEqual(['waiting', 'skipped', 'waiting', 'waiting']);
-    expect(queue.entries[1].reason).toMatch(/telefon/);
+    expect(queue.entries[1].reason).toBe('dispatch.noPhone');
     expect(currentEntry(queue)?.guestId).toBe('a');
   });
 
@@ -92,7 +94,7 @@ describe('sequential invite queue', () => {
     let queue = createInviteQueue(guests, 'sms', fullDevice);
     queue = resolveCurrent(queue, 'opened');
     expect(currentEntry(queue)?.guestId).toBe('c');
-    queue = resolveCurrent(queue, 'skipped', 'Kullanıcı atladı.');
+    queue = resolveCurrent(queue, 'skipped', 'dispatch.userSkipped');
     expect(currentEntry(queue)?.guestId).toBe('d');
     queue = resolveCurrent(queue, 'opened');
     expect(queueFinished(queue)).toBe(true);

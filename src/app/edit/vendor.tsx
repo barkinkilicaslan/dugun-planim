@@ -8,18 +8,20 @@ import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
 import { spacing } from '@/constants/theme';
 import { useApp } from '@/context/app-context';
+import { useI18n } from '@/context/language-context';
 import type { ContractStatus, Vendor } from '@/domain/models';
 
 const cents = (value: string) => Math.max(0, Math.round(Number(value.replace(',', '.')) * 100)) || 0;
 export default function VendorEditor() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { data, createId, saveVendor, deleteVendor } = useApp();
+  const { t } = useI18n();
   const existing = data.vendors.find((item) => item.id === id);
   const now = new Date().toISOString();
   const [form, setForm] = useState<Vendor>(
     existing ?? {
       id: createId(),
-      category: 'Mekân',
+      category: t('starter.vendorDefaultCategory'),
       name: '',
       phone: '',
       email: '',
@@ -40,35 +42,44 @@ export default function VendorEditor() {
       await saveVendor({ ...form, updatedAt: new Date().toISOString() });
       router.back();
     } catch (error) {
-      Alert.alert('Tedarikçi kaydedilemedi', (error as Error).message);
+      Alert.alert(t('vendorEditor.saveFailed'), (error as Error).message);
     } finally {
       setSaving(false);
     }
   }
   function confirmDelete() {
-    Alert.alert('Tedarikçi silinsin mi?', 'İlişkili bütçe kalemlerinde bağlantı kaldırılır.', [
-      { text: 'Vazgeç', style: 'cancel' },
-      { text: 'Sil', style: 'destructive', onPress: () => void deleteVendor(form.id).then(() => router.back()) },
+    Alert.alert(t('vendorEditor.deleteTitle'), t('vendorEditor.deleteBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('common.delete'),
+        style: 'destructive',
+        onPress: () => void deleteVendor(form.id).then(() => router.back()),
+      },
     ]);
   }
   return (
-    <Screen title={existing ? 'Tedarikçiyi düzenle' : 'Yeni tedarikçi'}>
+    <Screen title={existing ? t('vendorEditor.edit') : t('vendorEditor.new')}>
       <Card>
-        <TextField label="İsim" value={form.name} onChangeText={(value) => update('name', value)} autoFocus />
         <TextField
-          label="Kategori"
-          value={form.category}
-          onChangeText={(value) => update('category', value)}
-          placeholder="Mekân, fotoğrafçı…"
+          label={t('vendorEditor.name')}
+          value={form.name}
+          onChangeText={(value) => update('name', value)}
+          autoFocus
         />
         <TextField
-          label="Telefon"
+          label={t('vendorEditor.category')}
+          value={form.category}
+          onChangeText={(value) => update('category', value)}
+          placeholder={t('vendorEditor.categoryPlaceholder')}
+        />
+        <TextField
+          label={t('vendorEditor.phone')}
           value={form.phone}
           onChangeText={(value) => update('phone', value)}
           keyboardType="phone-pad"
         />
         <TextField
-          label="E-posta"
+          label={t('vendorEditor.email')}
           value={form.email}
           onChangeText={(value) => update('email', value)}
           keyboardType="email-address"
@@ -76,39 +87,52 @@ export default function VendorEditor() {
         />
         <View style={styles.actions}>
           {form.phone ? (
-            <Button label="Ara" variant="secondary" onPress={() => void Linking.openURL(`tel:${form.phone}`)} />
+            <Button
+              label={t('vendorEditor.call')}
+              variant="secondary"
+              onPress={() => void Linking.openURL(`tel:${form.phone}`)}
+            />
           ) : null}
           {form.email ? (
-            <Button label="E-posta" variant="secondary" onPress={() => void Linking.openURL(`mailto:${form.email}`)} />
+            <Button
+              label={t('vendorEditor.sendEmail')}
+              variant="secondary"
+              onPress={() => void Linking.openURL(`mailto:${form.email}`)}
+            />
           ) : null}
         </View>
         <TextField
-          label={`Teklif (${data.profile.currency})`}
+          label={t('vendorEditor.quote', { currency: data.profile.currency })}
           value={form.quoteCents ? String(form.quoteCents / 100) : ''}
           onChangeText={(value) => update('quoteCents', cents(value))}
           keyboardType="decimal-pad"
         />
         <Chips<ContractStatus>
-          label="Sözleşme durumu"
+          label={t('vendorEditor.contractStatus')}
           value={form.contractStatus}
           onChange={(value) => update('contractStatus', value)}
           options={[
-            { value: 'researching', label: 'Araştırılıyor' },
-            { value: 'quoted', label: 'Teklif alındı' },
-            { value: 'signed', label: 'İmzalandı' },
-            { value: 'completed', label: 'Tamamlandı' },
+            { value: 'researching', label: t('vendor.status.researching') },
+            { value: 'quoted', label: t('vendor.status.quoted') },
+            { value: 'signed', label: t('vendor.status.signed') },
+            { value: 'completed', label: t('vendor.status.completed') },
           ]}
         />
         <TextField
-          label="Ödeme planı"
+          label={t('vendorEditor.paymentPlan')}
           value={form.paymentPlan}
           onChangeText={(value) => update('paymentPlan', value)}
           multiline
         />
-        <TextField label="Notlar" value={form.notes} onChangeText={(value) => update('notes', value)} multiline />
+        <TextField
+          label={t('vendorEditor.notes')}
+          value={form.notes}
+          onChangeText={(value) => update('notes', value)}
+          multiline
+        />
         <View style={styles.actions}>
-          <Button label="Kaydet" onPress={() => void submit()} loading={saving} style={styles.grow} />
-          {existing ? <Button label="Sil" variant="danger" onPress={confirmDelete} /> : null}
+          <Button label={t('common.save')} onPress={() => void submit()} loading={saving} style={styles.grow} />
+          {existing ? <Button label={t('common.delete')} variant="danger" onPress={confirmDelete} /> : null}
         </View>
       </Card>
     </Screen>

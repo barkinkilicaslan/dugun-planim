@@ -3,10 +3,11 @@ import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 
 import { AppText } from '@/components/ui/app-text';
 import { radius, spacing } from '@/constants/theme';
+import { useI18n } from '@/context/language-context';
 import { useAppTheme } from '@/context/theme-context';
 import { tableOccupancy } from '@/domain/calculations';
 import type { Guest, SeatingTable, VenueLayoutItem } from '@/domain/models';
-import { moveVenueLayoutItem, VENUE_ITEM_LABELS } from '@/domain/venue-layout';
+import { moveVenueLayoutItem, venueDisplayLabel, venueItemLabel } from '@/domain/venue-layout';
 
 interface CanvasSize {
   width: number;
@@ -47,12 +48,13 @@ function DraggableVenueItem({
   onMoveEnd?: (item: VenueLayoutItem) => void;
 }) {
   const theme = useAppTheme();
+  const { t } = useI18n();
   const [drag, setDrag] = useState<{ pageX: number; pageY: number; origin: VenueLayoutItem }>();
 
   const table = item.tableId ? tables.find((candidate) => candidate.id === item.tableId) : undefined;
   const occupancy = table ? tableOccupancy(table.id, guests) : undefined;
-  const label = table?.name ?? item.label;
-  const description = table ? `${occupancy}/${table.capacity}` : VENUE_ITEM_LABELS[item.type];
+  const label = table?.name ?? venueDisplayLabel(t, item);
+  const description = table ? `${occupancy}/${table.capacity}` : venueItemLabel(t, item.type);
   const backgroundColor =
     item.type === 'table'
       ? theme.colors.surface
@@ -93,10 +95,14 @@ function DraggableVenueItem({
       onResponderTerminationRequest={() => false}
       accessible
       accessibilityRole={interactive ? 'button' : 'text'}
-      accessibilityLabel={`${label}, ${description}${item.locked ? ', kilitli' : ''}`}
-      accessibilityHint={interactive ? 'Seçmek ve salon içinde taşımak için dokunun.' : undefined}
+      accessibilityLabel={
+        item.locked
+          ? t('venue.canvas.itemLocked', { label, description })
+          : t('venue.canvas.item', { label, description })
+      }
+      accessibilityHint={interactive ? t('venue.canvas.hint') : undefined}
       accessibilityState={{ selected }}
-      accessibilityActions={interactive ? [{ name: 'activate', label: 'Öğeyi seç' }] : undefined}
+      accessibilityActions={interactive ? [{ name: 'activate', label: t('venue.canvas.selectAction') }] : undefined}
       onAccessibilityAction={interactive ? () => onSelect?.(item.id) : undefined}
       style={[
         styles.item,
@@ -118,7 +124,7 @@ function DraggableVenueItem({
         {label}
       </AppText>
       <AppText variant="caption" color={theme.colors.muted} numberOfLines={1}>
-        {item.locked ? 'Kilitli' : description}
+        {item.locked ? t('venue.canvas.lockedBadge') : description}
       </AppText>
       {selected ? <View style={[styles.selectionDot, { backgroundColor: theme.colors.accent }]} /> : null}
     </View>
@@ -137,6 +143,7 @@ export function VenueCanvas({
   compact = false,
 }: VenueCanvasProps) {
   const theme = useAppTheme();
+  const { t } = useI18n();
   const [size, setSize] = useState<CanvasSize>({ width: 320, height: compact ? 208 : 320 });
 
   function handleLayout(event: LayoutChangeEvent) {
@@ -147,7 +154,7 @@ export function VenueCanvas({
   return (
     <View
       testID="venue-canvas"
-      accessibilityLabel="Özelleştirilebilir salon planı"
+      accessibilityLabel={t('venue.canvas.label')}
       onLayout={handleLayout}
       style={[
         styles.canvas,
@@ -177,9 +184,9 @@ export function VenueCanvas({
       ))}
       {!items.length ? (
         <View pointerEvents="none" style={styles.empty}>
-          <AppText variant="subtitle">Boş salon</AppText>
+          <AppText variant="subtitle">{t('venue.canvas.emptyTitle')}</AppText>
           <AppText color={theme.colors.muted} style={styles.emptyCopy}>
-            Masaları ve alanları araç çubuğundan ekleyin.
+            {t('venue.canvas.emptyHint')}
           </AppText>
         </View>
       ) : null}

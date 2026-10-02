@@ -1,4 +1,5 @@
 import { APP_VERSION, SCHEMA_VERSION, type AppData } from './models';
+import { t } from '@/i18n';
 import { validateAppData, ValidationError } from './validation';
 
 export const BACKUP_FORMAT = 'dugun-planim-backup';
@@ -24,21 +25,21 @@ export function createBackup(data: AppData, now = new Date()): string {
 }
 
 export function parseBackup(raw: string): AppData {
-  if (raw.length > 10_000_000) throw new ValidationError('Yedek dosyası izin verilen boyutu aşıyor.');
+  if (raw.length > 10_000_000) throw new ValidationError(t('backup.tooLarge'));
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
   } catch {
-    throw new ValidationError('Yedek dosyası geçerli JSON içermiyor.');
+    throw new ValidationError(t('backup.invalidJson'));
   }
-  if (!parsed || typeof parsed !== 'object') throw new ValidationError('Yedek yapısı geçersiz.');
+  if (!parsed || typeof parsed !== 'object') throw new ValidationError(t('backup.invalidStructure'));
   const envelope = parsed as Partial<BackupEnvelope>;
-  if (envelope.format !== BACKUP_FORMAT) throw new ValidationError('Bu dosya Düğün Planım yedeği değil.');
+  if (envelope.format !== BACKUP_FORMAT) throw new ValidationError(t('backup.wrongFormat'));
   if (
     typeof envelope.schemaVersion !== 'number' ||
     envelope.schemaVersion < 1 ||
     envelope.schemaVersion > SCHEMA_VERSION
   )
-    throw new ValidationError(`Yedek şema sürümü desteklenmiyor: ${String(envelope.schemaVersion)}.`);
+    throw new ValidationError(t('backup.unsupportedSchema', { version: String(envelope.schemaVersion) }));
   return validateAppData(envelope.payload as AppData);
 }

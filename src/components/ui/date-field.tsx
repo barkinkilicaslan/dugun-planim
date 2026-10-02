@@ -3,10 +3,12 @@ import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 
 import { radius, spacing } from '@/constants/theme';
+import { useI18n } from '@/context/language-context';
 import { useAppTheme } from '@/context/theme-context';
 import {
-  formatLongTrWithWeekday,
-  formatNumericTr,
+  formatLongWithWeekday,
+  formatNumeric,
+  formatTime,
   isoFromLocalDate,
   isValidTimeString,
   localDateFromIso,
@@ -45,6 +47,7 @@ function PickerField({
   clearable,
 }: PickerFieldProps) {
   const theme = useAppTheme();
+  const { t, intl, locale } = useI18n();
   const [iosOpen, setIosOpen] = useState(false);
   const hasValue = kind === 'date' ? Boolean(localDateFromIso(value)) : isValidTimeString(value);
   const display = hasValue ? describe(value) : placeholder;
@@ -60,7 +63,7 @@ function PickerField({
       DateTimePickerAndroid.open({
         value: pickerDate,
         mode: kind,
-        is24Hour: true,
+        is24Hour: locale === 'tr',
         minimumDate: minimum,
         onValueChange: (_event, picked) => handlePicked(picked),
       });
@@ -90,7 +93,9 @@ function PickerField({
       ) : (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`${label}: ${hasValue ? display : 'seçilmedi'}. Değiştirmek için dokunun.`}
+          accessibilityLabel={
+            hasValue ? t('date.field.selected', { label, value: display }) : t('date.field.notSelected', { label })
+          }
           onPress={open}
           style={({ pressed }) => [
             styles.input,
@@ -112,7 +117,7 @@ function PickerField({
           value={pickerDate}
           mode={kind}
           display={kind === 'date' ? 'inline' : 'spinner'}
-          locale="tr-TR"
+          locale={intl}
           minimumDate={minimum}
           accentColor={theme.colors.primary}
           themeVariant={theme.dark ? 'dark' : 'light'}
@@ -122,12 +127,12 @@ function PickerField({
       {clearable && hasValue ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`${label} değerini temizle`}
+          accessibilityLabel={t('date.field.clear', { label })}
           onPress={() => onChange('')}
           style={styles.clear}
         >
           <AppText variant="caption" color={theme.colors.primary}>
-            Temizle
+            {t('common.clear')}
           </AppText>
         </Pressable>
       ) : null}
@@ -145,17 +150,18 @@ export function DateField({
   value,
   onChange,
   minimumDate,
-  placeholder = 'Tarih seçin',
+  placeholder,
   ...rest
 }: BaseProps & { value: string; onChange: (value: string) => void; minimumDate?: string; placeholder?: string }) {
+  const { t, locale } = useI18n();
   return (
     <PickerField
       kind="date"
       value={value}
       onChange={onChange}
       minimumDate={minimumDate}
-      placeholder={placeholder}
-      describe={(date) => `${formatNumericTr(date)} · ${formatLongTrWithWeekday(date)}`}
+      placeholder={placeholder ?? t('date.field.pickDate')}
+      describe={(date) => `${formatNumeric(date)} · ${formatLongWithWeekday(date, locale)}`}
       {...rest}
     />
   );
@@ -165,16 +171,17 @@ export function DateField({
 export function TimeField({
   value,
   onChange,
-  placeholder = 'Saat seçin',
+  placeholder,
   ...rest
 }: BaseProps & { value: string; onChange: (value: string) => void; placeholder?: string }) {
+  const { t, locale } = useI18n();
   return (
     <PickerField
       kind="time"
       value={value}
       onChange={onChange}
-      placeholder={placeholder}
-      describe={(time) => time}
+      placeholder={placeholder ?? t('date.field.pickTime')}
+      describe={(time) => formatTime(time, locale)}
       {...rest}
     />
   );

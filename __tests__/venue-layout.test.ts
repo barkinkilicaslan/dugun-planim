@@ -7,7 +7,7 @@ import {
   venueLayoutSummary,
 } from '@/domain/venue-layout';
 import type { Guest, SeatingTable } from '@/domain/models';
-import { GUEST_DEFAULTS } from './fixtures';
+import { GUEST_DEFAULTS, TR } from './fixtures';
 
 const now = '2026-08-01T12:00:00.000Z';
 
@@ -62,9 +62,9 @@ describe('customizable venue layout', () => {
       updatedAt: now,
     };
     const item = createVenueLayoutItem({ id: 'layout-1', type: 'table', index: 0, now, tableId: 't1' });
-    const html = venueLayoutHtml([item], [table], [guest]);
+    const html = venueLayoutHtml([item], [table], [guest], TR.t);
     expect(html).toContain('&lt;Masa 1&gt; 2/8');
     expect(html).not.toContain('<Masa 1>');
-    expect(venueLayoutSummary([item])).toBe('1 masa · 0 alan yerleştirildi');
+    expect(venueLayoutSummary([item], TR.t)).toBe('1 masa · 0 alan yerleştirildi');
   });
 });

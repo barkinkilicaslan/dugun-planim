@@ -1,6 +1,13 @@
+import type { I18nLike, Translator } from '@/i18n';
 import type { InvitationDesign, InvitationTemplateId, WeddingProfile } from './models';
-import { ADULTS_ONLY_PRESETS, DEFAULT_INVITATION_MESSAGE, templateById } from './invitation-templates';
-import { formatLongTr, formatLongTrWithWeekday } from './wedding-date';
+import {
+  adultsOnlyPreset,
+  defaultInvitationMessage,
+  resolveAdultsOnlyText,
+  templateById,
+  templateName,
+} from './invitation-templates';
+import { formatLong, formatLongWithWeekday, formatTime } from './wedding-date';
 
 /** Davetiyenin ekranda, PNG/PDF'te ve paylaşım metninde gösterdiği çözümlenmiş içerik. */
 export interface InvitationContent {
@@ -22,19 +29,25 @@ export function defaultCoupleNames(profile: Pick<WeddingProfile, 'couple1Name' |
 }
 
 /** Tasarımdaki boş alanlar düğün profilinden doldurulur; böylece profil değişince eski bilgi kalmaz. */
-export function resolveInvitationContent(design: InvitationDesign, profile: WeddingProfile): InvitationContent {
+export function resolveInvitationContent(
+  design: InvitationDesign,
+  profile: WeddingProfile,
+  { t, locale }: I18nLike,
+): InvitationContent {
   const date = design.weddingDate || profile.weddingDate;
   const adultsOnlyNote = profile.adultsOnly
-    ? design.adultsOnlyMessage.trim() || profile.adultsOnlyMessage.trim() || ADULTS_ONLY_PRESETS[0]
+    ? resolveAdultsOnlyText(t, design.adultsOnlyMessage) ||
+      resolveAdultsOnlyText(t, profile.adultsOnlyMessage) ||
+      adultsOnlyPreset(t, 0)
     : '';
   return {
     coupleNames: design.coupleNames.trim() || defaultCoupleNames(profile),
-    dateLong: date ? formatLongTrWithWeekday(date) : '',
-    time: design.weddingTime,
+    dateLong: date ? formatLongWithWeekday(date, locale) : '',
+    time: design.weddingTime ? formatTime(design.weddingTime, locale) : '',
     venueName: design.venueName.trim(),
     venueAddress: design.venueAddress.trim(),
-    message: design.message.trim() || DEFAULT_INVITATION_MESSAGE,
-    rsvpDeadline: design.rsvpDeadline ? formatLongTr(design.rsvpDeadline) : '',
+    message: design.message.trim() || defaultInvitationMessage(t),
+    rsvpDeadline: design.rsvpDeadline ? formatLong(design.rsvpDeadline, locale) : '',
     adultsOnlyNote,
     photoUri: design.photoUri,
   };
@@ -45,11 +58,12 @@ export function createInvitationDesign(
   templateId: InvitationTemplateId,
   now: string,
   isDefault: boolean,
+  t: Translator,
 ): InvitationDesign {
   const template = templateById(templateId);
   return {
     id,
-    name: `${template.name} davetiye`,
+    name: t('invitation.defaultName', { template: templateName(t, templateId) }),
     templateId,
     paletteId: template.defaultPaletteId,
     coupleNames: '',
@@ -79,9 +93,10 @@ export function storedOverride(value: string, profileDefault: string): string {
 export function buildInviteMessage(
   content: InvitationContent,
   options: { guestName?: string; rsvpUrl?: string } = {},
+  t: Translator,
 ): string {
   const lines: string[] = [];
-  if (options.guestName) lines.push(`Sevgili ${options.guestName},`, '');
+  if (options.guestName) lines.push(t('invitation.messageGreeting', { name: options.guestName }), '');
   lines.push(content.message, '');
   if (content.coupleNames) lines.push(`💍 ${content.coupleNames}`);
   const when = [content.dateLong, content.time].filter(Boolean).join(' · ');
@@ -90,19 +105,21 @@ export function buildInviteMessage(
   if (where) lines.push(`📍 ${where}`);
   if (content.adultsOnlyNote) lines.push('', content.adultsOnlyNote);
   if (options.rsvpUrl) {
-    lines.push('', `Katılım durumunuzu buradan bildirebilirsiniz: ${options.rsvpUrl}`);
-    if (content.rsvpDeadline) lines.push(`Son cevap tarihi: ${content.rsvpDeadline}`);
+    lines.push('', t('invitation.messageRsvpLink', { url: options.rsvpUrl }));
+    if (content.rsvpDeadline) lines.push(t('invitation.messageDeadline', { date: content.rsvpDeadline }));
   } else if (content.rsvpDeadline) {
-    lines.push('', `Lütfen ${content.rsvpDeadline} tarihine kadar bize dönüş yapın.`);
+    lines.push('', t('invitation.messageReplyBy', { date: content.rsvpDeadline }));
   }
   return lines.join('\n').trim();
 }
 
-export function inviteSubject(content: InvitationContent): string {
-  return content.coupleNames ? `${content.coupleNames} · Düğün Davetiyesi` : 'Düğün Davetiyesi';
+export function inviteSubject(content: InvitationContent, t: Translator): string {
+  return content.coupleNames
+    ? t('invitation.subjectWithNames', { names: content.coupleNames })
+    : t('invitation.subject');
 }
 
-export function invitationFileBase(design: InvitationDesign): string {
+export function invitationFileBase(design: InvitationDesign, t: Translator): string {
   const slug = design.name
     .toLocaleLowerCase('tr')
     .replace(/ç/g, 'c')
@@ -113,5 +130,5 @@ export function invitationFileBase(design: InvitationDesign): string {
     .replace(/ü/g, 'u')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
-  return `davetiye-${slug || 'tasarim'}`;
+  return `${t('invitation.fileBase')}-${slug || t('invitation.fileFallbackName')}`;
 }

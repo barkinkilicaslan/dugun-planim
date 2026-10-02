@@ -11,6 +11,7 @@ import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
 import { radius, spacing } from '@/constants/theme';
 import { useApp } from '@/context/app-context';
+import { useI18n } from '@/context/language-context';
 import { useAppTheme } from '@/context/theme-context';
 import { daysUntil, formatDate, isTaskOverdue } from '@/domain/calculations';
 import type { TaskPriority } from '@/domain/models';
@@ -22,6 +23,7 @@ type DateFilter = 'all' | 'next30' | 'undated';
 export default function TasksScreen() {
   const { data, saveTask } = useApp();
   const theme = useAppTheme();
+  const { t, locale } = useI18n();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<StatusFilter>('all');
   const [priority, setPriority] = useState<PriorityFilter>('all');
@@ -33,8 +35,8 @@ export default function TasksScreen() {
       data.tasks
         .filter((task) => {
           const match = `${task.title} ${task.description} ${task.category}`
-            .toLocaleLowerCase('tr')
-            .includes(search.toLocaleLowerCase('tr'));
+            .toLocaleLowerCase(locale)
+            .includes(search.toLocaleLowerCase(locale));
           const days = task.dueDate ? daysUntil(task.dueDate) : undefined;
           return (
             match &&
@@ -50,7 +52,7 @@ export default function TasksScreen() {
           );
         })
         .sort((a, b) => Number(a.completed) - Number(b.completed) || a.dueDate.localeCompare(b.dueDate)),
-    [category, data.tasks, dateFilter, priority, search, status],
+    [category, data.tasks, dateFilter, locale, priority, search, status],
   );
 
   async function toggle(id: string) {
@@ -62,19 +64,22 @@ export default function TasksScreen() {
         Boolean(task.notificationId && task.completed),
       );
     } catch (error) {
-      Alert.alert('Görev güncellenemedi', (error as Error).message);
+      Alert.alert(t('tasks.updateFailed'), (error as Error).message);
     }
   }
 
   return (
     <Screen
-      title="Görevler"
-      subtitle={`${data.tasks.filter((task) => task.completed).length}/${data.tasks.length} tamamlandı`}
-      action={<Button label="+ Ekle" onPress={() => router.push('/edit/task')} />}
+      title={t('tasks.title')}
+      subtitle={t('tasks.subtitle', {
+        done: data.tasks.filter((task) => task.completed).length,
+        total: data.tasks.length,
+      })}
+      action={<Button label={t('common.add')} onPress={() => router.push('/edit/task')} />}
     >
       <TextField
-        label="Görev ara"
-        placeholder="Başlık, açıklama veya kategori"
+        label={t('tasks.search')}
+        placeholder={t('tasks.searchPlaceholder')}
         value={search}
         onChangeText={setSearch}
       />
@@ -82,39 +87,39 @@ export default function TasksScreen() {
         value={status}
         onChange={setStatus}
         options={[
-          { value: 'all', label: 'Tümü' },
-          { value: 'open', label: 'Açık' },
-          { value: 'completed', label: 'Tamamlanan' },
-          { value: 'overdue', label: 'Geciken' },
+          { value: 'all', label: t('common.all') },
+          { value: 'open', label: t('tasks.filterOpen') },
+          { value: 'completed', label: t('tasks.filterCompleted') },
+          { value: 'overdue', label: t('tasks.filterOverdue') },
         ]}
       />
       <Chips<PriorityFilter>
-        label="Öncelik"
+        label={t('tasks.priority')}
         value={priority}
         onChange={setPriority}
         options={[
-          { value: 'all', label: 'Tümü' },
-          { value: 'high', label: 'Yüksek' },
-          { value: 'medium', label: 'Orta' },
-          { value: 'low', label: 'Düşük' },
+          { value: 'all', label: t('common.all') },
+          { value: 'high', label: t('common.priority.high') },
+          { value: 'medium', label: t('common.priority.medium') },
+          { value: 'low', label: t('common.priority.low') },
         ]}
       />
       <Chips<DateFilter>
-        label="Tarih"
+        label={t('tasks.date')}
         value={dateFilter}
         onChange={setDateFilter}
         options={[
-          { value: 'all', label: 'Tümü' },
-          { value: 'next30', label: '30 gün içinde' },
-          { value: 'undated', label: 'Tarihsiz' },
+          { value: 'all', label: t('common.all') },
+          { value: 'next30', label: t('tasks.next30') },
+          { value: 'undated', label: t('tasks.undated') },
         ]}
       />
       {categories.length ? (
         <Chips<string>
-          label="Kategori"
+          label={t('tasks.category')}
           value={category}
           onChange={setCategory}
-          options={[{ value: 'all', label: 'Tümü' }, ...categories.map((value) => ({ value, label: value }))]}
+          options={[{ value: 'all', label: t('common.all') }, ...categories.map((value) => ({ value, label: value }))]}
         />
       ) : null}
       {filtered.length ? (
@@ -126,7 +131,7 @@ export default function TasksScreen() {
                 <Pressable
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: task.completed }}
-                  accessibilityLabel={`${task.title} tamamlandı olarak işaretle`}
+                  accessibilityLabel={t('tasks.markDone', { title: task.title })}
                   onPress={() => void toggle(task.id)}
                   style={[
                     styles.check,
@@ -140,7 +145,7 @@ export default function TasksScreen() {
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel={`${task.title} görevini düzenle`}
+                  accessibilityLabel={t('tasks.editTask', { title: task.title })}
                   onPress={() => router.push(`/edit/task?id=${task.id}`)}
                   style={styles.copy}
                 >
@@ -150,13 +155,17 @@ export default function TasksScreen() {
                     </AppText>
                     {overdue ? (
                       <AppText variant="caption" color={theme.colors.danger}>
-                        Gecikti
+                        {t('tasks.overdue')}
                       </AppText>
                     ) : null}
                   </View>
                   <AppText variant="caption" color={theme.colors.muted}>
                     {task.category} ·{' '}
-                    {task.priority === 'high' ? 'Yüksek' : task.priority === 'medium' ? 'Orta' : 'Düşük'} öncelik
+                    {task.priority === 'high'
+                      ? t('tasks.priorityHigh')
+                      : task.priority === 'medium'
+                        ? t('tasks.priorityMedium')
+                        : t('tasks.priorityLow')}
                     {task.dueDate ? ` · ${formatDate(task.dueDate, data.profile.dateFormat)}` : ''}
                   </AppText>
                   {task.description ? (
@@ -171,13 +180,13 @@ export default function TasksScreen() {
         })
       ) : (
         <EmptyState
-          title="Görev bulunamadı"
+          title={t('tasks.notFound')}
           description={
             search || status !== 'all' || priority !== 'all' || dateFilter !== 'all' || category !== 'all'
-              ? 'Arama veya filtreyi değiştirin.'
-              : 'İlk özel görevinizi ekleyin; ilerleme ana sayfaya yansır.'
+              ? t('common.searchChangeHint')
+              : t('tasks.emptyHint')
           }
-          actionLabel="Görev ekle"
+          actionLabel={t('home.addTask')}
           onAction={() => router.push('/edit/task')}
         />
       )}

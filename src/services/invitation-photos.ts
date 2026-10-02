@@ -1,6 +1,8 @@
 import { Platform } from 'react-native';
 import { Directory, File, Paths } from 'expo-file-system';
 
+import { t } from '@/i18n';
+
 /** Davetiye fotoğrafı: sistem dosya seçicisiyle seçilir ve uygulama klasörüne kopyalanır; fotoğraf izni gerekmez. */
 
 const PHOTO_DIR = 'invitation-photos';
@@ -12,7 +14,7 @@ function photoDirectory(): Directory {
 }
 
 export async function pickInvitationPhoto(designId: string): Promise<string | undefined> {
-  if (Platform.OS === 'web') throw new Error('Fotoğraf ekleme web önizlemesinde kullanılamıyor.');
+  if (Platform.OS === 'web') throw new Error(t('invitation.photo.webUnavailable'));
   const result = await File.pickFileAsync({
     mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
     multipleFiles: false,
@@ -20,8 +22,8 @@ export async function pickInvitationPhoto(designId: string): Promise<string | un
   if (result.canceled) return undefined;
   const source = result.result;
   const extension = source.extension.replace('.', '').toLowerCase();
-  if (!PHOTO_EXTENSIONS.includes(extension)) throw new Error('Yalnız JPG, PNG veya WebP fotoğraf eklenebilir.');
-  if (source.size > MAX_PHOTO_BYTES) throw new Error('Fotoğraf 15 MB sınırını aşıyor.');
+  if (!PHOTO_EXTENSIONS.includes(extension)) throw new Error(t('invitation.photo.badFormat'));
+  if (source.size > MAX_PHOTO_BYTES) throw new Error(t('invitation.photo.tooLarge'));
   const directory = photoDirectory();
   if (!directory.exists) directory.create({ intermediates: true });
   const target = new File(directory, `${designId.replace(/[^a-zA-Z0-9-]/g, '')}-${Date.now()}.${extension}`);

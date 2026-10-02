@@ -3,8 +3,9 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
 import SettingsScreen from '@/app/settings';
 import { createBackup } from '@/domain/backup';
-import { BACKUP_PHOTO_NOTICE_BODY, BACKUP_PHOTO_NOTICE_TITLE, restoreCompleteMessage } from '@/domain/backup-notices';
+import { backupPhotoNoticeBody, backupPhotoNoticeTitle, restoreCompleteMessage } from '@/domain/backup-notices';
 import { createInvitationDesign } from '@/domain/invitation-content';
+import { TR } from './fixtures';
 import { EMPTY_APP_DATA, EMPTY_PROFILE } from '@/domain/models';
 
 const now = '2026-10-02T10:00:00.000Z';
@@ -17,7 +18,10 @@ const profile = {
   estimatedGuestCount: 2,
   onboardingCompleted: true,
 };
-const design = { ...createInvitationDesign('d1', 'boho', now, true), photoUri: 'file:///x/invitation-photos/d1.jpg' };
+const design = {
+  ...createInvitationDesign('d1', 'boho', now, true, TR.t),
+  photoUri: 'file:///x/invitation-photos/d1.jpg',
+};
 const data = { ...EMPTY_APP_DATA, profile, invitationDesigns: [design] };
 
 const mockReplaceAll = jest.fn().mockResolvedValue(undefined);
@@ -81,8 +85,8 @@ describe('backup photo notices', () => {
     const view = await render(<SettingsScreen />);
     await fireEvent.press(view.getByLabelText('Yedek dosyası oluştur'));
     const shown = lastAlert(alert);
-    expect(shown.title).toBe(BACKUP_PHOTO_NOTICE_TITLE);
-    expect(shown.message).toBe(BACKUP_PHOTO_NOTICE_BODY);
+    expect(shown.title).toBe(backupPhotoNoticeTitle(TR.t));
+    expect(shown.message).toBe(backupPhotoNoticeBody(TR.t));
     expect(shown.message).toMatch(/fotoğrafları içermez/);
     expect(mockShareText).not.toHaveBeenCalled();
     await shown.buttons.find((button) => button.text === 'Yedeği oluştur')?.onPress?.();
@@ -107,17 +111,17 @@ describe('backup photo notices', () => {
     await waitFor(() => expect(alert).toHaveBeenCalled());
     const confirm = lastAlert(alert);
     expect(confirm.title).toBe('Yedek geri yüklensin mi?');
-    expect(confirm.message).toContain(BACKUP_PHOTO_NOTICE_BODY);
+    expect(confirm.message).toContain(backupPhotoNoticeBody(TR.t));
     await confirm.buttons.find((button) => button.text === 'Geri yükle')?.onPress?.();
     await waitFor(() => expect(mockReplaceAll).toHaveBeenCalled());
     const restored = mockReplaceAll.mock.calls[0][0] as typeof data;
     expect(restored.invitationDesigns[0]).toMatchObject({ templateId: 'boho', photoUri: '' });
     await waitFor(() => expect(lastAlert(alert).title).toBe('Tamamlandı'));
-    expect(lastAlert(alert).message).toBe(restoreCompleteMessage(1));
+    expect(lastAlert(alert).message).toBe(restoreCompleteMessage(TR.t, 1));
     expect(lastAlert(alert).message).toMatch(/fotoğrafları .* boş/);
   });
 
   it('does not mention photos after restoring a backup without designs', () => {
-    expect(restoreCompleteMessage(0)).toBe('Yedek başarıyla geri yüklendi.');
+    expect(restoreCompleteMessage(TR.t, 0)).toBe('Yedek başarıyla geri yüklendi.');
   });
 });

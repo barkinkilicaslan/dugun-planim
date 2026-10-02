@@ -1,25 +1,34 @@
+import { getActiveLocale, intlLocale, t, type SupportedLocale } from '@/i18n';
+
 /**
  * Saat içermeyen takvim tarihi yardımcıları. Tarihler her yerde `YYYY-AA-GG` metni olarak saklanır; bu
  * nedenle cihazın saat dilimi veya yaz saati uygulaması bir günlük kaymaya neden olamaz. `Date` nesneleri
  * yalnızca yerel öğe (gün/ay/yıl) okumak veya seçiciye vermek için üretilir ve her zaman öğlen 12:00'ye kurulur.
  */
 
-const MONTHS_TR = [
-  'Ocak',
-  'Şubat',
-  'Mart',
-  'Nisan',
-  'Mayıs',
-  'Haziran',
-  'Temmuz',
-  'Ağustos',
-  'Eylül',
-  'Ekim',
-  'Kasım',
-  'Aralık',
-] as const;
+/** `Intl` kullanılamazsa veya hata verirse devreye giren yedek ay/gün adları. */
+const MONTHS: Record<SupportedLocale, readonly string[]> = {
+  tr: ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'],
+  en: [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ],
+};
 
-const WEEKDAYS_TR = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'] as const;
+const WEEKDAYS: Record<SupportedLocale, readonly string[]> = {
+  tr: ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'],
+  en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+};
 
 const pad = (value: number, length = 2) => String(value).padStart(length, '0');
 
@@ -74,31 +83,91 @@ export function isPastDate(value: string, now = new Date()): boolean {
   return parseIsoDate(value) !== undefined && compareIsoDates(value, todayIso(now)) < 0;
 }
 
-/** `GG.AA.YYYY` */
-export function formatNumericTr(value: string): string {
+/** `GG.AA.YYYY` — kayıt/liste biçimi; dilden bağımsızdır. */
+export function formatNumeric(value: string): string {
   const parsed = parseIsoDate(value);
   return parsed ? `${pad(parsed.day)}.${pad(parsed.month)}.${pad(parsed.year, 4)}` : value;
 }
 
-/** `2 Ekim 2026` */
-export function formatLongTr(value: string): string {
+/** Takvim gününü saat dilimine bağlı kalmadan (UTC öğleni) `Intl` ile biçimlendirir. */
+function formatWithIntl(value: string, locale: SupportedLocale, weekday: boolean): string | undefined {
   const parsed = parseIsoDate(value);
-  return parsed ? `${parsed.day} ${MONTHS_TR[parsed.month - 1]} ${parsed.year}` : value;
+  if (!parsed) return undefined;
+  const date = new Date(Date.UTC(parsed.year, parsed.month - 1, parsed.day, 12));
+  try {
+    return new Intl.DateTimeFormat(intlLocale(locale), {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      ...(weekday ? { weekday: 'long' as const } : {}),
+      timeZone: 'UTC',
+    }).format(date);
+  } catch {
+    const base =
+      locale === 'en'
+        ? `${MONTHS.en[parsed.month - 1]} ${parsed.day}, ${parsed.year}`
+        : `${parsed.day} ${MONTHS.tr[parsed.month - 1]} ${parsed.year}`;
+    if (!weekday) return base;
+    const day = WEEKDAYS[locale][date.getUTCDay()];
+    return locale === 'en' ? `${day}, ${base}` : `${base} ${day}`;
+  }
 }
 
-/** `2 Ekim 2026 Cuma` */
-export function formatLongTrWithWeekday(value: string): string {
-  const parsed = parseIsoDate(value);
-  if (!parsed) return value;
-  const weekday = new Date(Date.UTC(parsed.year, parsed.month - 1, parsed.day)).getUTCDay();
-  return `${formatLongTr(value)} ${WEEKDAYS_TR[weekday]}`;
+/** `2 Ekim 2026` / `October 2, 2026` */
+export function formatLong(value: string, locale: SupportedLocale = getActiveLocale()): string {
+  return formatWithIntl(value, locale, false) ?? value;
+}
+
+/** `2 Ekim 2026 Cuma` / `Friday, October 2, 2026` */
+export function formatLongWithWeekday(value: string, locale: SupportedLocale = getActiveLocale()): string {
+  return formatWithIntl(value, locale, true) ?? value;
+}
+
+/** `Ekim 2026` / `October 2026` — ay başlığı. */
+export function formatMonthYear(isoMonth: string, locale: SupportedLocale = getActiveLocale()): string {
+  const match = /^(\d{4})-(\d{2})$/.exec(isoMonth);
+  if (!match) return isoMonth;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  if (month < 1 || month > 12) return isoMonth;
+  try {
+    return new Intl.DateTimeFormat(intlLocale(locale), { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(
+      new Date(Date.UTC(year, month - 1, 15, 12)),
+    );
+  } catch {
+    return `${MONTHS[locale][month - 1]} ${year}`;
+  }
+}
+
+/** Saat metni (`HH:MM`, 24 saat) dile göre gösterilir: Türkçe `18:30`, İngilizce `6:30 PM`. */
+export function formatTime(value: string, locale: SupportedLocale = getActiveLocale()): string {
+  if (!isValidTimeString(value)) return value;
+  const [hours, minutes] = value.split(':').map(Number);
+  try {
+    return new Intl.DateTimeFormat(intlLocale(locale), { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' }).format(
+      new Date(Date.UTC(2000, 0, 1, hours, minutes)),
+    );
+  } catch {
+    return value;
+  }
+}
+
+/** Kaydedilmiş ISO zaman damgasını (ör. güncelleme zamanı) yerel takvim gününe göre kısa biçimde gösterir. */
+export function formatTimestampDate(timestamp: string, locale: SupportedLocale = getActiveLocale()): string {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return timestamp;
+  try {
+    return new Intl.DateTimeFormat(intlLocale(locale)).format(date);
+  } catch {
+    return formatNumeric(isoFromLocalDate(date));
+  }
 }
 
 /** Yeni düğün kaydı için tarih doğrulaması; geçerliyse `undefined`, değilse Türkçe hata mesajı döner. */
 export function weddingDateError(value: string, now = new Date()): string | undefined {
-  if (!value) return 'Düğün tarihini takvimden seçin.';
-  if (!parseIsoDate(value)) return 'Düğün tarihi geçerli bir takvim tarihi olmalıdır.';
-  if (isPastDate(value, now)) return 'Düğün tarihi geçmişte olamaz; bugün veya sonraki bir tarih seçin.';
+  if (!value) return t('date.error.required');
+  if (!parseIsoDate(value)) return t('date.error.invalid');
+  if (isPastDate(value, now)) return t('date.error.past');
   return undefined;
 }
 

@@ -3,6 +3,7 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { AppProvider, useApp } from '@/context/app-context';
 import { repository } from '@/data/repository';
 import { createInvitationDesign } from '@/domain/invitation-content';
+import { TR } from './fixtures';
 import { EMPTY_APP_DATA, EMPTY_PROFILE, type InvitationDesign } from '@/domain/models';
 import {
   abandonPhotoSession,
@@ -80,7 +81,7 @@ jest.mock('@/data/repository', () => ({
 
 const profile = { ...EMPTY_PROFILE, couple1Name: 'Ada', couple2Name: 'Deniz', weddingDate: '2027-06-12' };
 const designWithPhoto = (): InvitationDesign => ({
-  ...createInvitationDesign('d1', 'boho', now, true),
+  ...createInvitationDesign('d1', 'boho', now, true, TR.t),
   photoUri: OLD,
 });
 

@@ -6,7 +6,7 @@ import { createBackup, parseBackup } from '@/domain/backup';
 import { createInvitationDesign } from '@/domain/invitation-content';
 import { EMPTY_APP_DATA, EMPTY_PROFILE, type Guest } from '@/domain/models';
 import { validateGuest, ValidationError } from '@/domain/validation';
-import { GUEST_DEFAULTS } from './fixtures';
+import { GUEST_DEFAULTS, TR } from './fixtures';
 
 jest.mock('@/data/repository', () => ({
   repository: {
@@ -109,7 +109,7 @@ describe('backups from older app versions', () => {
   });
 
   it('round-trips adults-only settings and designs but never embeds the local photo path', () => {
-    const design = { ...createInvitationDesign('d1', 'boho', now, true), photoUri: 'file:///private/photo.jpg' };
+    const design = { ...createInvitationDesign('d1', 'boho', now, true, TR.t), photoUri: 'file:///private/photo.jpg' };
     const raw = createBackup({
       ...EMPTY_APP_DATA,
       profile: { ...profile, adultsOnly: true, adultsOnlyMessage: 'Yetişkinlere özel' },
@@ -129,7 +129,7 @@ describe('backups from older app versions', () => {
       createBackup({
         ...EMPTY_APP_DATA,
         profile,
-        invitationDesigns: [createInvitationDesign('d1', 'night', now, true)],
+        invitationDesigns: [createInvitationDesign('d1', 'night', now, true, TR.t)],
       }),
     );
     withPath.payload.invitationDesigns[0].photoUri = 'file:///elsewhere/secret.jpg';
@@ -140,8 +140,8 @@ describe('backups from older app versions', () => {
   });
 
   it('rejects two default invitations', () => {
-    const a = createInvitationDesign('a', 'classic', now, true);
-    const b = createInvitationDesign('b', 'night', now, true);
+    const a = createInvitationDesign('a', 'classic', now, true, TR.t);
+    const b = createInvitationDesign('b', 'night', now, true, TR.t);
     expect(() => parseBackup(createBackup({ ...EMPTY_APP_DATA, profile, invitationDesigns: [a, b] }))).toThrow(
       'varsayılan',
     );
@@ -156,8 +156,8 @@ describe('invitation design persistence in the app context', () => {
       ...EMPTY_APP_DATA,
       profile,
       invitationDesigns: [
-        { ...createInvitationDesign('d1', 'classic', now, true), photoUri: 'file:///x/invitation-photos/d1.jpg' },
-        createInvitationDesign('d2', 'night', now, false),
+        { ...createInvitationDesign('d1', 'classic', now, true, TR.t), photoUri: 'file:///x/invitation-photos/d1.jpg' },
+        createInvitationDesign('d2', 'night', now, false, TR.t),
       ],
     });
   });

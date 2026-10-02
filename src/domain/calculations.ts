@@ -1,5 +1,6 @@
 import type { AppData, BudgetItem, CurrencyCode, DateFormatPreference, Guest, SeatingTable, TaskItem } from './models';
-import { formatNumericTr, parseIsoDate } from './wedding-date';
+import { intlLocale } from '@/i18n';
+import { formatNumeric, parseIsoDate } from './wedding-date';
 
 const DAY_MS = 86_400_000;
 
@@ -21,7 +22,7 @@ export function daysUntil(dateString: string, now = new Date()): number {
 
 export function formatDate(value: string, preference: DateFormatPreference): string {
   if (!isValidDateString(value) || preference === 'YYYY-MM-DD') return value;
-  return formatNumericTr(value);
+  return formatNumeric(value);
 }
 
 export function taskProgress(tasks: TaskItem[]): { completed: number; remaining: number; percentage: number } {
@@ -87,7 +88,7 @@ export function categoryDistribution(items: BudgetItem[]) {
   return [...grouped.entries()].map(([category, cents]) => ({ category, cents })).sort((a, b) => b.cents - a.cents);
 }
 
-export function formatMoney(cents: number, currency: CurrencyCode, locale = 'tr-TR'): string {
+export function formatMoney(cents: number, currency: CurrencyCode, locale: string = intlLocale()): string {
   return new Intl.NumberFormat(locale, { style: 'currency', currency, maximumFractionDigits: 2 }).format(cents / 100);
 }
 

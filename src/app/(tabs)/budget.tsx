@@ -10,6 +10,7 @@ import { Screen } from '@/components/ui/screen';
 import { SectionHeader } from '@/components/ui/section-header';
 import { spacing } from '@/constants/theme';
 import { useApp } from '@/context/app-context';
+import { useI18n } from '@/context/language-context';
 import { useAppTheme } from '@/context/theme-context';
 import { budgetSummary, categoryDistribution, formatDate, formatMoney } from '@/domain/calculations';
 import { escapeHtml, pdfDocument, shareHtmlAsPdf, shareTextFile } from '@/services/export';
@@ -17,10 +18,12 @@ import { escapeHtml, pdfDocument, shareHtmlAsPdf, shareTextFile } from '@/servic
 export default function BudgetScreen() {
   const { data } = useApp();
   const theme = useAppTheme();
+  const { t, intl } = useI18n();
+  const money = (cents: number) => formatMoney(cents, data.profile.currency, intl);
   const summary = budgetSummary(data.budgetItems, data.profile.estimatedBudgetCents);
   const distribution = categoryDistribution(data.budgetItems);
   async function exportCsv() {
-    const header = 'kategori,ad,planlanan,gerceklesen,odenen,kalan,vade\r\n';
+    const header = `${t('budget.csvHeader')}\r\n`;
     const rows = data.budgetItems
       .map((item) =>
         [
@@ -37,63 +40,71 @@ export default function BudgetScreen() {
       )
       .join('\r\n');
     try {
-      await shareTextFile('dugun-planim-butce.csv', `\uFEFF${header}${rows}`, 'text/csv');
+      await shareTextFile(t('budget.csvFile'), `\uFEFF${header}${rows}`, 'text/csv');
     } catch (error) {
-      Alert.alert('Dışa aktarılamadı', (error as Error).message);
+      Alert.alert(t('common.exportFailed'), (error as Error).message);
     }
   }
   async function exportPdf() {
-    const body = `<h2>Özet</h2><p>Toplam: ${escapeHtml(formatMoney(summary.totalBudgetCents, data.profile.currency))}<br>Gerçekleşen: ${escapeHtml(formatMoney(summary.actualCents, data.profile.currency))}<br>Ödenen: ${escapeHtml(formatMoney(summary.paidCents, data.profile.currency))}</p><h2>Kalemler</h2><table><tr><th>Kalem</th><th>Gerçekleşen</th><th>Ödenen</th></tr>${data.budgetItems.map((item) => `<tr><td>${escapeHtml(item.title)}</td><td>${escapeHtml(formatMoney(item.actualCents, data.profile.currency))}</td><td>${escapeHtml(formatMoney(item.paidCents, data.profile.currency))}</td></tr>`).join('')}</table>`;
+    const body = `<h2>${escapeHtml(t('budget.pdfSummary'))}</h2><p>${escapeHtml(t('budget.pdfTotal'))}: ${escapeHtml(money(summary.totalBudgetCents))}<br>${escapeHtml(t('budget.pdfActual'))}: ${escapeHtml(money(summary.actualCents))}<br>${escapeHtml(t('budget.pdfPaid'))}: ${escapeHtml(money(summary.paidCents))}</p><h2>${escapeHtml(t('budget.pdfItems'))}</h2><table><tr><th>${escapeHtml(t('budget.pdfItem'))}</th><th>${escapeHtml(t('budget.pdfActual'))}</th><th>${escapeHtml(t('budget.pdfPaid'))}</th></tr>${data.budgetItems.map((item) => `<tr><td>${escapeHtml(item.title)}</td><td>${escapeHtml(money(item.actualCents))}</td><td>${escapeHtml(money(item.paidCents))}</td></tr>`).join('')}</table>`;
     try {
-      await shareHtmlAsPdf('dugun-planim-butce.pdf', pdfDocument('Bütçe Özeti', body));
+      await shareHtmlAsPdf(t('budget.pdfFile'), pdfDocument(t('budget.pdfTitle'), body));
     } catch (error) {
-      Alert.alert('PDF oluşturulamadı', (error as Error).message);
+      Alert.alert(t('common.pdfFailed'), (error as Error).message);
     }
   }
   return (
     <Screen
-      title="Bütçe"
-      subtitle="Planlanan, gerçekleşen ve ödenen"
-      action={<Button label="+ Ekle" onPress={() => router.push('/edit/budget')} />}
+      title={t('tabs.budget')}
+      subtitle={t('budget.subtitle')}
+      action={<Button label={t('common.add')} onPress={() => router.push('/edit/budget')} />}
     >
       {summary.overBudgetCents > 0 ? (
         <Card style={{ borderColor: theme.colors.warning }}>
           <AppText variant="label" color={theme.colors.warning}>
-            Bütçe aşımı
+            {t('budget.overTitle')}
           </AppText>
-          <AppText>
-            {formatMoney(summary.overBudgetCents, data.profile.currency)} bütçe sınırının üzerindesiniz.
-          </AppText>
+          <AppText>{t('budget.overBody', { amount: money(summary.overBudgetCents) })}</AppText>
         </Card>
       ) : null}
       <MetricGrid>
-        <MetricCard label="Toplam" value={formatMoney(summary.totalBudgetCents, data.profile.currency)} />
-        <MetricCard label="Gerçekleşen" value={formatMoney(summary.actualCents, data.profile.currency)} />
-        <MetricCard label="Ödenen" value={formatMoney(summary.paidCents, data.profile.currency)} tone="success" />
+        <MetricCard label={t('budget.total')} value={money(summary.totalBudgetCents)} />
+        <MetricCard label={t('budget.actual')} value={money(summary.actualCents)} />
+        <MetricCard label={t('budget.paid')} value={money(summary.paidCents)} tone="success" />
         <MetricCard
-          label="Ödeme kalan"
-          value={formatMoney(summary.remainingPaymentsCents, data.profile.currency)}
+          label={t('budget.paymentsLeft')}
+          value={money(summary.remainingPaymentsCents)}
           tone={summary.remainingPaymentsCents > 0 ? 'warning' : 'success'}
         />
       </MetricGrid>
       <View style={styles.actions}>
-        <Button label="CSV" variant="secondary" onPress={() => void exportCsv()} disabled={!data.budgetItems.length} />
-        <Button label="PDF" variant="ghost" onPress={() => void exportPdf()} disabled={!data.budgetItems.length} />
+        <Button
+          label={t('common.csv')}
+          variant="secondary"
+          onPress={() => void exportCsv()}
+          disabled={!data.budgetItems.length}
+        />
+        <Button
+          label={t('common.pdf')}
+          variant="ghost"
+          onPress={() => void exportPdf()}
+          disabled={!data.budgetItems.length}
+        />
       </View>
-      <SectionHeader title="Kategori dağılımı" />
+      <SectionHeader title={t('budget.distribution')} />
       {distribution.length ? (
         <Card>
           {distribution.map((entry) => (
             <View key={entry.category} style={styles.distribution}>
               <AppText variant="label">{entry.category}</AppText>
-              <AppText color={theme.colors.primary}>{formatMoney(entry.cents, data.profile.currency)}</AppText>
+              <AppText color={theme.colors.primary}>{money(entry.cents)}</AppText>
             </View>
           ))}
         </Card>
       ) : (
-        <AppText color={theme.colors.muted}>Harcama eklendiğinde kategori dağılımı burada görünür.</AppText>
+        <AppText color={theme.colors.muted}>{t('budget.distributionEmpty')}</AppText>
       )}
-      <SectionHeader title="Bütçe kalemleri" />
+      <SectionHeader title={t('budget.items')} />
       {data.budgetItems.length ? (
         <Card>
           {data.budgetItems.map((item) => (
@@ -101,18 +112,18 @@ export default function BudgetScreen() {
               key={item.id}
               title={item.title}
               subtitle={`${item.category}${
-                item.dueDate ? ` · Vade ${formatDate(item.dueDate, data.profile.dateFormat)}` : ''
+                item.dueDate ? ` · ${t('budget.due', { date: formatDate(item.dueDate, data.profile.dateFormat) })}` : ''
               }`}
-              meta={formatMoney(item.actualCents, data.profile.currency)}
+              meta={money(item.actualCents)}
               onPress={() => router.push(`/edit/budget?id=${item.id}`)}
             />
           ))}
         </Card>
       ) : (
         <EmptyState
-          title="Henüz bütçe kalemi yok"
-          description="Mekân, fotoğraf, kıyafet veya başka bir kategori için planlanan ve gerçekleşen tutarı ekleyin."
-          actionLabel="İlk kalemi ekle"
+          title={t('budget.emptyTitle')}
+          description={t('budget.emptyHint')}
+          actionLabel={t('budget.addFirst')}
           onAction={() => router.push('/edit/budget')}
         />
       )}

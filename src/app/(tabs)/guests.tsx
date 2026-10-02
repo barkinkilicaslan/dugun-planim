@@ -13,10 +13,11 @@ import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
 import { spacing } from '@/constants/theme';
 import { useApp } from '@/context/app-context';
+import { useI18n } from '@/context/language-context';
 import { useAppTheme } from '@/context/theme-context';
 import { guestSummary } from '@/domain/calculations';
 import { csvToGuests, guestsToCsv } from '@/domain/csv';
-import { INVITE_CHANNEL_LABELS, matchesRsvpFilter, RSVP_LABELS, rsvpSummary, type RsvpFilter } from '@/domain/rsvp';
+import { inviteChannelLabel, matchesRsvpFilter, rsvpLabel, rsvpSummary, type RsvpFilter } from '@/domain/rsvp';
 import { pickTextFile, shareTextFile } from '@/services/export';
 
 type GuestFilter = RsvpFilter;
@@ -25,6 +26,7 @@ type GuestSort = 'name' | 'partySize';
 export default function GuestsScreen() {
   const { data, createId, saveGuest } = useApp();
   const theme = useAppTheme();
+  const { t, locale } = useI18n();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<GuestFilter>('all');
   const [sort, setSort] = useState<GuestSort>('name');
@@ -35,15 +37,15 @@ export default function GuestsScreen() {
       data.guests
         .filter(
           (guest) =>
-            guest.name.toLocaleLowerCase('tr').includes(search.toLocaleLowerCase('tr')) &&
+            guest.name.toLocaleLowerCase(locale).includes(search.toLocaleLowerCase(locale)) &&
             matchesRsvpFilter(guest, filter),
         )
         .sort((a, b) =>
           sort === 'partySize'
-            ? b.partySize - a.partySize || a.name.localeCompare(b.name, 'tr')
-            : a.name.localeCompare(b.name, 'tr'),
+            ? b.partySize - a.partySize || a.name.localeCompare(b.name, locale)
+            : a.name.localeCompare(b.name, locale),
         ),
-    [data.guests, filter, search, sort],
+    [data.guests, filter, locale, search, sort],
   );
   async function importCsv() {
     try {
@@ -51,79 +53,96 @@ export default function GuestsScreen() {
       if (!raw) return;
       const guests = csvToGuests(raw, createId);
       for (const guest of guests) await saveGuest(guest);
-      Alert.alert('İçe aktarma tamamlandı', `${guests.length} davetli eklendi.`);
+      Alert.alert(t('guests.importDone'), t('guests.imported', { count: guests.length }));
     } catch (error) {
-      Alert.alert('CSV içe aktarılamadı', (error as Error).message);
+      Alert.alert(t('guests.importFailed'), (error as Error).message);
     }
   }
   async function exportCsv() {
     try {
-      await shareTextFile('dugun-planim-davetliler.csv', guestsToCsv(data.guests), 'text/csv');
+      await shareTextFile(t('guests.csvFile'), guestsToCsv(data.guests), 'text/csv');
     } catch (error) {
-      Alert.alert('CSV dışa aktarılamadı', (error as Error).message);
+      Alert.alert(t('guests.exportFailed'), (error as Error).message);
     }
   }
   return (
     <Screen
-      title="Davetliler"
-      subtitle={`${summary.invitations} davet · ${summary.people} kişi`}
-      action={<Button label="+ Ekle" onPress={() => router.push('/edit/guest')} />}
+      title={t('tabs.guests')}
+      subtitle={t('guests.subtitle', { invitations: summary.invitations, people: summary.people })}
+      action={<Button label={t('common.add')} onPress={() => router.push('/edit/guest')} />}
     >
       <MetricGrid>
-        <MetricCard label="Katılıyor" value={String(summary.attending)} tone="success" />
-        <MetricCard label="Yanıt bekleniyor" value={String(summary.pending)} />
-        <MetricCard label="Belki" value={String(summary.maybe)} />
-        <MetricCard label="Katılmıyor" value={String(summary.declined)} />
+        <MetricCard label={rsvpLabel(t, 'attending')} value={String(summary.attending)} tone="success" />
+        <MetricCard label={rsvpLabel(t, 'pending')} value={String(summary.pending)} />
+        <MetricCard label={rsvpLabel(t, 'maybe')} value={String(summary.maybe)} />
+        <MetricCard label={rsvpLabel(t, 'declined')} value={String(summary.declined)} />
       </MetricGrid>
       {rsvp.invitations ? (
         <Card>
-          <AppText variant="label">Katılım özeti</AppText>
+          <AppText variant="label">{t('guests.summaryTitle')}</AppText>
           <AppText variant="caption" color={theme.colors.muted}>
-            {rsvp.responded}/{rsvp.invitations} davet yanıtlandı · Katılan {rsvp.attendingAdults} yetişkin,{' '}
-            {rsvp.attendingChildren} çocuk · {rsvp.invitesSent} davetiye gönderim ekranı açıldı veya işaretlendi
+            {t('guests.summaryBody', {
+              responded: rsvp.responded,
+              invitations: rsvp.invitations,
+              adults: rsvp.attendingAdults,
+              children: rsvp.attendingChildren,
+              sent: rsvp.invitesSent,
+            })}
           </AppText>
         </Card>
       ) : null}
-      <TextField label="Davetli ara" value={search} onChangeText={setSearch} placeholder="Ada göre ara" />
+      <TextField
+        label={t('guests.search')}
+        value={search}
+        onChangeText={setSearch}
+        placeholder={t('guests.searchPlaceholder')}
+      />
       <Chips<GuestFilter>
         value={filter}
         onChange={setFilter}
         options={[
-          { value: 'all', label: 'Tümü' },
-          { value: 'pending', label: `Bekleyen (${rsvp.pending})` },
-          { value: 'attending', label: `Katılıyor (${rsvp.attending})` },
-          { value: 'maybe', label: `Belki (${rsvp.maybe})` },
-          { value: 'declined', label: `Katılmıyor (${rsvp.declined})` },
-          ...(rsvp.fromOnline ? [{ value: 'online' as const, label: `Çevrimiçi yanıt (${rsvp.fromOnline})` }] : []),
+          { value: 'all', label: t('common.all') },
+          { value: 'pending', label: t('guests.filterPending', { count: rsvp.pending }) },
+          { value: 'attending', label: t('guests.filterAttending', { count: rsvp.attending }) },
+          { value: 'maybe', label: t('guests.filterMaybe', { count: rsvp.maybe }) },
+          { value: 'declined', label: t('guests.filterDeclined', { count: rsvp.declined }) },
+          ...(rsvp.fromOnline
+            ? [{ value: 'online' as const, label: t('guests.filterOnline', { count: rsvp.fromOnline }) }]
+            : []),
         ]}
       />
       <Chips<GuestSort>
-        label="Sıralama"
+        label={t('guests.sort')}
         value={sort}
         onChange={setSort}
         options={[
-          { value: 'name', label: 'Ada göre' },
-          { value: 'partySize', label: 'Kişi sayısına göre' },
+          { value: 'name', label: t('guests.sortName') },
+          { value: 'partySize', label: t('guests.sortParty') },
         ]}
       />
       <View style={styles.actions}>
         <Button
-          label="Rehberden davetli ekle"
+          label={t('guests.addFromContacts')}
           variant="secondary"
           onPress={() => router.push('/contacts-import')}
           style={styles.grow}
         />
         <Button
-          label="Davetiye gönder"
+          label={t('guests.sendInvitations')}
           onPress={() => router.push('/invite-send')}
           disabled={!data.guests.length}
           style={styles.grow}
         />
       </View>
       <View style={styles.actions}>
-        <Button label="CSV içe aktar" variant="secondary" onPress={() => void importCsv()} style={styles.grow} />
         <Button
-          label="CSV dışa aktar"
+          label={t('guests.importCsv')}
+          variant="secondary"
+          onPress={() => void importCsv()}
+          style={styles.grow}
+        />
+        <Button
+          label={t('guests.exportCsv')}
           variant="ghost"
           onPress={() => void exportCsv()}
           disabled={!data.guests.length}
@@ -136,21 +155,17 @@ export default function GuestsScreen() {
             <ListRow
               key={guest.id}
               title={guest.name}
-              subtitle={`${guest.group === 'family' ? 'Aile' : guest.group === 'friends' ? 'Arkadaş' : guest.group === 'work' ? 'İş' : 'Diğer'} · ${guest.partySize} kişi${guest.childCount ? ` · ${guest.childCount} çocuk` : ''}${guest.lastInviteChannel ? ` · ${INVITE_CHANNEL_LABELS[guest.lastInviteChannel]}` : ''}`}
-              meta={RSVP_LABELS[guest.rsvp]}
+              subtitle={`${t(`guest.group.${guest.group}`)} · ${t('common.person', { count: guest.partySize })}${guest.childCount ? ` · ${t('common.children', { count: guest.childCount })}` : ''}${guest.lastInviteChannel ? ` · ${inviteChannelLabel(t, guest.lastInviteChannel)}` : ''}`}
+              meta={rsvpLabel(t, guest.rsvp)}
               onPress={() => router.push(`/edit/guest?id=${guest.id}`)}
             />
           ))}
         </Card>
       ) : (
         <EmptyState
-          title="Davetli bulunamadı"
-          description={
-            search || filter !== 'all'
-              ? 'Arama veya filtreyi değiştirin.'
-              : 'Davetlileri tek tek veya doğrulanmış CSV dosyasıyla ekleyin.'
-          }
-          actionLabel="Davetli ekle"
+          title={t('guests.emptyTitle')}
+          description={search || filter !== 'all' ? t('common.searchChangeHint') : t('guests.emptyHint')}
+          actionLabel={t('guests.addGuest')}
           onAction={() => router.push('/edit/guest')}
         />
       )}

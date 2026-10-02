@@ -12,6 +12,7 @@ import { SectionHeader } from '@/components/ui/section-header';
 import { TextField } from '@/components/ui/text-field';
 import { spacing } from '@/constants/theme';
 import { useApp } from '@/context/app-context';
+import { useI18n } from '@/context/language-context';
 import { useAppTheme } from '@/context/theme-context';
 import { canAssignGuest, tableOccupancy } from '@/domain/calculations';
 import type { SeatingTable } from '@/domain/models';
@@ -21,6 +22,7 @@ import { escapeHtml, pdfDocument, shareHtmlAsPdf } from '@/services/export';
 export default function TablesScreen() {
   const { data, createId, saveTable, deleteTable, saveGuest } = useApp();
   const theme = useAppTheme();
+  const { t } = useI18n();
   const [name, setName] = useState('');
   const [capacity, setCapacity] = useState('8');
   const unassigned = data.guests.filter((guest) => !guest.tableId && guest.rsvp !== 'declined');
@@ -38,7 +40,7 @@ export default function TablesScreen() {
       setName('');
       setCapacity('8');
     } catch (error) {
-      Alert.alert('Masa eklenemedi', (error as Error).message);
+      Alert.alert(t('tables.addFailed'), (error as Error).message);
     }
   }
   async function assign(guestId: string, tableId?: string) {
@@ -46,72 +48,92 @@ export default function TablesScreen() {
     if (!guest) return;
     const table = data.tables.find((item) => item.id === tableId);
     if (table && !canAssignGuest(table, guest, data.guests))
-      return Alert.alert('Kapasite aşılıyor', `${table.name} bu davetli grubu için yeterli boşluğa sahip değil.`);
+      return Alert.alert(t('tables.capacityExceeded'), t('tables.capacityExceededBody', { table: table.name }));
     try {
       await saveGuest({ ...guest, tableId, updatedAt: new Date().toISOString() });
     } catch (error) {
-      Alert.alert('Atama yapılamadı', (error as Error).message);
+      Alert.alert(t('tables.assignFailed'), (error as Error).message);
     }
   }
   function confirmDelete(table: SeatingTable) {
-    Alert.alert(`${table.name} silinsin mi?`, 'Bu masadaki davetliler atanmamış listeye döner.', [
-      { text: 'Vazgeç', style: 'cancel' },
-      { text: 'Sil', style: 'destructive', onPress: () => void deleteTable(table.id) },
+    Alert.alert(t('tables.deleteTitle', { table: table.name }), t('tables.deleteBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('common.delete'), style: 'destructive', onPress: () => void deleteTable(table.id) },
     ]);
   }
   async function exportPdf() {
     const body =
-      venueLayoutHtml(data.venueLayoutItems, data.tables, data.guests) +
+      venueLayoutHtml(data.venueLayoutItems, data.tables, data.guests, t) +
       data.tables
         .map(
           (table) =>
             `<h2>${escapeHtml(table.name)} (${tableOccupancy(table.id, data.guests)}/${table.capacity})</h2>${
               data.guests
                 .filter((guest) => guest.tableId === table.id)
-                .map((guest) => `<div class="row">${escapeHtml(guest.name)} · ${guest.partySize} kişi</div>`)
-                .join('') || '<p>Atanmış davetli yok.</p>'
+                .map(
+                  (guest) =>
+                    `<div class="row">${escapeHtml(guest.name)} · ${escapeHtml(t('common.person', { count: guest.partySize }))}</div>`,
+                )
+                .join('') || `<p>${escapeHtml(t('tables.pdfNoGuests'))}</p>`
             }`,
         )
         .join('') +
-      `<h2>Atanmamış</h2>${unassigned.map((guest) => `<div class="row">${escapeHtml(guest.name)} · ${guest.partySize} kişi</div>`).join('')}`;
+      `<h2>${escapeHtml(t('tables.pdfUnassigned'))}</h2>${unassigned.map((guest) => `<div class="row">${escapeHtml(guest.name)} · ${escapeHtml(t('common.person', { count: guest.partySize }))}</div>`).join('')}`;
     try {
-      await shareHtmlAsPdf('dugun-planim-masa-plani.pdf', pdfDocument('Masa Planı', body));
+      await shareHtmlAsPdf(t('tables.pdfFile'), pdfDocument(t('tables.pdfTitle'), body));
     } catch (error) {
-      Alert.alert('PDF oluşturulamadı', (error as Error).message);
+      Alert.alert(t('common.pdfFailed'), (error as Error).message);
     }
   }
   return (
     <Screen
-      title="Masa planı"
-      subtitle={`${data.tables.length} masa · ${unassigned.length} atanmamış`}
-      action={<Button label="PDF" variant="ghost" onPress={() => void exportPdf()} disabled={!data.tables.length} />}
+      title={t('nav.tables')}
+      subtitle={t('tables.subtitle', { tables: data.tables.length, unassigned: unassigned.length })}
+      action={
+        <Button
+          label={t('common.pdf')}
+          variant="ghost"
+          onPress={() => void exportPdf()}
+          disabled={!data.tables.length}
+        />
+      }
     >
       <Card>
         <View style={styles.header}>
           <View style={styles.grow}>
-            <AppText variant="subtitle">Salon düzeni</AppText>
+            <AppText variant="subtitle">{t('tables.venueLayout')}</AppText>
             <AppText variant="caption" color={theme.colors.muted}>
-              {venueLayoutSummary(data.venueLayoutItems)}
+              {venueLayoutSummary(data.venueLayoutItems, t)}
             </AppText>
           </View>
-          <Button label="Düzenle" variant="secondary" onPress={() => router.push('/venue-editor')} />
+          <Button label={t('common.edit')} variant="secondary" onPress={() => router.push('/venue-editor')} />
         </View>
         <VenueCanvas compact items={data.venueLayoutItems} tables={data.tables} guests={data.guests} />
         <AppText variant="caption" color={theme.colors.muted}>
-          Masa, sahne, dans pisti ve diğer alanları düğün mekânınıza göre yerleştirin.
+          {t('tables.venueHint')}
         </AppText>
       </Card>
       <Card>
-        <AppText variant="subtitle">Yeni masa</AppText>
+        <AppText variant="subtitle">{t('tables.newTable')}</AppText>
         <View style={styles.form}>
           <View style={styles.grow}>
-            <TextField label="Masa adı" value={name} onChangeText={setName} placeholder="Örn. Masa 1" />
+            <TextField
+              label={t('tables.tableName')}
+              value={name}
+              onChangeText={setName}
+              placeholder={t('tables.tableNamePlaceholder')}
+            />
           </View>
           <View style={styles.capacity}>
-            <TextField label="Kapasite" value={capacity} onChangeText={setCapacity} keyboardType="number-pad" />
+            <TextField
+              label={t('tables.capacity')}
+              value={capacity}
+              onChangeText={setCapacity}
+              keyboardType="number-pad"
+            />
           </View>
         </View>
-        <Button label="Masa ekle" onPress={() => void addTable()} />
+        <Button label={t('tables.addTable')} onPress={() => void addTable()} />
       </Card>
       {data.tables.length ? (
         data.tables.map((table) => {
@@ -126,42 +148,37 @@ export default function TablesScreen() {
                     variant="caption"
                     color={occupancy > table.capacity ? theme.colors.danger : theme.colors.muted}
                   >
-                    {occupancy}/{table.capacity} kişi
+                    {t('tables.occupancy', { count: occupancy, capacity: table.capacity })}
                   </AppText>
                 </View>
-                <Button label="Sil" variant="ghost" onPress={() => confirmDelete(table)} />
+                <Button label={t('common.delete')} variant="ghost" onPress={() => confirmDelete(table)} />
               </View>
-              <ProgressBar value={(occupancy / table.capacity) * 100} label={`${table.name} doluluk oranı`} />
+              <ProgressBar
+                value={(occupancy / table.capacity) * 100}
+                label={t('tables.occupancyLabel', { name: table.name })}
+              />
               {assigned.map((guest) => (
                 <View key={guest.id} style={styles.guest}>
                   <View style={styles.grow}>
                     <AppText variant="label">{guest.name}</AppText>
                     <AppText variant="caption" color={theme.colors.muted}>
-                      {guest.partySize} kişi
+                      {t('common.person', { count: guest.partySize })}
                     </AppText>
                   </View>
-                  <Button label="Çıkar" variant="ghost" onPress={() => void assign(guest.id, undefined)} />
+                  <Button label={t('tables.remove')} variant="ghost" onPress={() => void assign(guest.id, undefined)} />
                 </View>
               ))}
             </Card>
           );
         })
       ) : (
-        <EmptyState
-          title="Henüz masa yok"
-          description="Önce masa ve kapasite ekleyin; ardından davetlileri kapasiteyi aşmadan yerleştirin."
-        />
+        <EmptyState title={t('tables.noTablesTitle')} description={t('tables.noTablesHint')} />
       )}
-      <SectionHeader
-        title="Atanmamış davetliler"
-        description="Katılmıyor olarak işaretlenenler masa planına dahil edilmez."
-      />
+      <SectionHeader title={t('tables.unassigned')} description={t('tables.unassignedHint')} />
       {unassigned.length ? (
         unassigned.map((guest) => (
           <Card key={guest.id}>
-            <AppText variant="label">
-              {guest.name} · {guest.partySize} kişi
-            </AppText>
+            <AppText variant="label">{t('tables.guestLine', { name: guest.name, count: guest.partySize })}</AppText>
             <View style={styles.assign}>
               {data.tables.map((table) => (
                 <Button
@@ -176,7 +193,7 @@ export default function TablesScreen() {
           </Card>
         ))
       ) : (
-        <EmptyState title="Atanmamış davetli yok" description="Katılacak tüm davetliler bir masaya yerleştirildi." />
+        <EmptyState title={t('tables.noUnassignedTitle')} description={t('tables.noUnassignedHint')} />
       )}
     </Screen>
   );

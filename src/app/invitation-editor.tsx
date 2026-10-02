@@ -12,6 +12,7 @@ import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
 import { radius, spacing } from '@/constants/theme';
 import { useApp } from '@/context/app-context';
+import { useI18n } from '@/context/language-context';
 import { useAppTheme } from '@/context/theme-context';
 import {
   createInvitationDesign,
@@ -25,7 +26,10 @@ import {
   INVITATION_TEMPLATES,
   INVITATION_TEMPLATE_IDS,
   paletteById,
+  paletteName,
+  resolveAdultsOnlyText,
   templateById,
+  templateName,
   templateSupportsPhoto,
 } from '@/domain/invitation-templates';
 import type { InvitationDesign, InvitationTemplateId } from '@/domain/models';
@@ -54,6 +58,8 @@ export default function InvitationEditor() {
   const { id, template } = useLocalSearchParams<{ id?: string; template?: string }>();
   const { data, createId, saveInvitationDesign, deleteInvitationDesign } = useApp();
   const theme = useAppTheme();
+  const i18n = useI18n();
+  const { t } = i18n;
   const { width: windowWidth } = useWindowDimensions();
   const existing = data.invitationDesigns.find((item) => item.id === id);
   const [form, setForm] = useState<InvitationDesign>(
@@ -64,6 +70,7 @@ export default function InvitationEditor() {
         isTemplateId(template) ? template : 'classic',
         new Date().toISOString(),
         data.invitationDesigns.length === 0,
+        t,
       ),
   );
   const [busy, setBusy] = useState<'save' | 'png' | 'pdf'>();
@@ -83,7 +90,7 @@ export default function InvitationEditor() {
   const selectedTemplate = templateById(form.templateId);
   const palette = paletteById(form.paletteId);
   const previewWidth = Math.min(windowWidth - spacing.lg * 2, 360);
-  const content = resolveInvitationContent(form, data.profile);
+  const content = resolveInvitationContent(form, data.profile, i18n);
   const profile = data.profile;
 
   function changeTemplate(next: InvitationTemplateId) {
@@ -117,7 +124,7 @@ export default function InvitationEditor() {
       photoSession.current = commitPhotoSession(photoSession.current);
       return true;
     } catch (error) {
-      Alert.alert('Davetiye kaydedilemedi', (error as Error).message);
+      Alert.alert(t('invEditor.saveFailed'), (error as Error).message);
       return false;
     } finally {
       setBusy(undefined);
@@ -133,7 +140,7 @@ export default function InvitationEditor() {
       for (const unused of step.discard) await removeInvitationPhoto(unused);
       update('photoUri', uri);
     } catch (error) {
-      Alert.alert('Fotoğraf eklenemedi', (error as Error).message);
+      Alert.alert(t('invEditor.photoFailed'), (error as Error).message);
     }
   }
 
@@ -148,22 +155,22 @@ export default function InvitationEditor() {
   async function exportFile(kind: 'png' | 'pdf') {
     try {
       setBusy(kind);
-      const base = invitationFileBase(form);
+      const base = invitationFileBase(form, t);
       const png: GeneratedInvitationFile = await renderInvitationPng(cardRef, base, PixelRatio.get());
       const file = kind === 'png' ? png : await renderInvitationPdf(png, base);
       await shareGeneratedFile(file);
     } catch (error) {
-      Alert.alert(kind === 'png' ? 'PNG oluşturulamadı' : 'PDF oluşturulamadı', (error as Error).message);
+      Alert.alert(kind === 'png' ? t('invEditor.pngFailed') : t('invEditor.pdfFailed'), (error as Error).message);
     } finally {
       setBusy(undefined);
     }
   }
 
   function confirmDelete() {
-    Alert.alert('Davetiye silinsin mi?', 'Bu tasarım ve eklediğiniz fotoğraf kalıcı olarak silinir.', [
-      { text: 'Vazgeç', style: 'cancel' },
+    Alert.alert(t('invEditor.deleteTitle'), t('invEditor.deleteBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Sil',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: () => void deleteInvitationDesign(form.id).then(() => router.back()),
       },
@@ -171,7 +178,7 @@ export default function InvitationEditor() {
   }
 
   return (
-    <Screen title={existing ? 'Davetiyeyi düzenle' : 'Yeni davetiye'}>
+    <Screen title={existing ? t('invEditor.edit') : t('invEditor.new')}>
       <View style={styles.preview}>
         <ScaledInvitation
           width={previewWidth}
@@ -182,15 +189,19 @@ export default function InvitationEditor() {
         />
       </View>
       <Card>
-        <TextField label="Tasarım adı" value={form.name} onChangeText={(value) => update('name', value)} />
+        <TextField
+          label={t('invEditor.designName')}
+          value={form.name}
+          onChangeText={(value) => update('name', value)}
+        />
         <Chips<InvitationTemplateId>
-          label="Şablon"
+          label={t('invEditor.template')}
           value={form.templateId}
           onChange={changeTemplate}
-          options={INVITATION_TEMPLATES.map((item) => ({ value: item.id, label: item.name }))}
+          options={INVITATION_TEMPLATES.map((item) => ({ value: item.id, label: templateName(t, item.id) }))}
         />
         <View style={styles.group}>
-          <AppText variant="label">Renk paleti</AppText>
+          <AppText variant="label">{t('invEditor.palette')}</AppText>
           <View style={styles.swatches}>
             {INVITATION_PALETTES.map((item) => {
               const selected = item.id === form.paletteId;
@@ -199,7 +210,7 @@ export default function InvitationEditor() {
                   key={item.id}
                   accessibilityRole="radio"
                   accessibilityState={{ checked: selected }}
-                  accessibilityLabel={`Renk paleti: ${item.name}`}
+                  accessibilityLabel={t('invEditor.paletteA11y', { name: paletteName(t, item.id) })}
                   onPress={() => update('paletteId', item.id)}
                   style={[
                     styles.swatch,
@@ -216,16 +227,16 @@ export default function InvitationEditor() {
             })}
           </View>
           <AppText variant="caption" color={theme.colors.muted}>
-            Seçili palet: {palette.name}
+            {t('invEditor.paletteSelected', { name: paletteName(t, palette.id) })}
           </AppText>
         </View>
       </Card>
       <Card>
         <AppText variant="caption" color={theme.colors.muted}>
-          Boş bıraktığınız alanlar için düğün ayarlarındaki değerler kullanılır.
+          {t('invEditor.blankHint')}
         </AppText>
         <TextField
-          label="Çiftin isimleri"
+          label={t('invEditor.coupleNames')}
           value={form.coupleNames}
           placeholder={defaultCoupleNames(profile)}
           onChangeText={(value) => update('coupleNames', value)}
@@ -233,31 +244,31 @@ export default function InvitationEditor() {
           maxLength={80}
         />
         <DateField
-          label="Düğün tarihi"
+          label={t('invEditor.weddingDate')}
           value={form.weddingDate || profile.weddingDate}
           onChange={(value) => update('weddingDate', value)}
         />
         <TimeField
-          label="Düğün saati"
+          label={t('invEditor.weddingTime')}
           value={form.weddingTime}
           onChange={(value) => update('weddingTime', value)}
           clearable
         />
         <TextField
-          label="Mekân adı"
+          label={t('invEditor.venueName')}
           value={form.venueName}
           onChangeText={(value) => update('venueName', value)}
           maxLength={120}
         />
         <TextField
-          label="Mekân adresi"
+          label={t('invEditor.venueAddress')}
           value={form.venueAddress}
           onChangeText={(value) => update('venueAddress', value)}
           multiline
           maxLength={240}
         />
         <TextField
-          label="Davet metni"
+          label={t('invEditor.message')}
           value={form.message}
           placeholder={content.message}
           onChangeText={(value) => update('message', value)}
@@ -265,7 +276,7 @@ export default function InvitationEditor() {
           maxLength={600}
         />
         <DateField
-          label="RSVP son cevap tarihi"
+          label={t('invEditor.rsvpDeadline')}
           value={form.rsvpDeadline}
           minimumDate={todayIso()}
           onChange={(value) => update('rsvpDeadline', value)}
@@ -274,27 +285,27 @@ export default function InvitationEditor() {
       </Card>
       {templateSupportsPhoto(selectedTemplate) ? (
         <Card>
-          <AppText variant="label">Fotoğraf</AppText>
+          <AppText variant="label">{t('invEditor.photoTitle')}</AppText>
           <AppText variant="caption" color={theme.colors.muted}>
-            Fotoğraf cihazınızdan seçilir ve yalnızca bu cihazda saklanır.
+            {t('invEditor.photoHint')}
           </AppText>
           <Button
-            label={form.photoUri ? 'Fotoğrafı değiştir' : 'Fotoğraf seç'}
+            label={form.photoUri ? t('invEditor.changePhoto') : t('invEditor.pickPhoto')}
             variant="secondary"
             onPress={() => void pickPhoto()}
           />
           {form.photoUri ? (
-            <Button label="Fotoğrafı kaldır" variant="ghost" onPress={() => void removePhoto()} />
+            <Button label={t('invEditor.removePhoto')} variant="ghost" onPress={() => void removePhoto()} />
           ) : null}
         </Card>
       ) : null}
       <Card>
-        <AppText variant="label">Çocuksuz düğün notu</AppText>
+        <AppText variant="label">{t('invEditor.adultsNote')}</AppText>
         {profile.adultsOnly ? (
           <TextField
-            label="Davetiyedeki mesaj"
-            value={form.adultsOnlyMessage}
-            placeholder={profile.adultsOnlyMessage}
+            label={t('invEditor.adultsMessage')}
+            value={resolveAdultsOnlyText(t, form.adultsOnlyMessage)}
+            placeholder={resolveAdultsOnlyText(t, profile.adultsOnlyMessage)}
             onChangeText={(value) => update('adultsOnlyMessage', value)}
             multiline
             maxLength={400}
@@ -302,34 +313,38 @@ export default function InvitationEditor() {
         ) : (
           <>
             <AppText variant="caption" color={theme.colors.muted}>
-              “Düğünümüz yetişkinlere özeldir” ayarı kapalı; davetiyede çocuk notu görünmez.
+              {t('invEditor.adultsOff')}
             </AppText>
-            <Button label="Ayarlarda aç" variant="secondary" onPress={() => router.push('/settings')} />
+            <Button
+              label={t('invEditor.turnOnInSettings')}
+              variant="secondary"
+              onPress={() => router.push('/settings')}
+            />
           </>
         )}
       </Card>
       <Card>
         <Button
-          label="Kaydet"
+          label={t('common.save')}
           onPress={() => void save().then((ok) => ok && router.back())}
           loading={busy === 'save'}
         />
         <Button
-          label="Varsayılan davetiye yap"
+          label={t('invEditor.makeDefault')}
           variant="secondary"
           onPress={() => update('isDefault', true)}
           disabled={form.isDefault}
         />
         <View style={styles.exportRow}>
           <Button
-            label="PNG oluştur"
+            label={t('invEditor.createPng')}
             variant="secondary"
             onPress={() => void exportFile('png')}
             loading={busy === 'png'}
             style={styles.grow}
           />
           <Button
-            label="PDF oluştur"
+            label={t('invEditor.createPdf')}
             variant="secondary"
             onPress={() => void exportFile('pdf')}
             loading={busy === 'pdf'}
@@ -337,11 +352,11 @@ export default function InvitationEditor() {
           />
         </View>
         <Button
-          label="Davetlilere gönder"
+          label={t('invEditor.sendToGuests')}
           variant="ghost"
           onPress={() => void save().then((ok) => ok && router.push(`/invite-send?designId=${form.id}`))}
         />
-        {existing ? <Button label="Sil" variant="danger" onPress={confirmDelete} /> : null}
+        {existing ? <Button label={t('common.delete')} variant="danger" onPress={confirmDelete} /> : null}
       </Card>
     </Screen>
   );

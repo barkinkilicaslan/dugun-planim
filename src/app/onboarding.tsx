@@ -12,6 +12,7 @@ import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
 import { spacing } from '@/constants/theme';
 import { useApp } from '@/context/app-context';
+import { useI18n } from '@/context/language-context';
 import { useAppTheme } from '@/context/theme-context';
 import { EMPTY_PROFILE, type CurrencyCode, type WeddingProfile } from '@/domain/models';
 import { todayIso, weddingDateError } from '@/domain/wedding-date';
@@ -19,6 +20,7 @@ import { todayIso, weddingDateError } from '@/domain/wedding-date';
 export default function OnboardingScreen() {
   const { completeOnboarding } = useApp();
   const theme = useAppTheme();
+  const { t } = useI18n();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [dateError, setDateError] = useState<string>();
@@ -28,14 +30,14 @@ export default function OnboardingScreen() {
 
   function next() {
     if (step === 1 && (!profile.couple1Name.trim() || !profile.couple2Name.trim()))
-      return Alert.alert('İsimler gerekli', 'Ana ekranı kişiselleştirmek için iki ismi de yazın.');
+      return Alert.alert(t('onboarding.namesRequiredTitle'), t('onboarding.namesRequiredBody'));
     const dateProblem = step === 2 ? weddingDateError(profile.weddingDate) : undefined;
     if (dateProblem) {
       setDateError(dateProblem);
-      return Alert.alert('Düğün tarihi gerekli', dateProblem);
+      return Alert.alert(t('onboarding.dateRequiredTitle'), dateProblem);
     }
     if (step === 2 && (profile.estimatedBudgetCents <= 0 || profile.estimatedGuestCount <= 0))
-      return Alert.alert('Tahminleri tamamlayın', 'Bütçe ve davetli tahmini sıfırdan büyük olmalıdır.');
+      return Alert.alert(t('onboarding.estimatesTitle'), t('onboarding.estimatesBody'));
     setStep((current) => Math.min(3, current + 1));
   }
 
@@ -45,7 +47,7 @@ export default function OnboardingScreen() {
       await completeOnboarding(profile, askNotifications);
       router.replace('/(tabs)');
     } catch (error) {
-      Alert.alert('Kurulum tamamlanamadı', error instanceof Error ? error.message : 'Lütfen tekrar deneyin.');
+      Alert.alert(t('onboarding.finishFailed'), error instanceof Error ? error.message : t('common.tryAgain'));
     } finally {
       setSaving(false);
     }
@@ -57,53 +59,50 @@ export default function OnboardingScreen() {
         <Image
           source={require('../../assets/images/icon.png')}
           style={styles.logo}
-          accessibilityLabel="Düğün Planım sembolü"
+          accessibilityLabel={t('onboarding.logo')}
         />
         <AppText variant="title" color={theme.colors.primary}>
           Düğün Planım
         </AppText>
       </View>
-      <ProgressBar value={(step + 1) * 25} label={`Kurulum ${step + 1}/4`} />
+      <ProgressBar value={(step + 1) * 25} label={t('onboarding.progress', { step: step + 1 })} />
       <AppText variant="caption" color={theme.colors.muted}>
-        Adım {step + 1} / 4
+        {t('onboarding.step', { step: step + 1 })}
       </AppText>
       {step === 0 ? (
         <Card>
-          <AppText variant="display">Her ayrıntı, tek bir sakin planda.</AppText>
-          <AppText color={theme.colors.muted}>
-            Görevlerinizi, bütçenizi ve davetlilerinizi internete ihtiyaç duymadan yönetin. Verileriniz bu cihazda
-            kalır.
-          </AppText>
-          <Button label="Başlayalım" onPress={next} />
+          <AppText variant="display">{t('onboarding.welcomeTitle')}</AppText>
+          <AppText color={theme.colors.muted}>{t('onboarding.welcomeBody')}</AppText>
+          <Button label={t('onboarding.start')} onPress={next} />
         </Card>
       ) : null}
       {step === 1 ? (
         <Card>
-          <AppText variant="title">Sizi nasıl karşılayalım?</AppText>
+          <AppText variant="title">{t('onboarding.namesTitle')}</AppText>
           <TextField
-            label="Birinci isim"
+            label={t('onboarding.name1')}
             value={profile.couple1Name}
             onChangeText={(value) => update('couple1Name', value)}
             autoCapitalize="words"
             autoFocus
           />
           <TextField
-            label="İkinci isim"
+            label={t('onboarding.name2')}
             value={profile.couple2Name}
             onChangeText={(value) => update('couple2Name', value)}
             autoCapitalize="words"
           />
           <View style={styles.actions}>
-            <Button label="Geri" variant="ghost" onPress={() => setStep(0)} />
-            <Button label="Devam" onPress={next} />
+            <Button label={t('common.back')} variant="ghost" onPress={() => setStep(0)} />
+            <Button label={t('common.continue')} onPress={next} />
           </View>
         </Card>
       ) : null}
       {step === 2 ? (
         <Card>
-          <AppText variant="title">Temel plan</AppText>
+          <AppText variant="title">{t('onboarding.basicsTitle')}</AppText>
           <DateField
-            label="Düğün tarihi"
+            label={t('onboarding.weddingDate')}
             value={profile.weddingDate}
             minimumDate={todayIso()}
             error={dateError}
@@ -113,7 +112,7 @@ export default function OnboardingScreen() {
             }}
           />
           <TextField
-            label="Tahmini toplam bütçe"
+            label={t('onboarding.budgetEstimate')}
             value={profile.estimatedBudgetCents ? String(profile.estimatedBudgetCents / 100) : ''}
             onChangeText={(value) =>
               update('estimatedBudgetCents', Math.max(0, Math.round(Number(value.replace(',', '.')) * 100)) || 0)
@@ -121,13 +120,13 @@ export default function OnboardingScreen() {
             keyboardType="decimal-pad"
           />
           <TextField
-            label="Tahmini davetli sayısı"
+            label={t('onboarding.guestEstimate')}
             value={profile.estimatedGuestCount ? String(profile.estimatedGuestCount) : ''}
             onChangeText={(value) => update('estimatedGuestCount', Math.max(0, Number.parseInt(value, 10)) || 0)}
             keyboardType="number-pad"
           />
           <Chips<CurrencyCode>
-            label="Para birimi"
+            label={t('onboarding.currency')}
             value={profile.currency}
             onChange={(value) => update('currency', value)}
             options={[
@@ -138,21 +137,23 @@ export default function OnboardingScreen() {
             ]}
           />
           <View style={styles.actions}>
-            <Button label="Geri" variant="ghost" onPress={() => setStep(1)} />
-            <Button label="Devam" onPress={next} />
+            <Button label={t('common.back')} variant="ghost" onPress={() => setStep(1)} />
+            <Button label={t('common.continue')} onPress={next} />
           </View>
         </Card>
       ) : null}
       {step === 3 ? (
         <Card>
-          <AppText variant="title">Hatırlatmalar siz karar verdiğinizde</AppText>
-          <AppText color={theme.colors.muted}>
-            Görevlerin son tarihinden bir gün önce yerel bildirim gösterebiliriz. İzin yalnızca şimdi “İzin ver”
-            seçerseniz istenir; reddetseniz de tüm planlama özellikleri çalışır.
-          </AppText>
-          <Button label="Bildirim izni ver ve bitir" onPress={() => void finish(true)} loading={saving} />
-          <Button label="Şimdilik geç" variant="secondary" onPress={() => void finish(false)} disabled={saving} />
-          <Button label="Geri" variant="ghost" onPress={() => setStep(2)} disabled={saving} />
+          <AppText variant="title">{t('onboarding.remindersTitle')}</AppText>
+          <AppText color={theme.colors.muted}>{t('onboarding.remindersBody')}</AppText>
+          <Button label={t('onboarding.allowAndFinish')} onPress={() => void finish(true)} loading={saving} />
+          <Button
+            label={t('onboarding.skipAndFinish')}
+            variant="secondary"
+            onPress={() => void finish(false)}
+            disabled={saving}
+          />
+          <Button label={t('common.back')} variant="ghost" onPress={() => setStep(2)} disabled={saving} />
         </Card>
       ) : null}
     </Screen>

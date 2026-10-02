@@ -7,8 +7,8 @@ import { StatusBar } from 'expo-status-bar';
 import { AppText } from '@/components/ui/app-text';
 import { Button } from '@/components/ui/button';
 import { AppProvider, useApp } from '@/context/app-context';
+import { LanguageProvider, useI18n } from '@/context/language-context';
 import { AppThemeProvider, useAppTheme } from '@/context/theme-context';
-import { t } from '@/i18n';
 import { cleanupInvitationTemp } from '@/services/invitation-files';
 import { configureNotifications } from '@/services/notifications';
 
@@ -17,8 +17,12 @@ void SplashScreen.preventAutoHideAsync();
 function AppNavigator() {
   const { loading, error, refresh } = useApp();
   const theme = useAppTheme();
+  const { t, locale } = useI18n();
+  // Bildirim kanalının adı ve açıklaması etkin dile göre (yeniden) kaydedilir.
   useEffect(() => {
     void configureNotifications();
+  }, [locale]);
+  useEffect(() => {
     cleanupInvitationTemp();
   }, []);
   useEffect(() => {
@@ -28,17 +32,17 @@ function AppNavigator() {
     return (
       <View style={[styles.loading, { backgroundColor: theme.colors.background }]}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        <AppText>Planınız hazırlanıyor…</AppText>
+        <AppText>{t('app.preparing')}</AppText>
       </View>
     );
   if (error)
     return (
       <View style={[styles.loading, { backgroundColor: theme.colors.background }]}>
-        <AppText variant="title">Plan açılamadı</AppText>
+        <AppText variant="title">{t('app.openFailed')}</AppText>
         <AppText color={theme.colors.danger} style={styles.errorCopy}>
           {error}
         </AppText>
-        <Button label="Tekrar dene" onPress={() => void refresh()} />
+        <Button label={t('app.retry')} onPress={() => void refresh()} />
       </View>
     );
   return (
@@ -66,7 +70,7 @@ function AppNavigator() {
         <Stack.Screen name="invitation-editor" options={{ title: t('nav.invitationEditor') }} />
         <Stack.Screen name="invite-send" options={{ title: t('nav.inviteSend') }} />
         <Stack.Screen name="tables" options={{ title: t('nav.tables') }} />
-        <Stack.Screen name="venue-editor" options={{ title: 'Salon düzeni' }} />
+        <Stack.Screen name="venue-editor" options={{ title: t('nav.venueEditor') }} />
         <Stack.Screen name="vendors" options={{ title: t('nav.vendors') }} />
         <Stack.Screen name="calendar" options={{ title: t('nav.calendar') }} />
         <Stack.Screen name="notes" options={{ title: t('nav.notes') }} />
@@ -79,11 +83,13 @@ function AppNavigator() {
 
 export default function RootLayout() {
   return (
-    <AppProvider>
-      <AppThemeProvider>
-        <AppNavigator />
-      </AppThemeProvider>
-    </AppProvider>
+    <LanguageProvider>
+      <AppProvider>
+        <AppThemeProvider>
+          <AppNavigator />
+        </AppThemeProvider>
+      </AppProvider>
+    </LanguageProvider>
   );
 }
 const styles = StyleSheet.create({

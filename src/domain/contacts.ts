@@ -1,3 +1,4 @@
+import { t } from '@/i18n';
 import type { Guest } from './models';
 
 /**
@@ -109,8 +110,8 @@ export function findDuplicateGuest(
 
 export function duplicateMessage(match: DuplicateMatch): string {
   return match.reason === 'phone'
-    ? `Bu telefon numarası zaten “${match.guest.name}” davetlisinde kayıtlı.`
-    : `Bu e-posta adresi zaten “${match.guest.name}” davetlisinde kayıtlı.`;
+    ? t('contacts.duplicatePhone', { name: match.guest.name })
+    : t('contacts.duplicateEmail', { name: match.guest.name });
 }
 
 /** Mevcut davetlideki boş telefon/e-posta alanlarını yeni bilgiyle doldurur; dolu alanları değiştirmez. */

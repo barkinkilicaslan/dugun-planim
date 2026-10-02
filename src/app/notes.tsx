@@ -6,20 +6,30 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { ListRow } from '@/components/ui/list-row';
 import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
+import { formatTimestampDate } from '@/domain/wedding-date';
 import { useApp } from '@/context/app-context';
+import { useI18n } from '@/context/language-context';
 export default function NotesScreen() {
   const { data } = useApp();
+  const { t, locale } = useI18n();
   const [search, setSearch] = useState('');
   const notes = data.notes
-    .filter((note) => `${note.title} ${note.content}`.toLocaleLowerCase('tr').includes(search.toLocaleLowerCase('tr')))
+    .filter((note) =>
+      `${note.title} ${note.content}`.toLocaleLowerCase(locale).includes(search.toLocaleLowerCase(locale)),
+    )
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   return (
     <Screen
-      title="Notlar"
-      subtitle={`${data.notes.length} not`}
-      action={<Button label="+ Ekle" onPress={() => router.push('/edit/note')} />}
+      title={t('nav.notes')}
+      subtitle={t('notes.subtitle', { count: data.notes.length })}
+      action={<Button label={t('common.add')} onPress={() => router.push('/edit/note')} />}
     >
-      <TextField label="Not ara" value={search} onChangeText={setSearch} placeholder="Başlık veya içerik" />
+      <TextField
+        label={t('notes.search')}
+        value={search}
+        onChangeText={setSearch}
+        placeholder={t('notes.searchPlaceholder')}
+      />
       {notes.length ? (
         <Card>
           {notes.map((note) => (
@@ -27,16 +37,16 @@ export default function NotesScreen() {
               key={note.id}
               title={note.title}
               subtitle={note.content}
-              meta={new Date(note.updatedAt).toLocaleDateString('tr-TR')}
+              meta={formatTimestampDate(note.updatedAt, locale)}
               onPress={() => router.push(`/edit/note?id=${note.id}`)}
             />
           ))}
         </Card>
       ) : (
         <EmptyState
-          title="Not bulunamadı"
-          description={search ? 'Arama metnini değiştirin.' : 'Fikir, soru ve önemli ayrıntıları cihazınızda saklayın.'}
-          actionLabel="Not ekle"
+          title={t('notes.notFound')}
+          description={search ? t('common.searchTextHint') : t('notes.emptyHint')}
+          actionLabel={t('notes.add')}
           onAction={() => router.push('/edit/note')}
         />
       )}

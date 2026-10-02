@@ -7,47 +7,44 @@ import { ListRow } from '@/components/ui/list-row';
 import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
 import { useApp } from '@/context/app-context';
+import { useI18n } from '@/context/language-context';
 import { formatMoney } from '@/domain/calculations';
-const status = {
-  researching: 'Araştırılıyor',
-  quoted: 'Teklif alındı',
-  signed: 'İmzalandı',
-  completed: 'Tamamlandı',
-} as const;
 export default function VendorsScreen() {
   const { data } = useApp();
+  const { t, locale, intl } = useI18n();
   const [search, setSearch] = useState('');
   const vendors = data.vendors.filter((vendor) =>
-    `${vendor.name} ${vendor.category}`.toLocaleLowerCase('tr').includes(search.toLocaleLowerCase('tr')),
+    `${vendor.name} ${vendor.category}`.toLocaleLowerCase(locale).includes(search.toLocaleLowerCase(locale)),
   );
   return (
     <Screen
-      title="Tedarikçiler"
-      subtitle={`${data.vendors.length} kayıt`}
-      action={<Button label="+ Ekle" onPress={() => router.push('/edit/vendor')} />}
+      title={t('nav.vendors')}
+      subtitle={t('vendors.subtitle', { count: data.vendors.length })}
+      action={<Button label={t('common.add')} onPress={() => router.push('/edit/vendor')} />}
     >
-      <TextField label="Tedarikçi ara" value={search} onChangeText={setSearch} placeholder="İsim veya kategori" />
+      <TextField
+        label={t('vendors.search')}
+        value={search}
+        onChangeText={setSearch}
+        placeholder={t('vendors.searchPlaceholder')}
+      />
       {vendors.length ? (
         <Card>
           {vendors.map((vendor) => (
             <ListRow
               key={vendor.id}
               title={vendor.name}
-              subtitle={`${vendor.category} · ${status[vendor.contractStatus]}`}
-              meta={formatMoney(vendor.quoteCents, data.profile.currency)}
+              subtitle={`${vendor.category} · ${t(`vendor.status.${vendor.contractStatus}`)}`}
+              meta={formatMoney(vendor.quoteCents, data.profile.currency, intl)}
               onPress={() => router.push(`/edit/vendor?id=${vendor.id}`)}
             />
           ))}
         </Card>
       ) : (
         <EmptyState
-          title="Tedarikçi bulunamadı"
-          description={
-            search
-              ? 'Arama metnini değiştirin.'
-              : 'Teklifleri ve sözleşme durumunu izlemek için ilk tedarikçiyi ekleyin.'
-          }
-          actionLabel="Tedarikçi ekle"
+          title={t('vendors.notFound')}
+          description={search ? t('common.searchTextHint') : t('vendors.emptyHint')}
+          actionLabel={t('vendors.add')}
           onAction={() => router.push('/edit/vendor')}
         />
       )}

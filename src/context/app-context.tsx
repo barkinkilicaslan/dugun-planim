@@ -3,6 +3,7 @@ import * as Crypto from 'expo-crypto';
 
 import { repository } from '@/data/repository';
 import { createTemplateTasks } from '@/domain/templates';
+import { t } from '@/i18n';
 import {
   EMPTY_APP_DATA,
   type AppData,
@@ -86,7 +87,7 @@ export function AppProvider({ children }: PropsWithChildren) {
       await repository.initialize();
       setData(await repository.load());
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Veriler yüklenemedi.');
+      setError(reason instanceof Error ? reason.message : t('app.loadDataFailed'));
     }
   }, []);
 
@@ -99,7 +100,7 @@ export function AppProvider({ children }: PropsWithChildren) {
         if (active) setData(loaded);
         await removeUnreferencedInvitationPhotos(loaded.invitationDesigns.map((design) => design.photoUri));
       } catch (reason) {
-        if (active) setError(reason instanceof Error ? reason.message : 'Uygulama başlatılamadı.');
+        if (active) setError(reason instanceof Error ? reason.message : t('app.startFailed'));
       } finally {
         if (active) setLoading(false);
       }

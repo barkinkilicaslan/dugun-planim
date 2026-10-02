@@ -109,6 +109,14 @@ npx eas-cli@latest submit --platform ios --profile production
 
 Production Android profili AAB üretir. Hesap, imzalama ve mağaza sahibi girdileri olmadan çalıştırılamayan son adımlar [RELEASE_INPUTS.md](./RELEASE_INPUTS.md) ve [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md) içinde açıkça ayrılmıştır.
 
+## Diller
+
+Uygulama Türkçe ve İngilizce destekler. Ayarlar → Dil içinde **Otomatik** (varsayılan), **Türkçe** ve **English** seçilebilir. Otomatik modda cihazın dil kodu (`tr`, `en`, `en-US`, `en-GB` …) kullanılır; ülke dikkate alınmaz, desteklenmeyen dillerde Türkçe gösterilir. Seçim yeniden başlatma gerektirmeden uygulanır ve `expo-sqlite/kv-store` içinde (düğün veritabanından ayrı) saklanır; yedek dosyasına girmez.
+
+Çeviriler `src/i18n/tr.ts` (kaynak) ve `src/i18n/en.ts` içindedir; İngilizce sözlük aynı anahtar ve parametre yapısını taşımak zorundadır (derleme zamanı denetimi). Ekranlarda `useI18n()` kullanılır. Kullanıcının yazdığı isimler, notlar ve davet metinleri çevrilmez. CSV içe aktarma başlıkları dosya uyumluluğu için Türkçe kalır. Sağdan sola dil desteği henüz yoktur; mimari `direction` bilgisini taşır.
+
+İzin metinleri ve uygulama adı `locales/` altındaki dosyalarla cihaz diline göre yerelleştirilir (`expo-localization` eklentisi).
+
 ## Kapsam kararları
 
 Sözleşme dosyası ekleme kapsam dışıdır. Telefon rehberi yalnızca kullanıcı “Rehberden davetli ekle” dediğinde okunur (iOS NSContactsUsageDescription, Android yalnız READ_CONTACTS); davetiye fotoğrafı sistem dosya seçicisiyle seçilir ve fotoğraf izni istenmez. Tedarikçi arama/e-posta eylemi ancak ilgili satıra kullanıcı dokunduğunda işletim sistemine devredilir.

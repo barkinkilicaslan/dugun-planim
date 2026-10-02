@@ -4,19 +4,22 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { captureRef } from 'react-native-view-shot';
 
+import { t } from '@/i18n';
+
 /** Davetiye PNG/PDF üretimi ve paylaşımı. Dosyalar yalnız cihazda oluşur; hiçbir şey sunucuya gönderilmez. */
 
 /** PNG çıktısı 1080 × 1620 piksel (kartın 3 katı). */
 const PNG_WIDTH = 1080;
 const PNG_HEIGHT = 1620;
-const TEMP_PREFIX = 'davetiye-';
+/** Dosya adı ön ekleri (her iki dilde); eski oturumlardan kalan geçici dosyalar için ikisi de temizlenir. */
+const TEMP_PREFIXES = ['davetiye-', 'invitation-'];
 
 /** Önceki oturumlardan kalan davetiye PNG/PDF geçici dosyalarını siler. */
 export function cleanupInvitationTemp(): void {
   if (Platform.OS === 'web') return;
   try {
     for (const entry of Paths.cache.list()) {
-      if (entry instanceof File && entry.name.startsWith(TEMP_PREFIX)) entry.delete();
+      if (entry instanceof File && TEMP_PREFIXES.some((prefix) => entry.name.startsWith(prefix))) entry.delete();
     }
   } catch {
     // Temizlik başarısız olsa bile uygulama akışı etkilenmemeli; dosyalar sistem tarafından da silinebilir.
@@ -24,7 +27,7 @@ export function cleanupInvitationTemp(): void {
 }
 
 function tempFile(name: string): File {
-  const file = new File(Paths.cache, `${TEMP_PREFIX}${name}`);
+  const file = new File(Paths.cache, name);
   if (file.exists) file.delete();
   return file;
 }
@@ -41,7 +44,7 @@ export async function renderInvitationPng(
   fileBase: string,
   pixelRatio: number,
 ): Promise<GeneratedInvitationFile> {
-  if (Platform.OS === 'web') throw new Error('PNG oluşturma yalnız iOS ve Android uygulamasında kullanılabilir.');
+  if (Platform.OS === 'web') throw new Error(t('invitation.pngWebUnavailable'));
   cleanupInvitationTemp();
   const captured = await captureRef(cardRef, {
     format: 'png',
@@ -73,6 +76,6 @@ export async function renderInvitationPdf(
 }
 
 export async function shareGeneratedFile(file: GeneratedInvitationFile): Promise<void> {
-  if (!(await Sharing.isAvailableAsync())) throw new Error('Bu cihazda paylaşım ekranı kullanılamıyor.');
-  await Sharing.shareAsync(file.uri, { mimeType: file.mimeType, dialogTitle: 'Davetiyeyi paylaş' });
+  if (!(await Sharing.isAvailableAsync())) throw new Error(t('share.unavailable'));
+  await Sharing.shareAsync(file.uri, { mimeType: file.mimeType, dialogTitle: t('invitation.shareTitle') });
 }

@@ -12,15 +12,22 @@ import { Screen } from '@/components/ui/screen';
 import { SectionHeader } from '@/components/ui/section-header';
 import { spacing } from '@/constants/theme';
 import { useApp } from '@/context/app-context';
+import { useI18n } from '@/context/language-context';
 import { useAppTheme } from '@/context/theme-context';
 import { dashboardSummary, daysUntil, formatDate, formatMoney } from '@/domain/calculations';
 
 export default function HomeScreen() {
   const { data, refresh, loading } = useApp();
   const theme = useAppTheme();
+  const { t, intl } = useI18n();
   const summary = dashboardSummary(data);
   const dayLabel =
-    summary.days > 0 ? `${summary.days} gün` : summary.days === 0 ? 'Bugün' : `${Math.abs(summary.days)} gün geçti`;
+    summary.days > 0
+      ? t('home.daysLeft', { days: summary.days })
+      : summary.days === 0
+        ? t('home.today')
+        : t('home.daysAgo', { days: Math.abs(summary.days) });
+  const money = (cents: number) => formatMoney(cents, data.profile.currency, intl);
   const upcoming = [
     ...data.tasks
       .filter((item) => !item.completed && item.dueDate)
@@ -28,7 +35,7 @@ export default function HomeScreen() {
         id: `t-${item.id}`,
         title: item.title,
         date: item.dueDate,
-        type: 'Görev',
+        type: t('home.typeTask'),
         href: `/edit/task?id=${item.id}` as const,
       })),
     ...data.budgetItems
@@ -37,7 +44,7 @@ export default function HomeScreen() {
         id: `b-${item.id}`,
         title: item.title,
         date: item.dueDate,
-        type: 'Ödeme',
+        type: t('home.typePayment'),
         href: `/edit/budget?id=${item.id}` as const,
       })),
   ]
@@ -48,70 +55,72 @@ export default function HomeScreen() {
   return (
     <Screen
       title={`${data.profile.couple1Name} & ${data.profile.couple2Name}`}
-      subtitle="Planınızın bugünkü görünümü"
+      subtitle={t('home.subtitle')}
       refreshing={loading}
       onRefresh={refresh}
     >
       <Card style={{ backgroundColor: theme.colors.primary }}>
         <AppText variant="caption" color={theme.colors.primaryText}>
-          Düğüne kalan
+          {t('home.countdownLabel')}
         </AppText>
-        <AppText variant="display" color={theme.colors.primaryText}>
+        <AppText
+          variant="display"
+          color={theme.colors.primaryText}
+          accessibilityLabel={summary.days > 0 ? t('home.daysLeftSentence', { days: summary.days }) : dayLabel}
+        >
           {dayLabel}
         </AppText>
         <AppText color={theme.colors.primaryText}>
-          {data.profile.weddingDate
-            ? formatDate(data.profile.weddingDate, data.profile.dateFormat)
-            : 'Tarih belirlenmedi'}
+          {data.profile.weddingDate ? formatDate(data.profile.weddingDate, data.profile.dateFormat) : t('home.noDate')}
         </AppText>
       </Card>
       <Card>
         <View style={styles.progressHeader}>
-          <AppText variant="subtitle">Hazırlık ilerlemesi</AppText>
+          <AppText variant="subtitle">{t('home.progressTitle')}</AppText>
           <AppText variant="subtitle" color={theme.colors.primary}>
             %{summary.tasks.percentage}
           </AppText>
         </View>
-        <ProgressBar value={summary.tasks.percentage} label="Görev ilerlemesi" />
+        <ProgressBar value={summary.tasks.percentage} label={t('home.taskProgress')} />
         <AppText variant="caption" color={theme.colors.muted}>
-          {summary.tasks.completed} tamamlandı · {summary.tasks.remaining} kaldı
+          {t('home.progressCounts', { done: summary.tasks.completed, left: summary.tasks.remaining })}
         </AppText>
       </Card>
       <MetricGrid>
-        <MetricCard label="Toplam bütçe" value={formatMoney(summary.budget.totalBudgetCents, data.profile.currency)} />
+        <MetricCard label={t('home.totalBudget')} value={money(summary.budget.totalBudgetCents)} />
         <MetricCard
-          label="Harcanan"
-          value={formatMoney(summary.budget.actualCents, data.profile.currency)}
+          label={t('home.spent')}
+          value={money(summary.budget.actualCents)}
           tone={summary.budget.overBudgetCents > 0 ? 'warning' : 'default'}
         />
         <MetricCard
-          label="Kalan"
-          value={formatMoney(summary.budget.availableCents, data.profile.currency)}
+          label={t('home.remaining')}
+          value={money(summary.budget.availableCents)}
           tone={summary.budget.availableCents < 0 ? 'warning' : 'success'}
         />
         <MetricCard
-          label="Davetli yanıtları"
-          value={`${summary.guests.attending} katılıyor`}
-          hint={`${summary.guests.pending} kişi bekliyor`}
+          label={t('home.guestReplies')}
+          value={t('home.attendingCount', { count: summary.guests.attending })}
+          hint={t('home.waitingCount', { count: summary.guests.pending })}
         />
       </MetricGrid>
-      <SectionHeader title="Hızlı işlemler" />
+      <SectionHeader title={t('home.quickActions')} />
       <View style={styles.quick}>
-        <Button label="Görev ekle" onPress={() => router.push('/edit/task')} style={styles.quickButton} />
+        <Button label={t('home.addTask')} onPress={() => router.push('/edit/task')} style={styles.quickButton} />
         <Button
-          label="Davetli ekle"
+          label={t('home.addGuest')}
           onPress={() => router.push('/edit/guest')}
           variant="secondary"
           style={styles.quickButton}
         />
         <Button
-          label="Harcama ekle"
+          label={t('home.addExpense')}
           onPress={() => router.push('/edit/budget')}
           variant="secondary"
           style={styles.quickButton}
         />
       </View>
-      <SectionHeader title="Yaklaşanlar" description="En yakın üç görev ve ödeme" />
+      <SectionHeader title={t('home.upcoming')} description={t('home.upcomingHint')} />
       {upcoming.length ? (
         <Card>
           {upcoming.map((item) => (
@@ -126,9 +135,9 @@ export default function HomeScreen() {
         </Card>
       ) : (
         <EmptyState
-          title="Yaklaşan iş yok"
-          description="Tarihli bir görev veya vadesi olan ödeme eklediğinizde burada görünür."
-          actionLabel="Görev ekle"
+          title={t('home.noUpcoming')}
+          description={t('home.noUpcomingHint')}
+          actionLabel={t('home.addTask')}
           onAction={() => router.push('/edit/task')}
         />
       )}

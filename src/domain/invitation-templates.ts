@@ -1,3 +1,4 @@
+import type { Translator } from '@/i18n';
 import type { InvitationTemplateId } from './models';
 
 /**
@@ -14,9 +15,7 @@ export type TitleFont = 'serif' | 'sans' | 'serifItalic';
 
 export interface InvitationTemplate {
   id: InvitationTemplateId;
-  name: string;
-  description: string;
-  defaultPaletteId: string;
+  defaultPaletteId: PaletteId;
   frame: FrameStyle;
   ornament: OrnamentStyle;
   divider: DividerStyle;
@@ -30,8 +29,6 @@ export interface InvitationTemplate {
 export const INVITATION_TEMPLATES: readonly InvitationTemplate[] = [
   {
     id: 'classic',
-    name: 'Klasik',
-    description: 'Çift çizgili çerçeve ve ince elmas ayraç.',
     defaultPaletteId: 'burgundy',
     frame: 'doubleLine',
     ornament: 'diamond',
@@ -44,8 +41,6 @@ export const INVITATION_TEMPLATES: readonly InvitationTemplate[] = [
   },
   {
     id: 'minimal',
-    name: 'Minimal',
-    description: 'Geniş boşluklar, ince çizgi ve sade tipografi.',
     defaultPaletteId: 'ink',
     frame: 'none',
     ornament: 'none',
@@ -58,8 +53,6 @@ export const INVITATION_TEMPLATES: readonly InvitationTemplate[] = [
   },
   {
     id: 'botanical',
-    name: 'Botanik',
-    description: 'Üstte yaprak dalı, altta yumuşak yeşil tonlar.',
     defaultPaletteId: 'emerald',
     frame: 'inset',
     ornament: 'sprig',
@@ -72,8 +65,6 @@ export const INVITATION_TEMPLATES: readonly InvitationTemplate[] = [
   },
   {
     id: 'modern',
-    name: 'Modern',
-    description: 'Kalın bant, sola hizalı büyük isimler.',
     defaultPaletteId: 'navy',
     frame: 'band',
     ornament: 'none',
@@ -86,8 +77,6 @@ export const INVITATION_TEMPLATES: readonly InvitationTemplate[] = [
   },
   {
     id: 'boho',
-    name: 'Bohem',
-    description: 'Toprak tonları, kemer biçimli fotoğraf alanı ve yapraklar.',
     defaultPaletteId: 'terracotta',
     frame: 'arch',
     ornament: 'leaves',
@@ -100,8 +89,6 @@ export const INVITATION_TEMPLATES: readonly InvitationTemplate[] = [
   },
   {
     id: 'goldElegance',
-    name: 'Altın Zarafet',
-    description: 'Koyu zemin üzerinde altın çerçeve ve köşe süsleri.',
     defaultPaletteId: 'blackGold',
     frame: 'corners',
     ornament: 'diamond',
@@ -114,8 +101,6 @@ export const INVITATION_TEMPLATES: readonly InvitationTemplate[] = [
   },
   {
     id: 'garden',
-    name: 'Kır Bahçesi',
-    description: 'Papatya benzeri çiçekler ve sıcak, açık tonlar.',
     defaultPaletteId: 'sage',
     frame: 'inset',
     ornament: 'florets',
@@ -128,8 +113,6 @@ export const INVITATION_TEMPLATES: readonly InvitationTemplate[] = [
   },
   {
     id: 'geometric',
-    name: 'Geometrik',
-    description: 'Üst üste binen halkalar ve köşeli çerçeve.',
     defaultPaletteId: 'teal',
     frame: 'geometric',
     ornament: 'rings',
@@ -142,8 +125,6 @@ export const INVITATION_TEMPLATES: readonly InvitationTemplate[] = [
   },
   {
     id: 'night',
-    name: 'Gece',
-    description: 'Koyu mavi zemin, yıldızlar ve altın vurgular.',
     defaultPaletteId: 'midnight',
     frame: 'inset',
     ornament: 'stars',
@@ -156,8 +137,6 @@ export const INVITATION_TEMPLATES: readonly InvitationTemplate[] = [
   },
   {
     id: 'romantic',
-    name: 'Romantik',
-    description: 'Pudra tonları, kalp süsü ve yuvarlak fotoğraf.',
     defaultPaletteId: 'blush',
     frame: 'doubleLine',
     ornament: 'hearts',
@@ -186,9 +165,11 @@ export function templateSupportsPhoto(template: InvitationTemplate): boolean {
   return template.photoShape !== 'none';
 }
 
+export type PaletteId =
+  'burgundy' | 'ink' | 'emerald' | 'navy' | 'terracotta' | 'blackGold' | 'sage' | 'teal' | 'midnight' | 'blush';
+
 export interface InvitationPalette {
-  id: string;
-  name: string;
+  id: PaletteId;
   background: string;
   ink: string;
   accent: string;
@@ -196,33 +177,67 @@ export interface InvitationPalette {
 }
 
 export const INVITATION_PALETTES: readonly InvitationPalette[] = [
-  { id: 'burgundy', name: 'Bordo', background: '#FBF5EC', ink: '#4A1426', accent: '#6F1D3A', muted: '#7B6168' },
-  { id: 'ink', name: 'Mürekkep', background: '#FFFFFF', ink: '#1F1F24', accent: '#55555E', muted: '#6B6B75' },
-  { id: 'emerald', name: 'Zümrüt', background: '#F4F7F1', ink: '#1E3A2E', accent: '#3E7A5A', muted: '#58695F' },
-  { id: 'navy', name: 'Lacivert', background: '#F5F7FB', ink: '#14233F', accent: '#2F5597', muted: '#5F6A82' },
-  { id: 'terracotta', name: 'Kiremit', background: '#F8EEE3', ink: '#5A2E1C', accent: '#B2603C', muted: '#7D5F4E' },
+  { id: 'burgundy', background: '#FBF5EC', ink: '#4A1426', accent: '#6F1D3A', muted: '#7B6168' },
+  { id: 'ink', background: '#FFFFFF', ink: '#1F1F24', accent: '#55555E', muted: '#6B6B75' },
+  { id: 'emerald', background: '#F4F7F1', ink: '#1E3A2E', accent: '#3E7A5A', muted: '#58695F' },
+  { id: 'navy', background: '#F5F7FB', ink: '#14233F', accent: '#2F5597', muted: '#5F6A82' },
+  { id: 'terracotta', background: '#F8EEE3', ink: '#5A2E1C', accent: '#B2603C', muted: '#7D5F4E' },
   {
     id: 'blackGold',
-    name: 'Siyah & altın',
     background: '#17140F',
     ink: '#F3E7C6',
     accent: '#C9A24E',
     muted: '#B8A98A',
   },
-  { id: 'sage', name: 'Adaçayı', background: '#F6F4EA', ink: '#3B4631', accent: '#6B7F4C', muted: '#656D58' },
-  { id: 'teal', name: 'Petrol', background: '#F1F7F7', ink: '#0F3B40', accent: '#1F8A8F', muted: '#55737A' },
-  { id: 'midnight', name: 'Gece mavisi', background: '#0E1631', ink: '#EEF1FA', accent: '#D6B66A', muted: '#A7B0CC' },
-  { id: 'blush', name: 'Pudra', background: '#FDF1F1', ink: '#5B2A33', accent: '#B35A70', muted: '#7F5C63' },
+  { id: 'sage', background: '#F6F4EA', ink: '#3B4631', accent: '#6B7F4C', muted: '#656D58' },
+  { id: 'teal', background: '#F1F7F7', ink: '#0F3B40', accent: '#1F8A8F', muted: '#55737A' },
+  { id: 'midnight', background: '#0E1631', ink: '#EEF1FA', accent: '#D6B66A', muted: '#A7B0CC' },
+  { id: 'blush', background: '#FDF1F1', ink: '#5B2A33', accent: '#B35A70', muted: '#7F5C63' },
 ];
 
 export function paletteById(id: string): InvitationPalette {
   return INVITATION_PALETTES.find((palette) => palette.id === id) ?? INVITATION_PALETTES[0];
 }
 
-export const DEFAULT_INVITATION_MESSAGE = 'Hayatımızın en özel gününde sizleri de aramızda görmekten mutluluk duyarız.';
+export function templateName(t: Translator, id: InvitationTemplateId): string {
+  return t(`invitation.template.${id}.name`);
+}
 
-export const ADULTS_ONLY_PRESETS: readonly string[] = [
-  'Kutlamamızı yalnızca yetişkin misafirlerimizle gerçekleştireceğimizi anlayışla karşılamanızı rica ederiz.',
-  'Düğünümüz yetişkinlere özeldir. Anlayışınız ve nezaketiniz için teşekkür ederiz.',
-  'Bu özel gecede yalnızca yetişkin misafirlerimizi ağırlayabileceğiz; anlayışınız bizim için çok değerli.',
-];
+export function templateDescription(t: Translator, id: InvitationTemplateId): string {
+  return t(`invitation.template.${id}.description`);
+}
+
+export function paletteName(t: Translator, id: PaletteId): string {
+  return t(`invitation.palette.${id}`);
+}
+
+export function defaultInvitationMessage(t: Translator): string {
+  return t('invitation.defaultMessage');
+}
+
+export const ADULTS_ONLY_PRESET_COUNT = 3;
+
+export function adultsOnlyPreset(t: Translator, index: number): string {
+  const safe = Math.min(Math.max(Math.trunc(index), 0), ADULTS_ONLY_PRESET_COUNT - 1);
+  return t(`invitation.adultsPreset${safe + 1}` as 'invitation.adultsPreset1');
+}
+
+/**
+ * Hazır çocuksuz düğün mesajları metin olarak değil `@preset:N` işaretçisi olarak saklanır; böylece uygulama dili
+ * değişince mesaj da yeni dile geçer. Kullanıcının yazdığı metin olduğu gibi saklanır ve asla çevrilmez.
+ */
+export function adultsOnlyPresetMarker(index: number): string {
+  return `@preset:${index}`;
+}
+
+export function adultsOnlyPresetIndex(stored: string): number | undefined {
+  const match = /^@preset:(\d+)$/.exec(stored.trim());
+  if (!match) return undefined;
+  const index = Number(match[1]);
+  return index >= 0 && index < ADULTS_ONLY_PRESET_COUNT ? index : undefined;
+}
+
+export function resolveAdultsOnlyText(t: Translator, stored: string): string {
+  const index = adultsOnlyPresetIndex(stored);
+  return index === undefined ? stored.trim() : adultsOnlyPreset(t, index);
+}

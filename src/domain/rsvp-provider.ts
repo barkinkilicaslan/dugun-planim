@@ -1,3 +1,4 @@
+import { t } from '@/i18n';
 import type { Guest, RsvpStatus } from './models';
 
 /** Çevrimiçi bir formdan gelen, davetliye eşlenmemiş ham yanıt. */
@@ -39,7 +40,7 @@ export interface RsvpProvider {
 export const disabledRsvpProvider: RsvpProvider = {
   id: 'disabled',
   isEnabled: () => false,
-  createInviteLink: () => Promise.reject(new Error('Çevrimiçi RSVP etkin değil.')),
+  createInviteLink: () => Promise.reject(new Error(t('rsvp.onlineDisabled'))),
   fetchResponses: () => Promise.resolve([]),
   revokeAll: () => Promise.resolve(),
 };

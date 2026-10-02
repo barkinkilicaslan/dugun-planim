@@ -11,6 +11,7 @@ import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
 import { radius, spacing } from '@/constants/theme';
 import { useApp } from '@/context/app-context';
+import { useI18n } from '@/context/language-context';
 import { useAppTheme } from '@/context/theme-context';
 import {
   buildInviteMessage,
@@ -18,7 +19,7 @@ import {
   invitationFileBase,
   resolveInvitationContent,
 } from '@/domain/invitation-content';
-import { paletteById, templateById } from '@/domain/invitation-templates';
+import { paletteById, templateById, templateName } from '@/domain/invitation-templates';
 import {
   availableChannels,
   channelNote,
@@ -32,7 +33,7 @@ import {
   type InviteQueue,
 } from '@/domain/invite-dispatch';
 import type { Guest, InviteChannel } from '@/domain/models';
-import { INVITE_CHANNEL_LABELS, markInviteSent, recordInviteOpened } from '@/domain/rsvp';
+import { inviteChannelLabel, inviteStatusLabel, markInviteSent, recordInviteOpened } from '@/domain/rsvp';
 import { renderInvitationPng, type GeneratedInvitationFile } from '@/services/invitation-files';
 import {
   getDeviceCapabilities,
@@ -47,6 +48,8 @@ export default function InviteSendScreen() {
   const { designId } = useLocalSearchParams<{ designId?: string }>();
   const { data, saveGuest } = useApp();
   const theme = useAppTheme();
+  const i18n = useI18n();
+  const { t, locale } = i18n;
   const { width: windowWidth } = useWindowDimensions();
   const cardRef = useRef<View>(null);
 
@@ -70,15 +73,15 @@ export default function InviteSendScreen() {
     void getDeviceCapabilities().then(setDevice);
   }, []);
 
-  const content = design ? resolveInvitationContent(design, data.profile) : undefined;
+  const content = design ? resolveInvitationContent(design, data.profile, i18n) : undefined;
   const guestById = (guestId: string): Guest | undefined => data.guests.find((guest) => guest.id === guestId);
 
   const guests = useMemo(
     () =>
       data.guests
-        .filter((guest) => guest.name.toLocaleLowerCase('tr').includes(search.toLocaleLowerCase('tr')))
-        .sort((a, b) => a.name.localeCompare(b.name, 'tr')),
-    [data.guests, search],
+        .filter((guest) => guest.name.toLocaleLowerCase(locale).includes(search.toLocaleLowerCase(locale)))
+        .sort((a, b) => a.name.localeCompare(b.name, locale)),
+    [data.guests, locale, search],
   );
   const chosen = data.guests.filter((guest) => selected[guest.id]);
   const availability = (guest: Guest) =>
@@ -86,10 +89,10 @@ export default function InviteSendScreen() {
 
   if (!design || !content)
     return (
-      <Screen title="Davetiye gönder">
+      <Screen title={t('nav.inviteSend')}>
         <Card>
-          <AppText>Göndermek için önce bir davetiye tasarımı oluşturun.</AppText>
-          <Button label="Davetiye tasarla" onPress={() => router.replace('/invitations')} />
+          <AppText>{t('send.needDesign')}</AppText>
+          <Button label={t('send.createDesign')} onPress={() => router.replace('/invitations')} />
         </Card>
       </Screen>
     );
@@ -103,8 +106,8 @@ export default function InviteSendScreen() {
       deadline: design?.rsvpDeadline || undefined,
     });
     return {
-      subject: inviteSubject(content!),
-      body: buildInviteMessage(content!, { guestName: guest.name, rsvpUrl }),
+      subject: inviteSubject(content!, t),
+      body: buildInviteMessage(content!, { guestName: guest.name, rsvpUrl }, t),
       attachment: channel === 'email' ? attachment : undefined,
     };
   }
@@ -114,14 +117,14 @@ export default function InviteSendScreen() {
       setBusy(true);
       let file: GeneratedInvitationFile | undefined;
       if ((channel === 'email' && attachImage) || channel === 'share') {
-        file = await renderInvitationPng(cardRef, invitationFileBase(design!), PixelRatio.get());
+        file = await renderInvitationPng(cardRef, invitationFileBase(design!, t), PixelRatio.get());
       }
       setAttachment(file);
       const caps = await getDeviceCapabilities();
       setDevice(caps);
       setQueue(createInviteQueue(chosen, channel, caps));
     } catch (error) {
-      Alert.alert('Davetiye hazırlanamadı', (error as Error).message);
+      Alert.alert(t('send.prepareFailed'), (error as Error).message);
     } finally {
       setBusy(false);
     }
@@ -150,7 +153,7 @@ export default function InviteSendScreen() {
       await record(guest, outcome);
       setQueue((current) => (current ? resolveCurrent(current, 'opened') : current));
     } catch (error) {
-      Alert.alert('Gönderim ekranı açılamadı', (error as Error).message);
+      Alert.alert(t('send.openFailed'), (error as Error).message);
     } finally {
       setBusy(false);
     }
@@ -158,12 +161,12 @@ export default function InviteSendScreen() {
 
   function offerShareFallback(guest: Guest) {
     Alert.alert(
-      `${INVITE_CHANNEL_LABELS[channel]} açılamadı`,
-      `${INVITE_CHANNEL_LABELS[channel]} bu cihazda bulunamadı veya açılamadı. Davetiyeyi genel paylaşım menüsüyle gönderebilirsiniz.`,
+      t('send.fallbackTitle', { channel: inviteChannelLabel(t, channel) }),
+      t('send.fallbackBody', { channel: inviteChannelLabel(t, channel) }),
       [
-        { text: 'Vazgeç', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Paylaşım menüsünü aç',
+          text: t('send.fallbackOpen'),
           onPress: () =>
             void (async () => {
               const message = await messageFor(guest);
@@ -171,7 +174,7 @@ export default function InviteSendScreen() {
               if (outcome === 'cancelled') return;
               await record(guest, outcome);
               setQueue((current) => (current ? resolveCurrent(current, 'opened') : current));
-            })().catch((error: Error) => Alert.alert('Paylaşım açılamadı', error.message)),
+            })().catch((error: Error) => Alert.alert(t('send.shareFailed'), error.message)),
         },
       ],
     );
@@ -182,12 +185,12 @@ export default function InviteSendScreen() {
     try {
       await shareInviteImage(attachment);
     } catch (error) {
-      Alert.alert('Görsel paylaşılamadı', (error as Error).message);
+      Alert.alert(t('send.imageShareFailed'), (error as Error).message);
     }
   }
 
   function skipCurrent() {
-    setQueue((current) => (current ? resolveCurrent(current, 'skipped', 'Kullanıcı atladı.') : current));
+    setQueue((current) => (current ? resolveCurrent(current, 'skipped', 'dispatch.userSkipped') : current));
   }
 
   function cancel() {
@@ -205,7 +208,7 @@ export default function InviteSendScreen() {
   const previewWidth = Math.min(windowWidth - spacing.lg * 2, 220);
 
   return (
-    <Screen title="Davetiye gönder" subtitle={`${design.name} · ${template.name}`}>
+    <Screen title={t('nav.inviteSend')} subtitle={`${design.name} · ${templateName(t, template.id)}`}>
       <View style={styles.preview}>
         <ScaledInvitation
           width={previewWidth}
@@ -217,9 +220,7 @@ export default function InviteSendScreen() {
       </View>
       <Card>
         <AppText variant="caption" color={theme.colors.muted}>
-          Uygulama hiçbir mesajı kendisi göndermez. Her adımda işletim sisteminin e-posta, SMS, WhatsApp veya paylaşım
-          ekranı açılır ve göndermeyi siz onaylarsınız. Gönderim sonucu çoğu zaman doğrulanamadığı için durum “Gönderim
-          ekranı açıldı” olarak kaydedilir; isterseniz “Gönderildi olarak işaretle” diyebilirsiniz.
+          {t('send.intro')}
         </AppText>
       </Card>
 
@@ -227,21 +228,21 @@ export default function InviteSendScreen() {
         <>
           <Card>
             <Chips<InviteChannel>
-              label="Kanal"
+              label={t('send.channel')}
               value={channel}
               onChange={setChannel}
               options={[
-                { value: 'sms', label: 'SMS' },
-                { value: 'whatsapp', label: 'WhatsApp' },
-                { value: 'email', label: 'E-posta' },
-                { value: 'share', label: 'Paylaşım menüsü' },
+                { value: 'sms', label: inviteChannelLabel(t, 'sms') },
+                { value: 'whatsapp', label: inviteChannelLabel(t, 'whatsapp') },
+                { value: 'email', label: inviteChannelLabel(t, 'email') },
+                { value: 'share', label: inviteChannelLabel(t, 'share') },
               ]}
             />
             {channel === 'email' ? (
               <View style={styles.switchRow}>
-                <AppText style={styles.switchCopy}>Davetiye görselini (PNG) ekle</AppText>
+                <AppText style={styles.switchCopy}>{t('send.attachImage')}</AppText>
                 <Switch
-                  accessibilityLabel="Davetiye görselini PNG olarak ekle"
+                  accessibilityLabel={t('send.attachImageA11y')}
                   value={attachImage}
                   onValueChange={setAttachImage}
                   trackColor={{ true: theme.colors.primary, false: theme.colors.border }}
@@ -249,20 +250,25 @@ export default function InviteSendScreen() {
               </View>
             ) : null}
             <AppText variant="caption" color={theme.colors.muted}>
-              {channelNote(channel, attachImage)}
+              {channelNote(t, channel, attachImage)}
             </AppText>
           </Card>
-          <TextField label="Davetli ara" value={search} onChangeText={setSearch} />
+          <TextField label={t('send.search')} value={search} onChangeText={setSearch} />
           <View style={styles.row}>
             <Button
-              label="Tümünü seç"
+              label={t('send.selectAll')}
               variant="secondary"
               onPress={() =>
                 setSelected(Object.fromEntries(guests.filter((g) => availability(g)).map((guest) => [guest.id, true])))
               }
               style={styles.grow}
             />
-            <Button label="Seçimi temizle" variant="ghost" onPress={() => setSelected({})} style={styles.grow} />
+            <Button
+              label={t('send.clearSelection')}
+              variant="ghost"
+              onPress={() => setSelected({})}
+              style={styles.grow}
+            />
           </View>
           <Card>
             {guests.map((guest) => {
@@ -273,7 +279,11 @@ export default function InviteSendScreen() {
                   key={guest.id}
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: Boolean(selected[guest.id]), disabled: !usable }}
-                  accessibilityLabel={`${guest.name}${usable ? '' : `, ${status?.reason ?? 'uygun değil'}`}`}
+                  accessibilityLabel={
+                    usable || !status?.reason
+                      ? guest.name
+                      : t('send.unreachable', { name: guest.name, reason: t(status.reason) })
+                  }
                   disabled={!usable}
                   onPress={() => setSelected((current) => ({ ...current, [guest.id]: !current[guest.id] }))}
                   style={[styles.guestRow, { borderBottomColor: theme.colors.border, opacity: usable ? 1 : 0.55 }]}
@@ -294,9 +304,13 @@ export default function InviteSendScreen() {
                     <AppText variant="caption" color={usable ? theme.colors.muted : theme.colors.warning}>
                       {usable
                         ? guest.inviteStatus === 'none'
-                          ? 'Henüz gönderilmedi'
-                          : `Daha önce: ${guest.lastInviteChannel ? INVITE_CHANNEL_LABELS[guest.lastInviteChannel] : 'işaretlendi'}`
-                        : status?.reason}
+                          ? t('send.notSentYet')
+                          : guest.lastInviteChannel
+                            ? t('send.previously', { channel: inviteChannelLabel(t, guest.lastInviteChannel) })
+                            : t('send.previouslyMarked')
+                        : status?.reason
+                          ? t(status.reason)
+                          : ''}
                     </AppText>
                   </View>
                 </Pressable>
@@ -304,7 +318,7 @@ export default function InviteSendScreen() {
             })}
           </Card>
           <Button
-            label={chosen.length ? `${chosen.length} kişi için başlat` : 'Davetli seçin'}
+            label={chosen.length ? t('send.startFor', { count: chosen.length }) : t('send.selectGuests')}
             onPress={() => void start()}
             disabled={!chosen.length}
             loading={busy}
@@ -315,32 +329,36 @@ export default function InviteSendScreen() {
           {currentGuest && entry ? (
             <>
               <AppText variant="subtitle">
-                {currentGuest.name} ({(summary?.opened ?? 0) + (summary?.skipped ?? 0) + 1}/{queue.entries.length})
+                {t('send.progress', {
+                  name: currentGuest.name,
+                  position: (summary?.opened ?? 0) + (summary?.skipped ?? 0) + 1,
+                  total: queue.entries.length,
+                })}
               </AppText>
               <AppText color={theme.colors.muted}>
-                {INVITE_CHANNEL_LABELS[channel]} ekranı açılacak. Mesajı kontrol edip göndermeyi siz onaylarsınız.
+                {t('send.willOpen', { channel: inviteChannelLabel(t, channel) })}
               </AppText>
               <AppText variant="caption" color={theme.colors.muted}>
-                {channelNote(channel, attachImage)}
+                {channelNote(t, channel, attachImage)}
               </AppText>
               <Button
-                label={`${INVITE_CHANNEL_LABELS[channel]} ekranını aç`}
+                label={t('send.openScreen', { channel: inviteChannelLabel(t, channel) })}
                 onPress={() => void openCurrent()}
                 loading={busy}
               />
               {channel === 'share' && attachment ? (
-                <Button label="Görseli ayrıca paylaş" variant="secondary" onPress={() => void shareImageForCurrent()} />
+                <Button label={t('send.shareImage')} variant="secondary" onPress={() => void shareImageForCurrent()} />
               ) : null}
-              <Button label="Bu kişiyi atla" variant="secondary" onPress={skipCurrent} disabled={busy} />
-              <Button label="Kuyruğu iptal et" variant="ghost" onPress={cancel} disabled={busy} />
+              <Button label={t('send.skip')} variant="secondary" onPress={skipCurrent} disabled={busy} />
+              <Button label={t('send.cancelQueue')} variant="ghost" onPress={cancel} disabled={busy} />
             </>
           ) : null}
           {queueFinished(queue) ? (
             <>
-              <AppText variant="subtitle">{queue.cancelled ? 'Gönderim iptal edildi' : 'Gönderim tamamlandı'}</AppText>
+              <AppText variant="subtitle">{queue.cancelled ? t('send.cancelled') : t('send.finished')}</AppText>
               <AppText color={theme.colors.muted}>
-                {summary?.opened ?? 0} gönderim ekranı açıldı · {summary?.skipped ?? 0} atlandı
-                {summary?.cancelled ? ` · ${summary.cancelled} iptal` : ''}
+                {t('send.summary', { opened: summary?.opened ?? 0, skipped: summary?.skipped ?? 0 })}
+                {summary?.cancelled ? t('send.summaryCancelled', { count: summary.cancelled }) : ''}
               </AppText>
             </>
           ) : null}
@@ -353,22 +371,28 @@ export default function InviteSendScreen() {
                   <AppText variant="caption" color={theme.colors.muted}>
                     {item.state === 'opened'
                       ? guest?.inviteStatus === 'markedSent'
-                        ? 'Gönderildi olarak işaretlendi'
-                        : 'Gönderim ekranı açıldı'
+                        ? inviteStatusLabel(t, 'markedSent')
+                        : inviteStatusLabel(t, 'opened')
                       : item.state === 'waiting'
-                        ? 'Sırada'
+                        ? t('send.stateWaiting')
                         : item.state === 'cancelled'
-                          ? 'İptal edildi'
-                          : (item.reason ?? 'Atlandı')}
+                          ? t('send.stateCancelled')
+                          : item.reason
+                            ? t(item.reason)
+                            : t('send.stateSkipped')}
                   </AppText>
                 </View>
                 {item.state === 'opened' && guest?.inviteStatus !== 'markedSent' ? (
-                  <Button label="Gönderildi işaretle" variant="ghost" onPress={() => void markSent(item.guestId)} />
+                  <Button
+                    label={t('send.markSentButton')}
+                    variant="ghost"
+                    onPress={() => void markSent(item.guestId)}
+                  />
                 ) : null}
               </View>
             );
           })}
-          {queueFinished(queue) ? <Button label="Bitti" onPress={() => router.back()} /> : null}
+          {queueFinished(queue) ? <Button label={t('send.done')} onPress={() => router.back()} /> : null}
         </Card>
       )}
     </Screen>

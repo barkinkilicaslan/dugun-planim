@@ -1,4 +1,5 @@
 import { emailKey, normalizePhone } from './contacts';
+import type { PlainMessageKey, Translator } from '@/i18n';
 import type { Guest, InviteChannel } from './models';
 
 /**
@@ -17,7 +18,8 @@ export interface DeviceCapabilities {
 export interface ChannelAvailability {
   channel: InviteChannel;
   available: boolean;
-  reason?: string;
+  /** Uygun değilse nedenin çeviri anahtarı; metin arayüzde etkin dile çevrilir. */
+  reason?: PlainMessageKey;
 }
 
 export function channelAvailability(
@@ -27,19 +29,16 @@ export function channelAvailability(
 ): ChannelAvailability {
   switch (channel) {
     case 'email':
-      if (!emailKey(guest.email))
-        return { channel, available: false, reason: 'Davetlinin geçerli e-posta adresi yok.' };
-      if (!device.mail) return { channel, available: false, reason: 'Bu cihazda e-posta hesabı kurulu değil.' };
+      if (!emailKey(guest.email)) return { channel, available: false, reason: 'dispatch.noEmail' };
+      if (!device.mail) return { channel, available: false, reason: 'dispatch.noMailAccount' };
       return { channel, available: true };
     case 'sms':
-      if (!normalizePhone(guest.phone))
-        return { channel, available: false, reason: 'Davetlinin geçerli telefon numarası yok.' };
-      if (!device.sms) return { channel, available: false, reason: 'Bu cihaz SMS gönderemiyor.' };
+      if (!normalizePhone(guest.phone)) return { channel, available: false, reason: 'dispatch.noPhone' };
+      if (!device.sms) return { channel, available: false, reason: 'dispatch.noSms' };
       return { channel, available: true };
     case 'whatsapp':
-      if (!normalizePhone(guest.phone))
-        return { channel, available: false, reason: 'Davetlinin geçerli telefon numarası yok.' };
-      if (device.whatsapp === false) return { channel, available: false, reason: 'WhatsApp bu cihazda bulunamadı.' };
+      if (!normalizePhone(guest.phone)) return { channel, available: false, reason: 'dispatch.noPhone' };
+      if (device.whatsapp === false) return { channel, available: false, reason: 'dispatch.noWhatsApp' };
       return { channel, available: true };
     case 'share':
       return { channel, available: true };
@@ -77,7 +76,7 @@ export interface QueueEntry {
   guestId: string;
   guestName: string;
   state: QueueEntryState;
-  reason?: string;
+  reason?: PlainMessageKey;
 }
 
 export interface InviteQueue {
@@ -112,7 +111,7 @@ export function currentEntry(queue: InviteQueue): QueueEntry | undefined {
 }
 
 /** Sıradaki kişi için sistem ekranı açıldı veya kullanıcı bu kişiyi atladı. */
-export function resolveCurrent(queue: InviteQueue, state: 'opened' | 'skipped', reason?: string): InviteQueue {
+export function resolveCurrent(queue: InviteQueue, state: 'opened' | 'skipped', reason?: PlainMessageKey): InviteQueue {
   const entry = currentEntry(queue);
   if (!entry || queue.cancelled) return queue;
   const entries = queue.entries.map((item, index) => (index === queue.cursor ? { ...item, state, reason } : item));
@@ -146,20 +145,16 @@ export function queueSummary(queue: InviteQueue): {
   };
 }
 
-const IMAGE_VIA_SHARE = 'Görsel göndermek için genel “Paylaşım menüsü” kanalını kullanın.';
-
 /** Kanalın gerçekte ne taşıdığını söyleyen kullanıcı metni; ekrandaki ifadeler gerçek davranışla aynı olmalıdır. */
-export function channelNote(channel: InviteChannel, attachImage: boolean): string {
+export function channelNote(t: Translator, channel: InviteChannel, attachImage: boolean): string {
   switch (channel) {
     case 'sms':
-      return `SMS yalnızca metin gönderir; davetiye görseli SMS'e otomatik eklenmez. ${IMAGE_VIA_SHARE}`;
+      return `${t('dispatch.noteSms')} ${t('dispatch.imageViaShare')}`;
     case 'whatsapp':
-      return `WhatsApp bağlantısı yalnızca metin taşır ve sohbeti açar; davetiye görseli otomatik eklenmez. ${IMAGE_VIA_SHARE}`;
+      return `${t('dispatch.noteWhatsApp')} ${t('dispatch.imageViaShare')}`;
     case 'email':
-      return attachImage
-        ? 'E-postaya mesaj metni ve davetiye görseli (PNG) ek olarak eklenir.'
-        : 'E-postaya yalnızca mesaj metni eklenir; görsel eklenmez.';
+      return t(attachImage ? 'dispatch.noteEmailWithImage' : 'dispatch.noteEmailTextOnly');
     case 'share':
-      return 'Paylaşım menüsü önce mesaj metnini paylaşır. Davetiye görseli ayrı bir adımdır: “Görseli paylaş” düğmesiyle ayrıca paylaşmanız gerekir; metin ve görsel tek adımda birlikte gönderilmez.';
+      return t('dispatch.noteShare');
   }
 }

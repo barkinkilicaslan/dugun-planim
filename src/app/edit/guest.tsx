@@ -9,6 +9,7 @@ import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
 import { spacing } from '@/constants/theme';
 import { useApp } from '@/context/app-context';
+import { useI18n } from '@/context/language-context';
 import { useAppTheme } from '@/context/theme-context';
 import { duplicateMessage, findDuplicateGuest, normalizePhone } from '@/domain/contacts';
 import type { Guest, GuestGroup, GuestSide, RsvpStatus } from '@/domain/models';
@@ -16,18 +17,19 @@ import {
   adultCount,
   applyManualRsvp,
   clearInviteStatus,
-  INVITE_CHANNEL_LABELS,
-  INVITE_STATUS_LABELS,
+  inviteChannelLabel,
+  inviteStatusLabel,
   markInviteSent,
-  RSVP_LABELS,
-  RSVP_SOURCE_LABELS,
+  rsvpLabel,
+  rsvpSourceLabel,
 } from '@/domain/rsvp';
-import { formatLongTr } from '@/domain/wedding-date';
+import { formatTimestampDate } from '@/domain/wedding-date';
 
 export default function GuestEditor() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { data, createId, saveGuest, deleteGuest } = useApp();
   const theme = useAppTheme();
+  const { t, locale } = useI18n();
   const existing = data.guests.find((item) => item.id === id);
   const now = new Date().toISOString();
   const [form, setForm] = useState<Guest>(
@@ -70,37 +72,41 @@ export default function GuestEditor() {
       await saveGuest({ ...withRsvp, phone, updatedAt: stamp });
       router.back();
     } catch (error) {
-      Alert.alert('Davetli kaydedilemedi', (error as Error).message);
+      Alert.alert(t('guestEditor.saveFailed'), (error as Error).message);
     } finally {
       setSaving(false);
     }
   }
   function confirmDelete() {
-    Alert.alert('Davetli silinsin mi?', 'Masa ataması da kaldırılır. Bu işlem geri alınamaz.', [
-      { text: 'Vazgeç', style: 'cancel' },
-      { text: 'Sil', style: 'destructive', onPress: () => void deleteGuest(form.id).then(() => router.back()) },
+    Alert.alert(t('guestEditor.deleteTitle'), t('guestEditor.deleteBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('common.delete'),
+        style: 'destructive',
+        onPress: () => void deleteGuest(form.id).then(() => router.back()),
+      },
     ]);
   }
   const adults = adultCount(form);
   const showChildWarning = data.profile.adultsOnly && form.childCount > 0;
   return (
-    <Screen title={existing ? 'Davetliyi düzenle' : 'Yeni davetli'}>
+    <Screen title={existing ? t('guestEditor.edit') : t('guestEditor.new')}>
       <Card>
         <TextField
-          label="Ad soyad / aile adı"
+          label={t('guestEditor.name')}
           value={form.name}
           onChangeText={(value) => update('name', value)}
           autoCapitalize="words"
           autoFocus
         />
         <TextField
-          label="Telefon (isteğe bağlı)"
+          label={t('guestEditor.phone')}
           value={form.phone}
           onChangeText={(value) => update('phone', value)}
           keyboardType="phone-pad"
         />
         <TextField
-          label="E-posta (isteğe bağlı)"
+          label={t('guestEditor.email')}
           value={form.email}
           onChangeText={(value) => update('email', value)}
           keyboardType="email-address"
@@ -108,25 +114,25 @@ export default function GuestEditor() {
           autoCorrect={false}
         />
         <Chips<GuestSide>
-          label="Taraf"
+          label={t('guestEditor.side')}
           value={form.side}
           onChange={(value) => update('side', value)}
           options={[
-            { value: 'couple1', label: data.profile.couple1Name || '1. taraf' },
-            { value: 'couple2', label: data.profile.couple2Name || '2. taraf' },
-            { value: 'common', label: 'Ortak' },
+            { value: 'couple1', label: data.profile.couple1Name || t('guestEditor.side1') },
+            { value: 'couple2', label: data.profile.couple2Name || t('guestEditor.side2') },
+            { value: 'common', label: t('guestEditor.sideCommon') },
           ]}
         />
         <View style={styles.two}>
           <TextField
-            label="Toplam kişi"
+            label={t('guestEditor.partySize')}
             value={String(form.partySize)}
             onChangeText={(value) => update('partySize', Number.parseInt(value, 10) || 0)}
             keyboardType="number-pad"
             style={styles.input}
           />
           <TextField
-            label="Çocuk"
+            label={t('guestEditor.children')}
             value={String(form.childCount)}
             onChangeText={(value) => update('childCount', Number.parseInt(value, 10) || 0)}
             keyboardType="number-pad"
@@ -134,63 +140,70 @@ export default function GuestEditor() {
           />
         </View>
         <AppText variant="caption" color={theme.colors.muted}>
-          Yetişkin: {adults} · Çocuk: {form.childCount}
+          {t('guestEditor.counts', { adults, children: form.childCount })}
         </AppText>
         {showChildWarning ? (
           <AppText variant="caption" color={theme.colors.warning}>
-            Düğününüz yetişkinlere özel olarak işaretli. Çocuk sayısını yalnız istisnai durumlarda girin.
+            {t('guestEditor.adultsOnlyWarning')}
           </AppText>
         ) : null}
         <Chips<RsvpStatus>
-          label="Davet durumu"
+          label={t('guestEditor.rsvp')}
           value={form.rsvp}
           onChange={(value) => update('rsvp', value)}
           options={[
-            { value: 'pending', label: RSVP_LABELS.pending },
-            { value: 'attending', label: RSVP_LABELS.attending },
-            { value: 'declined', label: RSVP_LABELS.declined },
-            { value: 'maybe', label: RSVP_LABELS.maybe },
+            { value: 'pending', label: rsvpLabel(t, 'pending') },
+            { value: 'attending', label: rsvpLabel(t, 'attending') },
+            { value: 'declined', label: rsvpLabel(t, 'declined') },
+            { value: 'maybe', label: rsvpLabel(t, 'maybe') },
           ]}
         />
         {existing ? (
           <AppText variant="caption" color={theme.colors.muted}>
-            {RSVP_SOURCE_LABELS[existing.rsvpSource]}
-            {existing.rsvpRespondedAt ? ` · ${formatLongTr(existing.rsvpRespondedAt.slice(0, 10))}` : ''}
+            {rsvpSourceLabel(t, existing.rsvpSource)}
+            {existing.rsvpRespondedAt ? ` · ${formatTimestampDate(existing.rsvpRespondedAt, locale)}` : ''}
           </AppText>
         ) : null}
         <Chips<GuestGroup>
-          label="Grup"
+          label={t('guestEditor.group')}
           value={form.group}
           onChange={(value) => update('group', value)}
           options={[
-            { value: 'family', label: 'Aile' },
-            { value: 'friends', label: 'Arkadaş' },
-            { value: 'work', label: 'İş' },
-            { value: 'other', label: 'Diğer' },
+            { value: 'family', label: t('guest.group.family') },
+            { value: 'friends', label: t('guest.group.friends') },
+            { value: 'work', label: t('guest.group.work') },
+            { value: 'other', label: t('guest.group.other') },
           ]}
         />
         <TextField
-          label="Yemek tercihi / alerji"
+          label={t('guestEditor.meal')}
           value={form.mealNotes}
           onChangeText={(value) => update('mealNotes', value)}
           multiline
         />
-        <TextField label="Notlar" value={form.notes} onChangeText={(value) => update('notes', value)} multiline />
+        <TextField
+          label={t('guestEditor.notes')}
+          value={form.notes}
+          onChangeText={(value) => update('notes', value)}
+          multiline
+        />
         <View style={styles.actions}>
-          <Button label="Kaydet" onPress={() => void submit()} loading={saving} style={styles.grow} />
-          {existing ? <Button label="Sil" variant="danger" onPress={confirmDelete} disabled={saving} /> : null}
+          <Button label={t('common.save')} onPress={() => void submit()} loading={saving} style={styles.grow} />
+          {existing ? (
+            <Button label={t('common.delete')} variant="danger" onPress={confirmDelete} disabled={saving} />
+          ) : null}
         </View>
       </Card>
       {existing ? (
         <Card>
-          <AppText variant="label">Davetiye gönderimi</AppText>
+          <AppText variant="label">{t('guestEditor.inviteSection')}</AppText>
           <AppText variant="caption" color={theme.colors.muted}>
-            {INVITE_STATUS_LABELS[existing.inviteStatus]}
-            {existing.lastInviteChannel ? ` · ${INVITE_CHANNEL_LABELS[existing.lastInviteChannel]}` : ''}
-            {existing.lastInviteSentAt ? ` · ${formatLongTr(existing.lastInviteSentAt.slice(0, 10))}` : ''}
+            {inviteStatusLabel(t, existing.inviteStatus)}
+            {existing.lastInviteChannel ? ` · ${inviteChannelLabel(t, existing.lastInviteChannel)}` : ''}
+            {existing.lastInviteSentAt ? ` · ${formatTimestampDate(existing.lastInviteSentAt, locale)}` : ''}
           </AppText>
           <Button
-            label="Gönderildi olarak işaretle"
+            label={t('guestEditor.markSent')}
             variant="secondary"
             disabled={existing.inviteStatus === 'markedSent'}
             onPress={() => {
@@ -199,7 +212,7 @@ export default function GuestEditor() {
             }}
           />
           <Button
-            label="Gönderim durumunu sıfırla"
+            label={t('guestEditor.resetSend')}
             variant="ghost"
             disabled={existing.inviteStatus === 'none'}
             onPress={() => {

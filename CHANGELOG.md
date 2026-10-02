@@ -2,6 +2,8 @@
 
 ## Yayınlanmamış (1.1.0 adayı)
 
+- Türkçe ve İngilizce arayüz: Ayarlar → Dil (Otomatik/Türkçe/English), cihaz dil koduna göre otomatik seçim, yeniden başlatmadan değişim, dile göre tarih/saat/para biçimleri, iki dilde davetiye şablonları ve hazır mesajlar, yerelleştirilmiş izin metinleri.
+
 - Düğün tarihi artık takvim seçicisiyle seçilir (GG.AA.YYYY, Türkçe uzun biçim); saat dilimi kaymasına karşı takvim tarihi olarak saklanır; yeni düğünde geçmiş tarih engellenir.
 - Rehberden davetli ekleme (kullanıcı eyleminden sonra izin, çoklu seçim, telefon/e-posta seçimi, yinelenen denetimi/birleştirme).
 - 10 davetiye şablonu, kaydet/düzenle/varsayılan, PNG ve PDF üretimi, isteğe bağlı fotoğraf.

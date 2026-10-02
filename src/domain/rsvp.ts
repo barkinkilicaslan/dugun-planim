@@ -1,3 +1,4 @@
+import type { Translator } from '@/i18n';
 import type { Guest, InviteChannel, InviteDispatchStatus, RsvpSource, RsvpStatus } from './models';
 
 export const RSVP_STATUSES: readonly RsvpStatus[] = ['pending', 'attending', 'declined', 'maybe'];
@@ -5,31 +6,21 @@ export const RSVP_SOURCES: readonly RsvpSource[] = ['none', 'manual', 'online'];
 export const INVITE_CHANNELS: readonly InviteChannel[] = ['email', 'sms', 'whatsapp', 'share'];
 export const INVITE_STATUSES: readonly InviteDispatchStatus[] = ['none', 'opened', 'markedSent'];
 
-export const RSVP_LABELS: Record<RsvpStatus, string> = {
-  pending: 'Yanıt bekleniyor',
-  attending: 'Katılıyor',
-  declined: 'Katılmıyor',
-  maybe: 'Belki',
-};
+export function rsvpLabel(t: Translator, status: RsvpStatus): string {
+  return t(`rsvp.status.${status}`);
+}
 
-export const RSVP_SOURCE_LABELS: Record<RsvpSource, string> = {
-  none: 'Yanıt yok',
-  manual: 'Manuel olarak güncellendi',
-  online: 'Çevrimiçi yanıttan geldi',
-};
+export function rsvpSourceLabel(t: Translator, source: RsvpSource): string {
+  return t(`rsvp.source.${source}`);
+}
 
-export const INVITE_CHANNEL_LABELS: Record<InviteChannel, string> = {
-  email: 'E-posta',
-  sms: 'SMS',
-  whatsapp: 'WhatsApp',
-  share: 'Paylaşım menüsü',
-};
+export function inviteChannelLabel(t: Translator, channel: InviteChannel): string {
+  return t(`invite.channel.${channel}`);
+}
 
-export const INVITE_STATUS_LABELS: Record<InviteDispatchStatus, string> = {
-  none: 'Davetiye gönderilmedi',
-  opened: 'Gönderim ekranı açıldı',
-  markedSent: 'Gönderildi olarak işaretlendi',
-};
+export function inviteStatusLabel(t: Translator, status: InviteDispatchStatus): string {
+  return t(`invite.status.${status}`);
+}
 
 export type RsvpFilter = 'all' | RsvpStatus | 'online';
 

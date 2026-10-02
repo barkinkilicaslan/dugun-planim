@@ -9,6 +9,7 @@ import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
 import { spacing } from '@/constants/theme';
 import { useApp } from '@/context/app-context';
+import { useI18n } from '@/context/language-context';
 import { useAppTheme } from '@/context/theme-context';
 import type { SeatingTable, VenueLayoutItem, VenueLayoutItemType } from '@/domain/models';
 import {
@@ -16,7 +17,8 @@ import {
   moveVenueLayoutItem,
   resizeVenueLayoutItem,
   rotateVenueLayoutItem,
-  VENUE_ITEM_LABELS,
+  venueDisplayLabel,
+  venueItemLabel,
   venueLayoutSummary,
 } from '@/domain/venue-layout';
 
@@ -25,6 +27,7 @@ const AREA_TYPES: VenueLayoutItemType[] = ['stage', 'danceFloor', 'entrance', 'd
 export default function VenueEditorScreen() {
   const { data, createId, saveVenueLayoutItem, deleteVenueLayoutItem } = useApp();
   const theme = useAppTheme();
+  const { t } = useI18n();
   const [draftItems, setDraftItems] = useState(data.venueLayoutItems);
   const [selectedId, setSelectedId] = useState<string>();
   const [busy, setBusy] = useState(false);
@@ -45,7 +48,7 @@ export default function VenueEditorScreen() {
     try {
       await saveVenueLayoutItem(next);
     } catch (error) {
-      Alert.alert('Salon planı kaydedilemedi', (error as Error).message);
+      Alert.alert(t('venueEditor.saveFailed'), (error as Error).message);
       setDraftItems(data.venueLayoutItems);
     }
   }
@@ -65,7 +68,7 @@ export default function VenueEditorScreen() {
       setDraftItems((current) => [...current.filter((candidate) => candidate.id !== item.id), item]);
       setSelectedId(item.id);
     } catch (error) {
-      Alert.alert('Öğe eklenemedi', (error as Error).message);
+      Alert.alert(t('venueEditor.addFailed'), (error as Error).message);
     }
   }
 
@@ -121,7 +124,7 @@ export default function VenueEditorScreen() {
     } catch (error) {
       setDraftItems(saved);
       setSelectedId(saved[0]?.id);
-      Alert.alert('Başlangıç düzeni oluşturulamadı', (error as Error).message);
+      Alert.alert(t('venueEditor.starterFailed'), (error as Error).message);
     } finally {
       setBusy(false);
     }
@@ -139,14 +142,11 @@ export default function VenueEditorScreen() {
 
   function confirmRemoveSelected() {
     if (!selected) return;
-    const message =
-      selected.type === 'table'
-        ? 'Masa kaydı korunacak, yalnız salon çiziminden kaldırılacak.'
-        : 'Bu alan salon çiziminden kaldırılacak.';
-    Alert.alert(`${selected.label} kaldırılsın mı?`, message, [
-      { text: 'Vazgeç', style: 'cancel' },
+    const message = selected.type === 'table' ? t('venueEditor.removeTableBody') : t('venueEditor.removeAreaBody');
+    Alert.alert(t('venueEditor.removeTitle', { label: venueDisplayLabel(t, selected) }), message, [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Kaldır',
+        text: t('common.remove'),
         style: 'destructive',
         onPress: () => {
           void (async () => {
@@ -155,7 +155,7 @@ export default function VenueEditorScreen() {
               setDraftItems((current) => current.filter((item) => item.id !== selected.id));
               setSelectedId(undefined);
             } catch (error) {
-              Alert.alert('Öğe kaldırılamadı', (error as Error).message);
+              Alert.alert(t('venueEditor.removeFailed'), (error as Error).message);
             }
           })();
         },
@@ -164,10 +164,10 @@ export default function VenueEditorScreen() {
   }
 
   function confirmClear() {
-    Alert.alert('Salon düzeni temizlensin mi?', 'Masalar ve davetliler korunur; yalnız çizimdeki konumlar silinir.', [
-      { text: 'Vazgeç', style: 'cancel' },
+    Alert.alert(t('venueEditor.clearTitle'), t('venueEditor.clearBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Temizle',
+        text: t('common.clear'),
         style: 'destructive',
         onPress: () => {
           void (async () => {
@@ -179,7 +179,7 @@ export default function VenueEditorScreen() {
               }
               setSelectedId(undefined);
             } catch (error) {
-              Alert.alert('Salon düzeni tamamen temizlenemedi', (error as Error).message);
+              Alert.alert(t('venueEditor.clearFailed'), (error as Error).message);
             } finally {
               setBusy(false);
             }
@@ -190,15 +190,18 @@ export default function VenueEditorScreen() {
   }
 
   return (
-    <Screen title="Salon düzeni" subtitle={`${venueLayoutSummary(draftItems)} · Öğeleri sürükleyerek taşıyın`}>
+    <Screen
+      title={t('nav.venueEditor')}
+      subtitle={t('venueEditor.subtitle', { summary: venueLayoutSummary(draftItems, t) })}
+    >
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.toolbar}
-        accessibilityLabel="Salon planı araçları"
+        accessibilityLabel={t('venueEditor.toolbar')}
       >
         {!draftItems.length ? (
-          <Button label="Hızlı başlangıç" onPress={() => void createStarterLayout()} loading={busy} />
+          <Button label={t('venueEditor.quickStart')} onPress={() => void createStarterLayout()} loading={busy} />
         ) : null}
         {unplacedTables.map((table) => (
           <Button
@@ -211,12 +214,14 @@ export default function VenueEditorScreen() {
         {AREA_TYPES.map((type) => (
           <Button
             key={type}
-            label={`+ ${VENUE_ITEM_LABELS[type]}`}
+            label={`+ ${venueItemLabel(t, type)}`}
             variant="secondary"
             onPress={() => void addItem(type)}
           />
         ))}
-        {draftItems.length ? <Button label="Planı temizle" variant="ghost" onPress={confirmClear} /> : null}
+        {draftItems.length ? (
+          <Button label={t('venueEditor.clearPlan')} variant="ghost" onPress={confirmClear} />
+        ) : null}
       </ScrollView>
 
       <VenueCanvas
@@ -234,17 +239,31 @@ export default function VenueEditorScreen() {
         <Card style={styles.properties}>
           <View style={styles.propertyHeader}>
             <View style={styles.grow}>
-              <AppText variant="subtitle">Seçili: {selected.label}</AppText>
+              <AppText variant="subtitle">
+                {t('venueEditor.selected', { label: venueDisplayLabel(t, selected) })}
+              </AppText>
               <AppText variant="caption" color={theme.colors.muted}>
-                {VENUE_ITEM_LABELS[selected.type]} · {selected.rotation}°{selected.locked ? ' · kilitli' : ''}
+                {selected.locked
+                  ? t('venueEditor.selectedMetaLocked', {
+                      type: venueItemLabel(t, selected.type),
+                      rotation: selected.rotation,
+                    })
+                  : t('venueEditor.selectedMeta', {
+                      type: venueItemLabel(t, selected.type),
+                      rotation: selected.rotation,
+                    })}
               </AppText>
             </View>
-            <Button label={selected.locked ? 'Kilidi aç' : 'Kilitle'} variant="ghost" onPress={toggleLock} />
+            <Button
+              label={selected.locked ? t('venueEditor.unlock') : t('venueEditor.lock')}
+              variant="ghost"
+              onPress={toggleLock}
+            />
           </View>
 
           <TextField
-            label="Görünen ad"
-            value={selected.label}
+            label={t('venueEditor.displayName')}
+            value={selected.type === 'table' ? selected.label : venueDisplayLabel(t, selected)}
             editable={!selected.locked}
             onChangeText={(label) => updateDraft({ ...selected, label })}
             onBlur={() => void persist(selected)}
@@ -252,16 +271,16 @@ export default function VenueEditorScreen() {
 
           {selected.type === 'table' ? (
             <View style={styles.controlGroup}>
-              <AppText variant="label">Masa şekli</AppText>
+              <AppText variant="label">{t('venueEditor.tableShape')}</AppText>
               <View style={styles.controls}>
                 <Button
-                  label="Yuvarlak"
+                  label={t('venueEditor.round')}
                   variant={selected.shape === 'round' ? 'primary' : 'secondary'}
                   disabled={selected.locked}
                   onPress={() => changeSelected((item) => ({ ...item, shape: 'round' }))}
                 />
                 <Button
-                  label="Dikdörtgen"
+                  label={t('venueEditor.rectangle')}
                   variant={selected.shape === 'rectangle' ? 'primary' : 'secondary'}
                   disabled={selected.locked}
                   onPress={() => changeSelected((item) => ({ ...item, shape: 'rectangle' }))}
@@ -271,28 +290,32 @@ export default function VenueEditorScreen() {
           ) : null}
 
           <View style={styles.controlGroup}>
-            <AppText variant="label">Konum</AppText>
+            <AppText variant="label">{t('venueEditor.position')}</AppText>
             <View style={styles.controls}>
               <Button
                 label="←"
+                accessibilityLabel={t('venueEditor.moveLeft')}
                 variant="secondary"
                 disabled={selected.locked}
                 onPress={() => changeSelected((item) => moveVenueLayoutItem(item, -0.025, 0))}
               />
               <Button
                 label="↑"
+                accessibilityLabel={t('venueEditor.moveUp')}
                 variant="secondary"
                 disabled={selected.locked}
                 onPress={() => changeSelected((item) => moveVenueLayoutItem(item, 0, -0.025))}
               />
               <Button
                 label="↓"
+                accessibilityLabel={t('venueEditor.moveDown')}
                 variant="secondary"
                 disabled={selected.locked}
                 onPress={() => changeSelected((item) => moveVenueLayoutItem(item, 0, 0.025))}
               />
               <Button
                 label="→"
+                accessibilityLabel={t('venueEditor.moveRight')}
                 variant="secondary"
                 disabled={selected.locked}
                 onPress={() => changeSelected((item) => moveVenueLayoutItem(item, 0.025, 0))}
@@ -301,40 +324,42 @@ export default function VenueEditorScreen() {
           </View>
 
           <View style={styles.controlGroup}>
-            <AppText variant="label">Boyut ve açı</AppText>
+            <AppText variant="label">{t('venueEditor.sizeAndAngle')}</AppText>
             <View style={styles.controls}>
               <Button
-                label="Daralt"
+                label={t('venueEditor.narrower')}
                 variant="secondary"
                 disabled={selected.locked}
                 onPress={() => changeSelected((item) => resizeVenueLayoutItem(item, -0.025, 0))}
               />
               <Button
-                label="Genişlet"
+                label={t('venueEditor.wider')}
                 variant="secondary"
                 disabled={selected.locked}
                 onPress={() => changeSelected((item) => resizeVenueLayoutItem(item, 0.025, 0))}
               />
               <Button
-                label="Kısalt"
+                label={t('venueEditor.shorter')}
                 variant="secondary"
                 disabled={selected.locked}
                 onPress={() => changeSelected((item) => resizeVenueLayoutItem(item, 0, -0.025))}
               />
               <Button
-                label="Uzat"
+                label={t('venueEditor.taller')}
                 variant="secondary"
                 disabled={selected.locked}
                 onPress={() => changeSelected((item) => resizeVenueLayoutItem(item, 0, 0.025))}
               />
               <Button
                 label="−15°"
+                accessibilityLabel={t('venueEditor.rotateLeft')}
                 variant="secondary"
                 disabled={selected.locked}
                 onPress={() => changeSelected((item) => rotateVenueLayoutItem(item, -15))}
               />
               <Button
                 label="+15°"
+                accessibilityLabel={t('venueEditor.rotateRight')}
                 variant="secondary"
                 disabled={selected.locked}
                 onPress={() => changeSelected((item) => rotateVenueLayoutItem(item, 15))}
@@ -342,14 +367,12 @@ export default function VenueEditorScreen() {
             </View>
           </View>
 
-          <Button label="Çizimden kaldır" variant="danger" onPress={confirmRemoveSelected} />
+          <Button label={t('venueEditor.removeFromPlan')} variant="danger" onPress={confirmRemoveSelected} />
         </Card>
       ) : (
         <Card>
-          <AppText variant="subtitle">Bir öğe seçin</AppText>
-          <AppText color={theme.colors.muted}>
-            Taşımak veya özelliklerini değiştirmek için çizimde bir masa ya da alana dokunun.
-          </AppText>
+          <AppText variant="subtitle">{t('venueEditor.pickItem')}</AppText>
+          <AppText color={theme.colors.muted}>{t('venueEditor.pickItemHint')}</AppText>
         </Card>
       )}
     </Screen>

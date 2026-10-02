@@ -5,7 +5,7 @@ import InviteSendScreen from '@/app/invite-send';
 import { channelNote } from '@/domain/invite-dispatch';
 import { createInvitationDesign } from '@/domain/invitation-content';
 import { EMPTY_APP_DATA, EMPTY_PROFILE, type Guest } from '@/domain/models';
-import { GUEST_DEFAULTS } from './fixtures';
+import { GUEST_DEFAULTS, TR } from './fixtures';
 
 const now = '2026-10-02T10:00:00.000Z';
 const profile = { ...EMPTY_PROFILE, couple1Name: 'Ada', couple2Name: 'Deniz', weddingDate: '2027-06-12' };
@@ -46,7 +46,7 @@ jest.mock('@/context/app-context', () => ({
 }));
 const mockProfile = profile;
 const mockGuests = guests;
-const mockDesign = createInvitationDesign('d1', 'classic', now, true);
+const mockDesign = createInvitationDesign('d1', 'classic', now, true, TR.t);
 jest.mock('@/services/invite-sender', () => ({
   getDeviceCapabilities: jest.fn().mockResolvedValue({ mail: true, sms: true }),
   sendInvite: (...args: unknown[]) => mockSendInvite(...args),
@@ -100,20 +100,20 @@ describe('invite sending screen', () => {
   it('tells the truth about what each channel carries', async () => {
     const view = await render(<InviteSendScreen />);
     await fireEvent.press(view.getByLabelText('Kanal: SMS'));
-    expect(view.getByText(channelNote('sms', true))).toBeTruthy();
-    expect(channelNote('sms', true)).toMatch(/yalnızca metin/);
-    expect(channelNote('sms', true)).toMatch(/otomatik eklenmez/);
+    expect(view.getByText(channelNote(TR.t, 'sms', true))).toBeTruthy();
+    expect(channelNote(TR.t, 'sms', true)).toMatch(/yalnızca metin/);
+    expect(channelNote(TR.t, 'sms', true)).toMatch(/otomatik eklenmez/);
     await fireEvent.press(view.getByLabelText('Kanal: WhatsApp'));
-    expect(view.getByText(channelNote('whatsapp', true))).toBeTruthy();
-    expect(channelNote('whatsapp', true)).toMatch(/yalnızca metin taşır/);
-    expect(channelNote('whatsapp', true)).toMatch(/Paylaşım menüsü/);
+    expect(view.getByText(channelNote(TR.t, 'whatsapp', true))).toBeTruthy();
+    expect(channelNote(TR.t, 'whatsapp', true)).toMatch(/yalnızca metin taşır/);
+    expect(channelNote(TR.t, 'whatsapp', true)).toMatch(/Paylaşım menüsü/);
     await fireEvent.press(view.getByLabelText('Kanal: E-posta'));
-    expect(view.getByText(channelNote('email', true))).toBeTruthy();
-    expect(channelNote('email', true)).toMatch(/PNG/);
-    expect(channelNote('email', false)).toMatch(/görsel eklenmez/);
+    expect(view.getByText(channelNote(TR.t, 'email', true))).toBeTruthy();
+    expect(channelNote(TR.t, 'email', true)).toMatch(/PNG/);
+    expect(channelNote(TR.t, 'email', false)).toMatch(/görsel eklenmez/);
     await fireEvent.press(view.getByLabelText('Kanal: Paylaşım menüsü'));
-    expect(view.getByText(channelNote('share', true))).toBeTruthy();
-    expect(channelNote('share', true)).toMatch(/tek adımda birlikte gönderilmez/);
+    expect(view.getByText(channelNote(TR.t, 'share', true))).toBeTruthy();
+    expect(channelNote(TR.t, 'share', true)).toMatch(/tek adımda birlikte gönderilmez/);
   });
 
   it('does not select guests who cannot be reached on the channel', async () => {

@@ -10,6 +10,7 @@ import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
 import { radius, spacing } from '@/constants/theme';
 import { useApp } from '@/context/app-context';
+import { useI18n } from '@/context/language-context';
 import { useAppTheme } from '@/context/theme-context';
 import {
   contactMatchesQuery,
@@ -39,6 +40,7 @@ interface Choice {
 export default function ContactsImportScreen() {
   const { data, createId, saveGuest } = useApp();
   const theme = useAppTheme();
+  const { t } = useI18n();
   const [access, setAccess] = useState<ContactsAccess>();
   const [candidates, setCandidates] = useState<ContactCandidate[]>([]);
   const [loading, setLoading] = useState(false);
@@ -53,11 +55,11 @@ export default function ContactsImportScreen() {
       setLoading(true);
       setCandidates(await loadContactCandidates());
     } catch {
-      Alert.alert('Rehber okunamadı', 'Kişiler yüklenemedi. Lütfen tekrar deneyin veya davetliyi elle ekleyin.');
+      Alert.alert(t('contacts.loadFailedTitle'), t('contacts.loadFailedBody'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   // İzin zaten verilmişse açıklama ekranı atlanır; izin penceresi bu ekranda kullanıcı eylemi olmadan açılmaz.
   useEffect(() => {
@@ -78,7 +80,7 @@ export default function ContactsImportScreen() {
       setAccess(next);
       if (next === 'granted' || next === 'limited') await load();
     } catch {
-      Alert.alert('İzin istenemedi', 'Rehber izni şu an istenemedi. Davetlileri elle ekleyebilirsiniz.');
+      Alert.alert(t('contacts.permissionFailedTitle'), t('contacts.permissionFailedBody'));
     }
   }
 
@@ -164,12 +166,12 @@ export default function ContactsImportScreen() {
         } else skipped += 1;
       }
       Alert.alert(
-        'Rehberden ekleme tamamlandı',
-        `${added} davetli eklendi${merged ? `, ${merged} kayıt birleştirildi` : ''}${skipped ? `, ${skipped} kişi zaten listede olduğu için atlandı` : ''}.`,
-        [{ text: 'Tamam', onPress: () => router.back() }],
+        t('contacts.resultTitle'),
+        `${t('contacts.resultAdded', { count: added })}${merged ? t('contacts.resultMerged', { count: merged }) : ''}${skipped ? t('contacts.resultSkipped', { count: skipped }) : ''}.`,
+        [{ text: t('common.ok'), onPress: () => router.back() }],
       );
     } catch (error) {
-      Alert.alert('Davetliler eklenemedi', (error as Error).message);
+      Alert.alert(t('contacts.importFailed'), (error as Error).message);
     } finally {
       setImporting(false);
     }
@@ -177,93 +179,82 @@ export default function ContactsImportScreen() {
 
   const selectedCount = Object.keys(selected).length;
 
-  if (access === undefined) return <Screen title="Rehberden davetli ekle" />;
+  if (access === undefined) return <Screen title={t('nav.contactsImport')} />;
 
   if (access === 'unavailable')
     return (
-      <Screen title="Rehberden davetli ekle">
+      <Screen title={t('nav.contactsImport')}>
         <Card>
-          <AppText>
-            Rehber erişimi yalnız iOS ve Android uygulamasında kullanılabilir. Davetlileri elle ekleyebilirsiniz.
-          </AppText>
-          <Button label="Davetliyi elle ekle" onPress={() => router.replace('/edit/guest')} />
+          <AppText>{t('contacts.unavailable')}</AppText>
+          <Button label={t('contacts.addManually')} onPress={() => router.replace('/edit/guest')} />
         </Card>
       </Screen>
     );
 
   if (access === 'undetermined' || access === 'denied')
     return (
-      <Screen title="Rehberden davetli ekle">
+      <Screen title={t('nav.contactsImport')}>
         <Card>
-          <AppText variant="subtitle">Kişilerinize neden erişiyoruz?</AppText>
-          <AppText color={theme.colors.muted}>
-            Davetlilerinizi tek tek yazmak yerine telefonunuzdaki Kişiler listesinden seçebilmeniz için rehbere okuma
-            erişimi isteriz.
-          </AppText>
-          <AppText color={theme.colors.muted}>
-            • Yalnızca sizin seçtiğiniz kişilerin ad, telefon ve e-posta bilgisi davetli listenize kaydedilir.{'\n'}•
-            Rehberin tamamı veritabanına kopyalanmaz.{'\n'}• Hiçbir rehber bilgisi sunucuya gönderilmez.{'\n'}• İzin
-            vermezseniz davetlileri elle eklemeye devam edebilirsiniz.
-          </AppText>
-          {access === 'denied' ? (
-            <AppText color={theme.colors.warning}>
-              Daha önce izin verilmedi. İsterseniz tekrar deneyebilirsiniz.
-            </AppText>
-          ) : null}
-          <Button label="Devam et ve izin ver" onPress={() => void grantAndLoad()} />
-          <Button label="Davetliyi elle ekle" variant="secondary" onPress={() => router.replace('/edit/guest')} />
+          <AppText variant="subtitle">{t('contacts.introTitle')}</AppText>
+          <AppText color={theme.colors.muted}>{t('contacts.introBody')}</AppText>
+          <AppText color={theme.colors.muted}>{t('contacts.introBullets')}</AppText>
+          {access === 'denied' ? <AppText color={theme.colors.warning}>{t('contacts.deniedNote')}</AppText> : null}
+          <Button label={t('contacts.grant')} onPress={() => void grantAndLoad()} />
+          <Button label={t('contacts.addManually')} variant="secondary" onPress={() => router.replace('/edit/guest')} />
         </Card>
       </Screen>
     );
 
   if (access === 'blocked')
     return (
-      <Screen title="Rehberden davetli ekle">
+      <Screen title={t('nav.contactsImport')}>
         <Card>
-          <AppText variant="subtitle">Rehber izni kapalı</AppText>
-          <AppText color={theme.colors.muted}>
-            Rehber erişimini cihaz ayarlarından açabilirsiniz. Uygulama izin olmadan da çalışır; davetlileri elle
-            ekleyebilirsiniz.
-          </AppText>
-          <Button label="Ayarları aç" onPress={() => void Linking.openSettings()} />
-          <Button label="Davetliyi elle ekle" variant="secondary" onPress={() => router.replace('/edit/guest')} />
+          <AppText variant="subtitle">{t('contacts.blockedTitle')}</AppText>
+          <AppText color={theme.colors.muted}>{t('contacts.blockedBody')}</AppText>
+          <Button label={t('contacts.openSettings')} onPress={() => void Linking.openSettings()} />
+          <Button label={t('contacts.addManually')} variant="secondary" onPress={() => router.replace('/edit/guest')} />
         </Card>
       </Screen>
     );
 
   return (
-    <Screen title="Rehberden davetli ekle" subtitle={`${selectedCount} kişi seçildi`}>
+    <Screen title={t('nav.contactsImport')} subtitle={t('contacts.subtitle', { count: selectedCount })}>
       {access === 'limited' ? (
         <Card>
           <AppText variant="caption" color={theme.colors.muted}>
-            Yalnızca paylaştığınız kişilere erişiliyor.
+            {t('contacts.limitedNote')}
           </AppText>
           <Button
-            label="Daha fazla kişi paylaş"
+            label={t('contacts.shareMore')}
             variant="secondary"
             onPress={() => void presentLimitedAccessPicker().then(load)}
           />
         </Card>
       ) : null}
-      <TextField label="Kişi ara" value={query} onChangeText={setQuery} placeholder="Ad, telefon veya e-posta" />
+      <TextField
+        label={t('contacts.search')}
+        value={query}
+        onChangeText={setQuery}
+        placeholder={t('contacts.searchPlaceholder')}
+      />
       <View style={styles.switchRow}>
         <View style={styles.switchCopy}>
-          <AppText variant="label">Mevcut davetlilerle birleştir</AppText>
+          <AppText variant="label">{t('contacts.mergeTitle')}</AppText>
           <AppText variant="caption" color={theme.colors.muted}>
-            Açıkken listede zaten olan kişilerin eksik telefon/e-posta bilgisi tamamlanır; kapalıyken atlanırlar.
+            {t('contacts.mergeBody')}
           </AppText>
         </View>
         <Switch
-          accessibilityLabel="Mevcut davetlilerle birleştir"
+          accessibilityLabel={t('contacts.mergeTitle')}
           value={mergeDuplicates}
           onValueChange={setMergeDuplicates}
           trackColor={{ true: theme.colors.primary, false: theme.colors.border }}
         />
       </View>
-      {loading ? <AppText color={theme.colors.muted}>Kişiler yükleniyor…</AppText> : null}
+      {loading ? <AppText color={theme.colors.muted}>{t('contacts.loading')}</AppText> : null}
       {!loading && !filtered.length ? (
         <AppText color={theme.colors.muted}>
-          {candidates.length ? 'Aramanızla eşleşen kişi yok.' : 'Telefon veya e-posta bilgisi olan kişi bulunamadı.'}
+          {candidates.length ? t('contacts.noMatch') : t('contacts.noContacts')}
         </AppText>
       ) : null}
       <Card>
@@ -275,7 +266,9 @@ export default function ContactsImportScreen() {
               <Pressable
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: Boolean(choice) }}
-                accessibilityLabel={`${candidate.name}${isDuplicate ? ', zaten davetli listesinde' : ''}`}
+                accessibilityLabel={
+                  isDuplicate ? t('contacts.a11yDuplicate', { name: candidate.name }) : candidate.name
+                }
                 onPress={() => toggle(candidate)}
                 style={styles.rowMain}
               >
@@ -294,13 +287,13 @@ export default function ContactsImportScreen() {
                   <AppText variant="label">{candidate.name}</AppText>
                   <AppText variant="caption" color={theme.colors.muted}>
                     {[candidate.phones[0]?.display, candidate.emails[0]?.display].filter(Boolean).join(' · ')}
-                    {isDuplicate ? ' · Zaten listede' : ''}
+                    {isDuplicate ? t('contacts.alreadyListed') : ''}
                   </AppText>
                 </View>
               </Pressable>
               {choice && candidate.phones.length > 1 ? (
                 <Chips<string>
-                  label="Telefon"
+                  label={t('contacts.phoneChoice')}
                   value={choice.phone}
                   onChange={(value) =>
                     setSelected((current) => ({ ...current, [candidate.id]: { ...choice, phone: value } }))
@@ -313,14 +306,14 @@ export default function ContactsImportScreen() {
               ) : null}
               {choice && candidate.emails.length > 1 ? (
                 <Chips<string>
-                  label="E-posta"
+                  label={t('contacts.emailChoice')}
                   value={choice.email}
                   onChange={(value) =>
                     setSelected((current) => ({ ...current, [candidate.id]: { ...choice, email: value } }))
                   }
                   options={[
                     ...candidate.emails.map((email) => ({ value: email.value, label: email.display })),
-                    { value: NO_EMAIL, label: 'E-posta ekleme' },
+                    { value: NO_EMAIL, label: t('contacts.noEmail') },
                   ]}
                 />
               ) : null}
@@ -330,13 +323,13 @@ export default function ContactsImportScreen() {
       </Card>
       {filtered.length > visible ? (
         <Button
-          label="Daha fazla göster"
+          label={t('contacts.showMore')}
           variant="secondary"
           onPress={() => setVisible((current) => current + PAGE_SIZE)}
         />
       ) : null}
       <Button
-        label={selectedCount ? `${selectedCount} kişiyi davetli olarak ekle` : 'Kişi seçin'}
+        label={selectedCount ? t('contacts.importButton', { count: selectedCount }) : t('contacts.pick')}
         onPress={() => void importSelected()}
         disabled={!selectedCount}
         loading={importing}

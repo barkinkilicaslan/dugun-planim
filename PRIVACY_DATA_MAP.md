@@ -2,21 +2,22 @@
 
 Son doğrulama: 1 Ağustos 2026.
 
-| Veri                                          | Amaç                             | Saklama                                                | Ağ aktarımı                                   | Silme                             |
-| --------------------------------------------- | -------------------------------- | ------------------------------------------------------ | --------------------------------------------- | --------------------------------- |
-| Çift isimleri, düğün tarihi                   | Kişiselleştirme/geri sayım       | SQLite, cihaz içi                                      | Yok                                           | Ayarlar → Tüm verileri sil        |
-| Bütçe ve ödemeler                             | Planlama                         | SQLite, cihaz içi                                      | Yok                                           | Tekil silme veya tüm veri         |
-| Davetli adı/telefon/not                       | Davetli yönetimi                 | SQLite, cihaz içi                                      | Yok                                           | Tekil silme veya tüm veri         |
-| Görev, tedarikçi, not, masa                   | Planlama                         | SQLite, cihaz içi                                      | Yok                                           | Tekil silme veya tüm veri         |
-| Salon düzeni ve konumları                     | Mekân/masa yerleşimi             | SQLite, cihaz içi                                      | Yok                                           | Çizimden silme veya tüm veri      |
-| Rehberden seçilen kişi (ad, telefon, e-posta) | Davetli ekleme                   | SQLite, cihaz içi; yalnız kullanıcının seçtiği kişiler | Yok                                           | Tekil silme veya tüm veri         |
-| Davetli RSVP durumu, gönderim durumu/kanalı   | Katılım takibi                   | SQLite, cihaz içi                                      | Yok                                           | Tekil silme veya tüm veri         |
-| Davetiye tasarımları ve fotoğrafı             | Davetiye                         | SQLite + uygulama klasörü (fotoğraf), cihaz içi        | Yok                                           | Tasarım silme veya tüm veri       |
-| Çocuksuz düğün tercihi ve mesajı              | Davetiye/mesaj metni             | SQLite, cihaz içi                                      | Yok                                           | Tüm veri silme                    |
-| Davetiye PNG/PDF (geçici)                     | Paylaşım                         | Önbellek; sonraki üretim/uygulama açılışında silinir   | Yalnız kullanıcı seçtiği hedefe               | Otomatik temizlik                 |
-| Tema ve plan tercihleri                       | Uygulama tercihi                 | SQLite, cihaz içi                                      | Yok                                           | Tüm veri silme                    |
-| Bildirim izin kararı                          | Tekrar izin istememe/yerel ayar  | SecureStore                                            | Yok                                           | Tüm veri silme                    |
-| Yedek/CSV/PDF                                 | Kullanıcının dışa aktarma isteği | Kullanıcının seçtiği/paylaştığı konum                  | Yalnız OS paylaşım hedefini kullanıcı seçerse | Kullanıcı dosya sisteminden siler |
+| Veri                                            | Amaç                             | Saklama                                                              | Ağ aktarımı                                   | Silme                             |
+| ----------------------------------------------- | -------------------------------- | -------------------------------------------------------------------- | --------------------------------------------- | --------------------------------- |
+| Çift isimleri, düğün tarihi                     | Kişiselleştirme/geri sayım       | SQLite, cihaz içi                                                    | Yok                                           | Ayarlar → Tüm verileri sil        |
+| Bütçe ve ödemeler                               | Planlama                         | SQLite, cihaz içi                                                    | Yok                                           | Tekil silme veya tüm veri         |
+| Davetli adı/telefon/not                         | Davetli yönetimi                 | SQLite, cihaz içi                                                    | Yok                                           | Tekil silme veya tüm veri         |
+| Görev, tedarikçi, not, masa                     | Planlama                         | SQLite, cihaz içi                                                    | Yok                                           | Tekil silme veya tüm veri         |
+| Salon düzeni ve konumları                       | Mekân/masa yerleşimi             | SQLite, cihaz içi                                                    | Yok                                           | Çizimden silme veya tüm veri      |
+| Rehberden seçilen kişi (ad, telefon, e-posta)   | Davetli ekleme                   | SQLite, cihaz içi; yalnız kullanıcının seçtiği kişiler               | Yok                                           | Tekil silme veya tüm veri         |
+| Davetli RSVP durumu, gönderim durumu/kanalı     | Katılım takibi                   | SQLite, cihaz içi                                                    | Yok                                           | Tekil silme veya tüm veri         |
+| Davetiye tasarımları ve fotoğrafı               | Davetiye                         | SQLite + uygulama klasörü (fotoğraf), cihaz içi                      | Yok                                           | Tasarım silme veya tüm veri       |
+| Çocuksuz düğün tercihi ve mesajı                | Davetiye/mesaj metni             | SQLite, cihaz içi                                                    | Yok                                           | Tüm veri silme                    |
+| Davetiye PNG/PDF (geçici)                       | Paylaşım                         | Önbellek; sonraki üretim/uygulama açılışında silinir                 | Yalnız kullanıcı seçtiği hedefe               | Otomatik temizlik                 |
+| Uygulama dili tercihi (Otomatik/Türkçe/English) | Arayüz dili                      | `expo-sqlite/kv-store` (web: localStorage), cihaz içi; yedeğe girmez | Yok                                           | Uygulamayı kaldırma               |
+| Tema ve plan tercihleri                         | Uygulama tercihi                 | SQLite, cihaz içi                                                    | Yok                                           | Tüm veri silme                    |
+| Bildirim izin kararı                            | Tekrar izin istememe/yerel ayar  | SecureStore                                                          | Yok                                           | Tüm veri silme                    |
+| Yedek/CSV/PDF                                   | Kullanıcının dışa aktarma isteği | Kullanıcının seçtiği/paylaştığı konum                                | Yalnız OS paylaşım hedefini kullanıcı seçerse | Kullanıcı dosya sisteminden siler |
 
 ## İzinler
 

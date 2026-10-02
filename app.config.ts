@@ -16,12 +16,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   userInterfaceStyle: 'automatic',
   description: 'Görev, davetli, bütçe ve masa planını cihazınızda yönetin.',
   primaryColor: '#6F1D3A',
+  locales: { tr: './locales/tr.json', en: './locales/en.json' },
   ios: {
     bundleIdentifier: PACKAGE_ID,
     buildNumber: '2',
     supportsTablet: true,
     icon: './assets/images/icon.png',
     infoPlist: {
+      CFBundleAllowMixedLocalizations: true,
       ITSAppUsesNonExemptEncryption: false,
       NSAppTransportSecurity: { NSAllowsArbitraryLoads: false, NSAllowsLocalNetworking: true },
     },
@@ -88,7 +90,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-mail-composer',
     '@react-native-community/datetimepicker',
     'expo-sharing',
-    'expo-localization',
+    // Uygulama dili Türkçe ve İngilizce; izin metinleri ve uygulama adı cihaz diline göre yerelleştirilir (locales/).
+    ['expo-localization', { supportedLocales: { ios: ['tr', 'en'], android: ['tr', 'en'] } }],
   ],
   experiments: { typedRoutes: true, reactCompiler: true },
   extra: {
