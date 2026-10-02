@@ -95,8 +95,9 @@ describe('guest and seating calculations', () => {
 
 describe('date and progress calculations', () => {
   it('uses local calendar days across daylight-saving-sized time differences', () => {
-    expect(daysUntil('2026-03-30', new Date('2026-03-28T23:30:00+03:00'))).toBe(2);
-    expect(daysUntil('2026-03-27', new Date('2026-03-28T01:00:00+03:00'))).toBe(-1);
+    // Yerel bileşenlerle kurulan zamanlar: sonuç makinenin saat dilimine (ör. CI'daki UTC) bağlı değildir.
+    expect(daysUntil('2026-03-30', new Date(2026, 2, 28, 23, 30))).toBe(2);
+    expect(daysUntil('2026-03-27', new Date(2026, 2, 28, 1, 0))).toBe(-1);
   });
   it('returns a stable zero for invalid/empty date and progress for empty tasks', () => {
     expect(daysUntil('')).toBe(0);
