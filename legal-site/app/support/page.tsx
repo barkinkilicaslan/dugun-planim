@@ -31,9 +31,8 @@ export default function SupportPage() {
       <p>Sıra şu olmalıdır: ad, telefon, taraf, kisi_sayisi, cocuk_sayisi, rsvp, grup, yemek_alerji, notlar.</p>
       <h2>İletişim</h2>
       <p>
-        Yayın öncesi yer tutucu destek adresi:{' '}
-        <a href={`mailto:${siteConfig.supportEmail}`}>{siteConfig.supportEmail}</a>. Gerçek destek adresi yayın
-        öncesinde tek yapılandırma noktasından güncellenmelidir.
+        Destek adresi: <a href={`mailto:${siteConfig.supportEmail}`}>{siteConfig.supportEmail}</a>. Uygulamayla ilgili
+        destek talepleriniz için bu adresten bize ulaşabilirsiniz.
       </p>
     </LegalLayout>
   );

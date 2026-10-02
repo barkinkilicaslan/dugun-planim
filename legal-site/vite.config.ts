@@ -41,8 +41,12 @@ export default defineConfig(async () => {
 
   // Wrangler snapshots its log path while the Cloudflare plugin is imported.
   const { cloudflare } = await import('@cloudflare/vite-plugin');
+  const publicBasePath = process.env.NEXT_PUBLIC_SITE_BASE_PATH ?? '';
 
   return {
+    // Static assets need the repository prefix when deployed as a GitHub
+    // Pages project site. Keep the root path for local development.
+    base: publicBasePath ? `${publicBasePath}/` : '/',
     server: isCodexSeatbeltSandbox ? { watch: { useFsEvents: false, usePolling: true } } : undefined,
     plugins: [
       vinext(),

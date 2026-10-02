@@ -24,7 +24,7 @@ Son güncelleme: 1 Ağustos 2026. İşaretli maddeler bu çalışma alanında do
 - [ ] Apple SKU oluştur
 - [ ] Yayıncı adı, hukuki kişi/adres, telefon ve AB trader statüsünü doldur
 - [ ] `destek@example.com` yerine gerçek destek e-postasını gir
-- [ ] Hukuki siteyi gerçek alan adına yayınla ve `EXPO_PUBLIC_LEGAL_BASE_URL`/`NEXT_PUBLIC_SITE_URL` değerlerini güncelle
+- [ ] Hukuki siteyi GitHub Pages'te yayınla ve `EXPO_PUBLIC_LEGAL_BASE_URL`/`NEXT_PUBLIC_SITE_URL` değerlerini doğrula
 - [ ] Hedef ülkeleri ve yerel tüketici/mahremiyet gereksinimlerini hukuk danışmanıyla doğrula
 
 ## Gizlilik ve içerik

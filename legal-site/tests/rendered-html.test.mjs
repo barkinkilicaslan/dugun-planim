@@ -25,10 +25,10 @@ test('server-renders the branded and accessible home page', async () => {
 });
 
 for (const [pathname, expected] of [
-  ['/privacy', 'Gizlilik Politikası'],
-  ['/terms', 'Kullanım Koşulları'],
-  ['/support', 'Destek ve Sık Sorulan Sorular'],
-  ['/data-retention', 'Veri Saklama ve Silme'],
+  ['/privacy/', 'Gizlilik Politikası'],
+  ['/terms/', 'Kullanım Koşulları'],
+  ['/support/', 'Destek ve Sık Sorulan Sorular'],
+  ['/data-retention/', 'Veri Saklama ve Silme'],
 ]) {
   test(`renders ${pathname}`, async () => {
     const response = await render(pathname);

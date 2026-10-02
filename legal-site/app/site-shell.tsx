@@ -1,7 +1,7 @@
-import Link from 'next/link';
 import Image from 'next/image';
 import type { PropsWithChildren } from 'react';
 import { siteConfig } from '../site-config';
+import { sitePath } from '../site-path';
 
 export function SiteShell({ children }: PropsWithChildren) {
   return (
@@ -10,14 +10,14 @@ export function SiteShell({ children }: PropsWithChildren) {
         İçeriğe geç
       </a>
       <header className="site-header">
-        <Link href="/" className="brand" aria-label="Düğün Planım ana sayfa">
-          <Image src="/icon.png" alt="" width={48} height={48} priority />
+        <a href={sitePath('/')} className="brand" aria-label="Düğün Planım ana sayfa">
+          <Image src={sitePath('/icon.png')} alt="" width={48} height={48} priority unoptimized />
           <span>Düğün Planım</span>
-        </Link>
+        </a>
         <nav aria-label="Ana menü">
-          <Link href="/privacy">Gizlilik</Link>
-          <Link href="/terms">Koşullar</Link>
-          <Link href="/support">Destek</Link>
+          <a href={sitePath('/privacy')}>Gizlilik</a>
+          <a href={sitePath('/terms')}>Koşullar</a>
+          <a href={sitePath('/support')}>Destek</a>
         </nav>
       </header>
       <main id="content">{children}</main>
@@ -27,11 +27,12 @@ export function SiteShell({ children }: PropsWithChildren) {
           <p>Hayalinizdeki günü birlikte planlayın.</p>
         </div>
         <div className="footer-links">
-          <Link href="/privacy">Gizlilik</Link>
-          <Link href="/terms">Koşullar</Link>
-          <Link href="/data-retention">Veri silme</Link>
+          <a href={sitePath('/privacy')}>Gizlilik</a>
+          <a href={sitePath('/terms')}>Koşullar</a>
+          <a href={sitePath('/data-retention')}>Veri silme</a>
           <a href={`mailto:${siteConfig.supportEmail}`}>{siteConfig.supportEmail}</a>
         </div>
+        <p className="fineprint">Yayıncı: {siteConfig.publisherName}</p>
         <p className="fineprint">
           Bu içerik hukuki danışmanlık değildir. Nihai yayın öncesinde yayıncı bilgileri ve hedef ülke gereksinimleri
           doğrulanmalıdır.

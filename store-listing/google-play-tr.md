@@ -6,8 +6,8 @@
 - Kısa açıklama: `Görev, davetli, bütçe ve masa planınızı cihazınızda yönetin.`
 - Kategori: `Yaşam Tarzı`
 - Destek e-postası: `destek@example.com`
-- Web sitesi: `https://example.com/dugun-planim`
-- Gizlilik politikası: `https://example.com/dugun-planim/privacy`
+- Web sitesi: `https://barkinkilicaslan.github.io/dugun-planim/`
+- Gizlilik politikası: `https://barkinkilicaslan.github.io/dugun-planim/privacy/`
 
 ## Tam açıklama
 

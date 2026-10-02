@@ -1,6 +1,6 @@
-import Link from 'next/link';
 import Image from 'next/image';
 import { SiteShell } from './site-shell';
+import { sitePath } from '../site-path';
 
 const cards = [
   {
@@ -39,16 +39,16 @@ export default function Home() {
             yaklaşımımızı, koşulları ve destek yanıtlarını bulabilirsiniz.
           </p>
           <div className="actions">
-            <Link className="button primary" href="/privacy">
+            <a className="button primary" href={sitePath('/privacy')}>
               Gizlilik politikasını okuyun
-            </Link>
-            <Link className="button secondary" href="/support">
+            </a>
+            <a className="button secondary" href={sitePath('/support')}>
               Destek alın
-            </Link>
+            </a>
           </div>
         </div>
         <div className="hero-mark" aria-hidden="true">
-          <Image src="/icon.png" alt="" width={240} height={240} priority />
+          <Image src={sitePath('/icon.png')} alt="" width={240} height={240} priority unoptimized />
         </div>
       </section>
       <section className="trust-strip" aria-label="Temel gizlilik ilkeleri">
@@ -59,14 +59,14 @@ export default function Home() {
       </section>
       <section className="card-grid" aria-label="Bilgi sayfaları">
         {cards.map((card) => (
-          <Link key={card.href} href={card.href} className="info-card">
+          <a key={card.href} href={sitePath(card.href)} className="info-card">
             <p className="eyebrow">{card.eyebrow}</p>
             <h2>{card.title}</h2>
             <p>{card.text}</p>
             <span className="card-link">
               Açın <span aria-hidden="true">→</span>
             </span>
-          </Link>
+          </a>
         ))}
       </section>
       <section className="statement">
@@ -76,7 +76,7 @@ export default function Home() {
           Uygulama içinden sürümlü bir yedek dosyası oluşturabilir, doğrulama ve onaydan sonra geri yükleyebilir ya da
           tüm yerel verileri iki onayla silebilirsiniz.
         </p>
-        <Link href="/data-retention">Saklama ve silme ayrıntıları</Link>
+        <a href={sitePath('/data-retention')}>Saklama ve silme ayrıntıları</a>
       </section>
     </SiteShell>
   );

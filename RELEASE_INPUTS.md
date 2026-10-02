@@ -9,7 +9,7 @@ Kod ve yerel teslim bu bilgiler olmadan tamamlanır; mağaza hesabı/alan adı g
 - [ ] Yayıncı görünen adı: `{{YAYINCI_ADI}}`
 - [ ] Hukuki kişi/şirket ve adres: `{{HUKUKI_BILGILER}}`
 - [ ] Destek e-postası: `destek@example.com`
-- [ ] Gizlilik/destek alan adı: `https://example.com/dugun-planim`
+- [ ] Gizlilik/destek adresi: `https://barkinkilicaslan.github.io/dugun-planim`
 - [ ] Apple SKU ve nihai benzersiz bundle ID doğrulaması
 - [ ] Google Play paket adı benzersizlik doğrulaması
 - [ ] Hedef ülkeler ve AB trader statüsü

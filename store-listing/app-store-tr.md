@@ -8,9 +8,9 @@
 - İkincil kategori: `Productivity`
 - Promosyon metni: `Görevleri, davetlileri, bütçeyi, masa planını ve tedarikçileri internet hesabı gerekmeden tek bir sakin planda yönetin.`
 - Anahtar kelimeler: `düğün,planlama,görev,bütçe,davetli,masa,tedarikçi,nişan,gelin,damat`
-- Destek URL'si: `https://example.com/dugun-planim/support`
-- Gizlilik politikası URL'si: `https://example.com/dugun-planim/privacy`
-- Pazarlama URL'si: `https://example.com/dugun-planim`
+- Destek URL'si: `https://barkinkilicaslan.github.io/dugun-planim/support/`
+- Gizlilik politikası URL'si: `https://barkinkilicaslan.github.io/dugun-planim/privacy/`
+- Pazarlama URL'si: `https://barkinkilicaslan.github.io/dugun-planim/`
 
 ## Açıklama
 

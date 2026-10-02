@@ -1,8 +1,8 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 
 const PACKAGE_ID = process.env.EXPO_PUBLIC_PACKAGE_ID ?? 'com.barkin.dugunplanim';
-const PUBLIC_BASE_URL = process.env.EXPO_PUBLIC_LEGAL_BASE_URL ?? 'https://example.com/dugun-planim';
-const SUPPORT_EMAIL = process.env.EXPO_PUBLIC_SUPPORT_EMAIL ?? 'destek@example.com';
+const PUBLIC_BASE_URL = process.env.EXPO_PUBLIC_LEGAL_BASE_URL ?? 'https://barkinkilicaslan.github.io/dugun-planim';
+const SUPPORT_EMAIL = process.env.EXPO_PUBLIC_SUPPORT_EMAIL ?? 'appsupportline@gmail.com';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
