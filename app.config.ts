@@ -18,7 +18,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   primaryColor: '#6F1D3A',
   ios: {
     bundleIdentifier: PACKAGE_ID,
-    buildNumber: '1',
+    buildNumber: '2',
     supportsTablet: true,
     icon: './assets/images/icon.png',
     infoPlist: {
