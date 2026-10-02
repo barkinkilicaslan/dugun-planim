@@ -1,6 +1,6 @@
 # Release Checklist — 1.0.0 (1)
 
-Son güncelleme: 1 Ağustos 2026. İşaretli maddeler bu çalışma alanında doğrulandı; kullanıcı hesabı veya imza gerektirenler açık bırakıldı.
+Son güncelleme: 2 Ekim 2026. İşaretli maddeler bu çalışma alanında doğrulandı; fiziksel cihaz, mağaza formu veya insan incelemesi gerektirenler açık bırakıldı.
 
 ## Kod ve kalite
 
@@ -20,11 +20,11 @@ Son güncelleme: 1 Ağustos 2026. İşaretli maddeler bu çalışma alanında do
 ## Kimlik ve kullanıcı girdileri
 
 - [ ] `com.barkin.dugunplanim` Google Play'de benzersiz mi doğrula; gerekirse `EXPO_PUBLIC_PACKAGE_ID` ile mağaza kaydı açılmadan önce değiştir
-- [ ] Aynı bundle ID'yi Apple Developer/App Store Connect'te kaydet
+- [x] Aynı bundle ID'yi Apple Developer/App Store Connect'te kaydet
 - [ ] Apple SKU oluştur
 - [ ] Yayıncı adı, hukuki kişi/adres, telefon ve AB trader statüsünü doldur
-- [ ] `destek@example.com` yerine gerçek destek e-postasını gir
-- [ ] Hukuki siteyi GitHub Pages'te yayınla ve `EXPO_PUBLIC_LEGAL_BASE_URL`/`NEXT_PUBLIC_SITE_URL` değerlerini doğrula
+- [x] Gerçek destek e-postasını `appsupportline@gmail.com` olarak yapılandır
+- [x] Hukuki siteyi GitHub Pages'te yayınla ve `EXPO_PUBLIC_LEGAL_BASE_URL`/`NEXT_PUBLIC_SITE_URL` değerlerini doğrula
 - [ ] Hedef ülkeleri ve yerel tüketici/mahremiyet gereksinimlerini hukuk danışmanıyla doğrula
 
 ## Gizlilik ve içerik
@@ -37,7 +37,7 @@ Son güncelleme: 1 Ağustos 2026. İşaretli maddeler bu çalışma alanında do
 - [ ] EAS iOS archive içindeki birleştirilmiş `PrivacyInfo.xcprivacy` ve üçüncü taraf SDK manifest/imzalarını doğrula
 - [ ] EAS Android AAB manifestinde yalnız beklenen izinleri doğrula
 - [ ] App Store yaş derecelendirme ve Google IARC sonuçlarını taslak cevaplarla karşılaştır
-- [ ] Gerçek URL yayımlandıktan sonra uygulama, mağaza ve site linklerinde kırık bağlantı kontrolü yap
+- [x] Gerçek URL yayımlandıktan sonra uygulama, mağaza ve site linklerinde kırık bağlantı kontrolü yap
 
 ## EAS ve imzalama
 
@@ -66,8 +66,8 @@ Son güncelleme: 1 Ağustos 2026. İşaretli maddeler bu çalışma alanında do
    npx eas-cli@latest build --platform ios --profile production
    ```
 
-   - [ ] Apple Developer hesabına EAS üzerinden giriş yap
-   - [ ] Distribution certificate ve App Store provisioning profile seç/oluştur
+   - [x] Apple Developer hesabına EAS üzerinden giriş yap
+   - [x] Distribution certificate ve App Store provisioning profile seç/oluştur
    - [ ] Build logunda Xcode 26.4+ ve iOS 26 SDK doğrula
    - [ ] IPA/archive içinde bundle ID, build `1`, ikon, privacy manifest ve imzayı kontrol et
 
@@ -95,12 +95,19 @@ npx eas-cli@latest submit --platform android --profile production
 
 ### App Store Connect
 
-- [ ] App kaydı ve bundle ID
+- [x] App kaydı ve bundle ID
 - [ ] Türkçe metadata, privacy URL, destek/pazarlama URL'si
 - [ ] 4 iPhone ve 4 iPad screenshot
 - [ ] App Privacy, yaş derecelendirmesi, ihracat uyumluluğu, trader ve inceleme iletişimi
 - [ ] IPA'yı TestFlight'a yükle; processing ve export compliance sonucunu kontrol et
 - [ ] TestFlight internal smoke testi ve App Review notları
+
+İlk üretim paketi 2 Ekim 2026 tarihinde oluşturuldu ve App Store Connect'e yüklendi:
+
+- EAS build: `4e899a1b-967d-4bcf-b3c4-45e31b4366ae`
+- EAS submission: `988fbe7e-06f9-4b4a-a32e-d1741d9166db`
+- App Store Connect app ID: `6818340839`
+- Sürüm/build: `1.0.0 (1)`
 
 Komut:
 

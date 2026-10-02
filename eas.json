@@ -2,7 +2,8 @@
   "cli": {
     "version": ">= 16.0.0",
     "appVersionSource": "local",
-    "requireCommit": false
+    "requireCommit": false,
+    "promptToConfigurePushNotifications": false
   },
   "build": {
     "development": {
@@ -11,18 +12,29 @@
     },
     "preview": {
       "distribution": "internal",
-      "android": { "buildType": "apk" },
-      "ios": { "simulator": true }
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": true
+      }
     },
     "production": {
       "autoIncrement": false,
-      "android": { "buildType": "app-bundle" }
+      "android": {
+        "buildType": "app-bundle"
+      }
     }
   },
   "submit": {
     "production": {
-      "android": { "track": "internal", "releaseStatus": "draft" },
-      "ios": {}
+      "android": {
+        "track": "internal",
+        "releaseStatus": "draft"
+      },
+      "ios": {
+        "ascAppId": "6818340839"
+      }
     }
   }
 }
