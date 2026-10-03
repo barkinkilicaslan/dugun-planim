@@ -77,7 +77,11 @@ function block(markdown, heading) {
   return match ? match[1] : undefined;
 }
 
-const words = (text) => text.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+const words = (text) =>
+  text
+    .toLowerCase()
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter(Boolean);
 const failures = [];
 const fail = (file, message) => failures.push(`${file}: ${message}`);
 
@@ -85,7 +89,17 @@ for (const locale of locales) {
   const path = resolve(root, locale.file);
   let markdown = await readFile(path, 'utf8');
   const fields = {};
-  for (const key of ['name', 'subtitle', 'promo', 'keywords', 'support', 'privacy', 'marketing', 'publisher', 'copyright']) {
+  for (const key of [
+    'name',
+    'subtitle',
+    'promo',
+    'keywords',
+    'support',
+    'privacy',
+    'marketing',
+    'publisher',
+    'copyright',
+  ]) {
     fields[key] = line(markdown, locale.labels[key]);
   }
   for (const [key, heading] of Object.entries(locale.blocks)) fields[key] = block(markdown, heading);
@@ -112,7 +126,8 @@ for (const locale of locales) {
   // Anahtar kelimeler: tekrar yok, boşluk yok, ad/alt başlıkta geçen kelime yok.
   if (fields.keywords) {
     const list = fields.keywords.split(',');
-    if (fields.keywords.includes(' ')) fail(locale.file, 'anahtar kelimelerde boşluk var (virgülden sonra boşluk bayt harcar)');
+    if (fields.keywords.includes(' '))
+      fail(locale.file, 'anahtar kelimelerde boşluk var (virgülden sonra boşluk bayt harcar)');
     if (list.some((word) => !word)) fail(locale.file, 'anahtar kelimelerde boş öğe var');
     const seen = new Set();
     for (const word of list.map((entry) => entry.toLowerCase())) {
@@ -120,15 +135,18 @@ for (const locale of locales) {
       seen.add(word);
     }
     const reserved = new Set([...words(fields.name ?? ''), ...words(fields.subtitle ?? '')]);
-    for (const word of seen) if (reserved.has(word)) fail(locale.file, `anahtar kelime ad/alt başlıkta zaten var: ${word}`);
+    for (const word of seen)
+      if (reserved.has(word)) fail(locale.file, `anahtar kelime ad/alt başlıkta zaten var: ${word}`);
   }
 
   // Yasaklı iddialar ve yer tutucular.
   const everything = Object.values(fields).filter(Boolean).join('\n');
   if (/example\.com|destek@/i.test(everything)) fail(locale.file, 'örnek/placeholder e-posta bulundu');
   if (/\{\{(?!APP_REVIEW_PHONE\}\})[^}]+\}\}/.test(markdown)) fail(locale.file, 'beklenmeyen {{yer tutucu}} var');
-  if (contact.phone !== '{{APP_REVIEW_PHONE}}') fail(locale.file, 'inceleme telefonu tam olarak {{APP_REVIEW_PHONE}} olmalı');
-  if (contact.email !== 'appsupportline@gmail.com') fail(locale.file, 'inceleme e-postası appsupportline@gmail.com olmalı');
+  if (contact.phone !== '{{APP_REVIEW_PHONE}}')
+    fail(locale.file, 'inceleme telefonu tam olarak {{APP_REVIEW_PHONE}} olmalı');
+  if (contact.email !== 'appsupportline@gmail.com')
+    fail(locale.file, 'inceleme e-postası appsupportline@gmail.com olmalı');
   if (contact.name !== 'Barkın Kılıçaslan') fail(locale.file, 'inceleme iletişim adı Barkın Kılıçaslan olmalı');
   if (fields.publisher !== 'Barkın Kılıçaslan') fail(locale.file, 'yayıncı adı hatalı');
   if (fields.copyright !== '2026 Barkın Kılıçaslan') fail(locale.file, 'telif hakkı hatalı');
@@ -142,7 +160,8 @@ for (const locale of locales) {
   if (line(markdown, locale.file.includes('-tr') ? 'İkincil kategori' : 'Secondary category') !== 'Productivity') {
     fail(locale.file, 'ikincil kategori Productivity olmalı');
   }
-  const sensitive = /(online|çevrimiçi) RSVP (hizmeti )?(sunar|var)\b|otomatik yanıt toplar|automatically collects replies/i;
+  const sensitive =
+    /(online|çevrimiçi) RSVP (hizmeti )?(sunar|var)\b|otomatik yanıt toplar|automatically collects replies/i;
   if (sensitive.test(everything)) fail(locale.file, 'çevrimiçi RSVP iddiası var');
   if (/\b(subscription|abonelik|in-app|uygulama içi satın)\b/i.test(fields.description ?? '')) {
     fail(locale.file, 'açıklamada abonelik/IAP ifadesi var');

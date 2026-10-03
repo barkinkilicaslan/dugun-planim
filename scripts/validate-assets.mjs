@@ -51,4 +51,6 @@ for (const [language, device, width, height] of localizedSets) {
   for (const name of names) await expectPng(`${relative}/${name}`, width, height, false);
 }
 
-console.log('Release assets PASS: icons, feature graphic, legacy 4+4 screenshots, and 6 screenshots for each TR/EN iPhone/iPad set.');
+console.log(
+  'Release assets PASS: icons, feature graphic, legacy 4+4 screenshots, and 6 screenshots for each TR/EN iPhone/iPad set.',
+);

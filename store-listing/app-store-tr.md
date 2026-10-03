@@ -107,13 +107,15 @@ Tüm verileri silme: Ayarlar > "Tüm verilerimi sil" iki onay ister ve yerel ver
 ## Sayılar
 
 <!-- METADATA-COUNTS:START -->
-| Alan | Karakter | Bayt | Sınır |
-| --- | ---: | ---: | --- |
-| name | 12 | 16 | 30 karakter |
-| subtitle | 27 | 31 | 30 karakter |
-| promo | 135 | 147 | 170 karakter |
-| description | 2407 | 2614 | 4000 karakter |
-| keywords | 92 | 97 | 100 bayt |
-| whatsNew | 507 | 556 | 4000 karakter |
-| review | 1582 | 1700 | 4000 bayt |
+
+| Alan        | Karakter | Bayt | Sınır         |
+| ----------- | -------: | ---: | ------------- |
+| name        |       12 |   16 | 30 karakter   |
+| subtitle    |       27 |   31 | 30 karakter   |
+| promo       |      135 |  147 | 170 karakter  |
+| description |     2407 | 2614 | 4000 karakter |
+| keywords    |       92 |   97 | 100 bayt      |
+| whatsNew    |      507 |  556 | 4000 karakter |
+| review      |     1582 | 1700 | 4000 bayt     |
+
 <!-- METADATA-COUNTS:END -->

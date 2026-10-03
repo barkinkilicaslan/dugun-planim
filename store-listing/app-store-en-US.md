@@ -107,13 +107,15 @@ Encryption: the app uses no custom (non-standard) encryption; ITSAppUsesNonExemp
 ## Counts
 
 <!-- METADATA-COUNTS:START -->
-| Alan | Karakter | Bayt | Sınır |
-| --- | ---: | ---: | --- |
-| name | 12 | 16 | 30 karakter |
-| subtitle | 29 | 29 | 30 karakter |
-| promo | 120 | 120 | 170 karakter |
-| description | 2315 | 2319 | 4000 karakter |
-| keywords | 100 | 100 | 100 bayt |
-| whatsNew | 547 | 551 | 4000 karakter |
-| review | 1589 | 1591 | 4000 bayt |
+
+| Alan        | Karakter | Bayt | Sınır         |
+| ----------- | -------: | ---: | ------------- |
+| name        |       12 |   16 | 30 karakter   |
+| subtitle    |       29 |   29 | 30 karakter   |
+| promo       |      120 |  120 | 170 karakter  |
+| description |     2315 | 2319 | 4000 karakter |
+| keywords    |      100 |  100 | 100 bayt      |
+| whatsNew    |      547 |  551 | 4000 karakter |
+| review      |     1589 | 1591 | 4000 bayt     |
+
 <!-- METADATA-COUNTS:END -->
