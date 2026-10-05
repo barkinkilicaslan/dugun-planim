@@ -37,7 +37,9 @@ export default function PrivacyPageEn() {
         guest list, your address book as a whole is not copied, and no contact information is sent to a server. The file
         picker opens when you choose a backup, CSV file or invitation photo; the share, email, SMS and WhatsApp screens
         open only when you tap the relevant send or share button. The app never sends a message without your
-        confirmation. Access to location, camera, microphone and the photo library is not requested.
+        confirmation. With “Upload your own invitation”, the system photo or file picker opens; the app only accesses
+        the image you choose and copies it into the app folder on your device, does not read your photo library as a
+        whole, and does not send the image to a server. Access to location, camera and microphone is not requested.
       </p>
       <h2>4. Backups and sharing</h2>
       <p>

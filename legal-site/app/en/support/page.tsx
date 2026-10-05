@@ -23,7 +23,8 @@ export default function SupportPageEn() {
       <p>
         On the old device, use Settings → Create backup file. Save the file to a safe destination, choose it on the new
         device with “Restore from backup” and confirm the summary. Invitation photos are not included in the backup; you
-        need to add them again on the new device.
+        need to add them again on the new device. Images uploaded with “Upload your own invitation” are not included
+        either.
       </p>
       <h2>Why did I not get a notification?</h2>
       <p>

@@ -68,6 +68,7 @@ function AppNavigator() {
         <Stack.Screen name="contacts-import" options={{ title: t('nav.contactsImport') }} />
         <Stack.Screen name="invitations" options={{ title: t('nav.invitations') }} />
         <Stack.Screen name="invitation-editor" options={{ title: t('nav.invitationEditor') }} />
+        <Stack.Screen name="personal-invitation" options={{ title: t('nav.personalInvitation') }} />
         <Stack.Screen name="invite-send" options={{ title: t('nav.inviteSend') }} />
         <Stack.Screen name="tables" options={{ title: t('nav.tables') }} />
         <Stack.Screen name="venue-editor" options={{ title: t('nav.venueEditor') }} />

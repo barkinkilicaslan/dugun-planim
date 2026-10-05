@@ -11,6 +11,7 @@ import {
   type Guest,
   type InvitationDesign,
   type NoteItem,
+  type PersonalInvitation,
   type SeatingTable,
   type TaskItem,
   type Vendor,
@@ -23,6 +24,7 @@ import {
   validateGuest,
   validateInvitationDesign,
   validateNote,
+  validatePersonalInvitation,
   validateProfile,
   validateTable,
   validateTask,
@@ -40,9 +42,22 @@ import {
   removeInvitationPhoto,
   removeUnreferencedInvitationPhotos,
 } from '@/services/invitation-photos';
+import {
+  removeAllPersonalInvitationFiles,
+  removePersonalInvitationFile,
+  removeUnreferencedPersonalInvitationFiles,
+} from '@/services/personal-invitations';
 
 type EntityKey =
-  'tasks' | 'guests' | 'tables' | 'venueLayoutItems' | 'budgetItems' | 'vendors' | 'notes' | 'invitationDesigns';
+  | 'tasks'
+  | 'guests'
+  | 'tables'
+  | 'venueLayoutItems'
+  | 'budgetItems'
+  | 'vendors'
+  | 'notes'
+  | 'invitationDesigns'
+  | 'personalInvitations';
 
 interface AppContextValue {
   data: AppData;
@@ -68,6 +83,8 @@ interface AppContextValue {
   saveInvitationDesign: (design: InvitationDesign) => Promise<void>;
   deleteInvitationDesign: (id: string) => Promise<void>;
   setDefaultInvitationDesign: (id: string) => Promise<void>;
+  savePersonalInvitation: (item: PersonalInvitation) => Promise<void>;
+  deletePersonalInvitation: (id: string) => Promise<void>;
   replaceAll: (next: AppData) => Promise<void>;
   clearAll: () => Promise<void>;
   createId: () => string;
@@ -99,6 +116,7 @@ export function AppProvider({ children }: PropsWithChildren) {
         const loaded = await repository.load();
         if (active) setData(loaded);
         await removeUnreferencedInvitationPhotos(loaded.invitationDesigns.map((design) => design.photoUri));
+        await removeUnreferencedPersonalInvitationFiles(loaded.personalInvitations.map((item) => item.imageUri));
       } catch (reason) {
         if (active) setError(reason instanceof Error ? reason.message : t('app.startFailed'));
       } finally {
@@ -257,8 +275,23 @@ export function AppProvider({ children }: PropsWithChildren) {
           invitationDesigns: current.invitationDesigns.map((item) => ({ ...item, isDefault: item.id === id })),
         }));
       },
+      savePersonalInvitation: async (item) => {
+        const valid = validatePersonalInvitation(item);
+        const previous = data.personalInvitations.find((entry) => entry.id === valid.id)?.imageUri;
+        await repository.upsertPersonalInvitation(valid);
+        updateEntity('personalInvitations', valid);
+        // Önceki görsel yalnız kayıt başarıyla bittikten sonra silinir; kayıt hata verirse eski dosya korunur.
+        if (previous && previous !== valid.imageUri) await removePersonalInvitationFile(previous);
+      },
+      deletePersonalInvitation: async (id) => {
+        const removed = data.personalInvitations.find((entry) => entry.id === id);
+        await repository.deletePersonalInvitation(id);
+        await removePersonalInvitationFile(removed?.imageUri);
+        removeEntity('personalInvitations', id);
+      },
       replaceAll: async (next) => {
-        const valid = validateAppData(next);
+        // Kendi davetiye görselleri yedekte yoktur; geri yüklemede bu cihazdaki kayıtlar ve dosyalar korunur.
+        const valid = { ...validateAppData(next), personalInvitations: data.personalInvitations };
         await repository.replaceAll(valid);
         // Yedek davetiye fotoğrafı içermez; yeni veride kullanılmayan eski fotoğraf dosyaları temizlenir.
         const kept = new Set(valid.invitationDesigns.map((item) => item.photoUri));
@@ -269,6 +302,7 @@ export function AppProvider({ children }: PropsWithChildren) {
       clearAll: async () => {
         await clearAllNotifications();
         await removeAllInvitationPhotos();
+        await removeAllPersonalInvitationFiles();
         await repository.clearAll();
         setData({ ...EMPTY_APP_DATA, profile: { ...EMPTY_APP_DATA.profile } });
       },

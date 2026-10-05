@@ -119,7 +119,7 @@ export function inviteSubject(content: InvitationContent, t: Translator): string
     : t('invitation.subject');
 }
 
-export function invitationFileBase(design: InvitationDesign, t: Translator): string {
+export function invitationFileBase(design: Pick<InvitationDesign, 'name'>, t: Translator): string {
   const slug = design.name
     .toLocaleLowerCase('tr')
     .replace(/ç/g, 'c')

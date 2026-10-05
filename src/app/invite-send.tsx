@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, PixelRatio, Pressable, StyleSheet, Switch, View, useWindowDimensions } from 'react-native';
+import { Alert, Image, PixelRatio, Pressable, StyleSheet, Switch, View, useWindowDimensions } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { ScaledInvitation } from '@/components/invitation/scaled-invitation';
@@ -15,6 +15,7 @@ import { useI18n } from '@/context/language-context';
 import { useAppTheme } from '@/context/theme-context';
 import {
   buildInviteMessage,
+  createInvitationDesign,
   inviteSubject,
   invitationFileBase,
   resolveInvitationContent,
@@ -42,10 +43,11 @@ import {
   shareInviteText,
   type SendOutcome,
 } from '@/services/invite-sender';
+import { preparePersonalInvitationFile } from '@/services/personal-invitations';
 import { rsvpUrlForGuest } from '@/services/rsvp';
 
 export default function InviteSendScreen() {
-  const { designId } = useLocalSearchParams<{ designId?: string }>();
+  const { designId, personalId } = useLocalSearchParams<{ designId?: string; personalId?: string }>();
   const { data, saveGuest } = useApp();
   const theme = useAppTheme();
   const i18n = useI18n();
@@ -60,6 +62,9 @@ export default function InviteSendScreen() {
       data.invitationDesigns[0],
     [data.invitationDesigns, designId],
   );
+  // Yüklenen (kişisel) davetiye: mesaj metni profilden, görsel yüklenen dosyadan gelir.
+  const personal = personalId ? data.personalInvitations.find((item) => item.id === personalId) : undefined;
+  const activeDesign = personal ? createInvitationDesign(personal.id, 'classic', personal.createdAt, false, t) : design;
   const [device, setDevice] = useState<DeviceCapabilities>({ mail: false, sms: false });
   const [channel, setChannel] = useState<InviteChannel>('sms');
   const [selected, setSelected] = useState<Record<string, boolean>>({});
@@ -73,7 +78,7 @@ export default function InviteSendScreen() {
     void getDeviceCapabilities().then(setDevice);
   }, []);
 
-  const content = design ? resolveInvitationContent(design, data.profile, i18n) : undefined;
+  const content = activeDesign ? resolveInvitationContent(activeDesign, data.profile, i18n) : undefined;
   const guestById = (guestId: string): Guest | undefined => data.guests.find((guest) => guest.id === guestId);
 
   const guests = useMemo(
@@ -87,7 +92,17 @@ export default function InviteSendScreen() {
   const availability = (guest: Guest) =>
     availableChannels(guest, device).find((item) => item.channel === channel)?.available ?? false;
 
-  if (!design || !content)
+  if (personalId && !personal)
+    return (
+      <Screen title={t('nav.inviteSend')}>
+        <Card>
+          <AppText>{t('personal.notFoundBody')}</AppText>
+          <Button label={t('common.back')} onPress={() => router.back()} />
+        </Card>
+      </Screen>
+    );
+
+  if (!activeDesign || !content)
     return (
       <Screen title={t('nav.inviteSend')}>
         <Card>
@@ -97,13 +112,20 @@ export default function InviteSendScreen() {
       </Screen>
     );
 
-  const template = templateById(design.templateId);
-  const palette = paletteById(design.paletteId);
+  const template = templateById(activeDesign.templateId);
+  const palette = paletteById(activeDesign.paletteId);
+
+  /** Yüklenen davetiye JPG olabilir; e-posta notunda biçim belirtilmez. */
+  function noteFor(selected: InviteChannel): string {
+    return personal && selected === 'email' && attachImage
+      ? t('personal.send.noteEmail')
+      : channelNote(t, selected, attachImage);
+  }
 
   async function messageFor(guest: Guest) {
     const rsvpUrl = await rsvpUrlForGuest(guest.id, {
       allowChildren: !data.profile.adultsOnly,
-      deadline: design?.rsvpDeadline || undefined,
+      deadline: activeDesign?.rsvpDeadline || undefined,
     });
     return {
       subject: inviteSubject(content!, t),
@@ -117,7 +139,9 @@ export default function InviteSendScreen() {
       setBusy(true);
       let file: GeneratedInvitationFile | undefined;
       if ((channel === 'email' && attachImage) || channel === 'share') {
-        file = await renderInvitationPng(cardRef, invitationFileBase(design!, t), PixelRatio.get());
+        file = personal
+          ? await preparePersonalInvitationFile(personal)
+          : await renderInvitationPng(cardRef, invitationFileBase(design!, t), PixelRatio.get());
       }
       setAttachment(file);
       const caps = await getDeviceCapabilities();
@@ -208,15 +232,35 @@ export default function InviteSendScreen() {
   const previewWidth = Math.min(windowWidth - spacing.lg * 2, 220);
 
   return (
-    <Screen title={t('nav.inviteSend')} subtitle={`${design.name} · ${templateName(t, template.id)}`}>
+    <Screen
+      title={t('nav.inviteSend')}
+      subtitle={
+        personal
+          ? t('personal.send.subtitle', { name: personal.name })
+          : `${design!.name} · ${templateName(t, template.id)}`
+      }
+    >
       <View style={styles.preview}>
-        <ScaledInvitation
-          width={previewWidth}
-          content={content}
-          template={template}
-          palette={palette}
-          cardRef={cardRef}
-        />
+        {personal ? (
+          <Image
+            source={{ uri: personal.imageUri }}
+            accessibilityRole="image"
+            accessibilityLabel={t('personal.previewA11y', { name: personal.name })}
+            resizeMode="contain"
+            style={{
+              width: previewWidth,
+              aspectRatio: personal.width > 0 && personal.height > 0 ? personal.width / personal.height : 0.72,
+            }}
+          />
+        ) : (
+          <ScaledInvitation
+            width={previewWidth}
+            content={content}
+            template={template}
+            palette={palette}
+            cardRef={cardRef}
+          />
+        )}
       </View>
       <Card>
         <AppText variant="caption" color={theme.colors.muted}>
@@ -240,7 +284,9 @@ export default function InviteSendScreen() {
             />
             {channel === 'email' ? (
               <View style={styles.switchRow}>
-                <AppText style={styles.switchCopy}>{t('send.attachImage')}</AppText>
+                <AppText style={styles.switchCopy}>
+                  {t(personal ? 'personal.send.attachImage' : 'send.attachImage')}
+                </AppText>
                 <Switch
                   accessibilityLabel={t('send.attachImageA11y')}
                   value={attachImage}
@@ -250,7 +296,7 @@ export default function InviteSendScreen() {
               </View>
             ) : null}
             <AppText variant="caption" color={theme.colors.muted}>
-              {channelNote(t, channel, attachImage)}
+              {noteFor(channel)}
             </AppText>
           </Card>
           <TextField label={t('send.search')} value={search} onChangeText={setSearch} />
@@ -339,7 +385,7 @@ export default function InviteSendScreen() {
                 {t('send.willOpen', { channel: inviteChannelLabel(t, channel) })}
               </AppText>
               <AppText variant="caption" color={theme.colors.muted}>
-                {channelNote(t, channel, attachImage)}
+                {noteFor(channel)}
               </AppText>
               <Button
                 label={t('send.openScreen', { channel: inviteChannelLabel(t, channel) })}

@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 
 import { AppText } from '@/components/ui/app-text';
@@ -73,6 +73,38 @@ export default function InvitationsScreen() {
           <AppText color={theme.colors.muted}>{t('invitations.noDesigns')}</AppText>
         </Card>
       )}
+      <SectionHeader title={t('invitations.personalTitle')} />
+      <Card>
+        {data.personalInvitations.length ? (
+          data.personalInvitations.map((item) => (
+            <Pressable
+              key={item.id}
+              accessibilityRole="button"
+              accessibilityLabel={t('personal.openA11y', { name: item.name })}
+              onPress={() => router.push(`/personal-invitation?id=${item.id}`)}
+              style={[styles.designRow, { borderBottomColor: theme.colors.border }]}
+            >
+              <Image
+                source={{ uri: item.imageUri }}
+                accessible={false}
+                resizeMode="cover"
+                style={[styles.personalThumb, { backgroundColor: theme.colors.surfaceAlt }]}
+              />
+              <View style={styles.designCopy}>
+                <AppText variant="label">{item.name}</AppText>
+              </View>
+              <AppText color={theme.colors.muted}>›</AppText>
+            </Pressable>
+          ))
+        ) : (
+          <AppText color={theme.colors.muted}>{t('invitations.personalEmpty')}</AppText>
+        )}
+        <Button
+          label={t('invitations.personalUpload')}
+          variant="secondary"
+          onPress={() => router.push('/personal-invitation')}
+        />
+      </Card>
       <SectionHeader title={t('invitations.templates')} />
       <View style={styles.grid}>
         {sampleDesigns.map((sample) => {
@@ -114,6 +146,7 @@ export default function InvitationsScreen() {
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.lg },
   thumb: { width: THUMB_WIDTH, gap: spacing.xs },
+  personalThumb: { width: 56, height: 72, borderRadius: 6 },
   designRow: {
     flexDirection: 'row',
     alignItems: 'center',

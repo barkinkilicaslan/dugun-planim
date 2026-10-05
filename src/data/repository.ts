@@ -8,6 +8,7 @@ import {
   type Guest,
   type InvitationDesign,
   type NoteItem,
+  type PersonalInvitation,
   type SeatingTable,
   type TaskItem,
   type Vendor,
@@ -209,6 +210,22 @@ async function upsertInvitationDesignWithDb(db: Db, design: InvitationDesign): P
   );
 }
 
+async function upsertPersonalInvitationWithDb(db: Db, item: PersonalInvitation): Promise<void> {
+  await db.runAsync(
+    `INSERT INTO personal_invitations (id, name, image_uri, width, height, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET name=excluded.name,image_uri=excluded.image_uri,width=excluded.width,
+     height=excluded.height,updated_at=excluded.updated_at`,
+    item.id,
+    item.name,
+    item.imageUri,
+    item.width,
+    item.height,
+    item.createdAt,
+    item.updatedAt,
+  );
+}
+
 async function upsertNoteWithDb(db: Db, note: NoteItem): Promise<void> {
   await db.runAsync(
     `INSERT INTO notes VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET title=excluded.title,content=excluded.content,updated_at=excluded.updated_at`,
@@ -251,6 +268,9 @@ export const repository = {
     );
     const designRows = await db.getAllAsync<Record<string, string | number>>(
       'SELECT * FROM invitation_designs ORDER BY created_at',
+    );
+    const personalRows = await db.getAllAsync<Record<string, string | number>>(
+      'SELECT * FROM personal_invitations ORDER BY created_at',
     );
     return {
       profile: profileRow
@@ -375,6 +395,15 @@ export const repository = {
         createdAt: String(r.created_at),
         updatedAt: String(r.updated_at),
       })),
+      personalInvitations: personalRows.map((r) => ({
+        id: String(r.id),
+        name: String(r.name),
+        imageUri: String(r.image_uri),
+        width: Number(r.width),
+        height: Number(r.height),
+        createdAt: String(r.created_at),
+        updatedAt: String(r.updated_at),
+      })),
     };
   },
 
@@ -430,6 +459,12 @@ export const repository = {
   async deleteInvitationDesign(id: string) {
     await (await database()).runAsync('DELETE FROM invitation_designs WHERE id = ?', id);
   },
+  async upsertPersonalInvitation(item: PersonalInvitation) {
+    await upsertPersonalInvitationWithDb(await database(), item);
+  },
+  async deletePersonalInvitation(id: string) {
+    await (await database()).runAsync('DELETE FROM personal_invitations WHERE id = ?', id);
+  },
   /** Varsayılan davetiyeyi tek kayıt olarak işaretler. */
   async setDefaultInvitationDesign(id: string) {
     await (
@@ -441,7 +476,7 @@ export const repository = {
     const db = await database();
     await db.withTransactionAsync(async () => {
       await db.execAsync(
-        'DELETE FROM guests; DELETE FROM budget_items; DELETE FROM tasks; DELETE FROM notes; DELETE FROM venue_layout_items; DELETE FROM seating_tables; DELETE FROM vendors; DELETE FROM invitation_designs; DELETE FROM profile;',
+        'DELETE FROM guests; DELETE FROM budget_items; DELETE FROM tasks; DELETE FROM notes; DELETE FROM venue_layout_items; DELETE FROM seating_tables; DELETE FROM vendors; DELETE FROM invitation_designs; DELETE FROM personal_invitations; DELETE FROM profile;',
       );
       await saveProfileWithDb(db, data.profile);
       for (const vendor of data.vendors) await upsertVendorWithDb(db, vendor);
@@ -452,6 +487,7 @@ export const repository = {
       for (const item of data.budgetItems) await upsertBudgetWithDb(db, item);
       for (const note of data.notes) await upsertNoteWithDb(db, note);
       for (const design of data.invitationDesigns) await upsertInvitationDesignWithDb(db, design);
+      for (const item of data.personalInvitations) await upsertPersonalInvitationWithDb(db, item);
     });
   },
   async clearAll(): Promise<void> {

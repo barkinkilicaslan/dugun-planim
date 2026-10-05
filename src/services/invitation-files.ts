@@ -34,7 +34,7 @@ function tempFile(name: string): File {
 
 export interface GeneratedInvitationFile {
   uri: string;
-  mimeType: 'image/png' | 'application/pdf';
+  mimeType: 'image/png' | 'image/jpeg' | 'application/pdf';
   filename: string;
 }
 

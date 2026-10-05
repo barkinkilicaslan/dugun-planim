@@ -26,7 +26,8 @@ export default function DataPage() {
         Ayarlar’dan uygulama ve şema sürümünü içeren JSON yedek oluşturabilirsiniz. Geri yüklemede dosya boyutu, biçimi,
         sürümü ve kayıtları doğrulanır; mevcut veriler ancak siz onayladıktan sonra değiştirilir. Davetiye tasarımları
         yedeğe girer, ancak davetiyelere eklediğiniz fotoğraflar yedek dosyasına dahil edilmez; geri yüklemeden sonra
-        fotoğrafları yeniden eklemeniz gerekir.
+        fotoğrafları yeniden eklemeniz gerekir. “Kendi davetiyeni yükle” ile yüklediğiniz davetiye görselleri de yedeğe
+        girmez; aynı cihazda geri yüklerseniz korunur, başka cihazda yeniden yüklemeniz gerekir.
       </p>
       <h2>Kalıcı silme</h2>
       <p>

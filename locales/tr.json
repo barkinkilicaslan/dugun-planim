@@ -1,7 +1,8 @@
 {
   "ios": {
     "CFBundleDisplayName": "Düğün Planım",
-    "NSContactsUsageDescription": "Düğün Planım, yalnızca sizin seçtiğiniz kişileri davetli listenize eklemek için Kişiler’e erişir. Rehberiniz cihazdan dışarı gönderilmez."
+    "NSContactsUsageDescription": "Düğün Planım, yalnızca sizin seçtiğiniz kişileri davetli listenize eklemek için Kişiler’e erişir. Rehberiniz cihazdan dışarı gönderilmez.",
+    "NSPhotoLibraryUsageDescription": "Düğün Planım, yalnızca sizin seçtiğiniz davetiye görselini uygulamaya kopyalamak için Fotoğraflar’a erişir. Görsel cihazınızdan dışarı gönderilmez."
   },
   "android": {
     "app_name": "Düğün Planım"

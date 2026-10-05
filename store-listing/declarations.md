@@ -39,7 +39,8 @@ Uygulama özel veya standart dışı şifreleme uygulamaz. Sistem/Expo çalışm
 - Kişiler (iOS `NSContactsUsageDescription`, Android `READ_CONTACTS`): yalnız “Rehberden davetli ekle” eylemiyle, Türkçe açıklama ekranından sonra. Yalnız kullanıcının seçtiği kişiler cihazdaki veritabanına yazılır; sunucuya gönderilmez. `WRITE_CONTACTS` kaldırılmıştır.
 - E-posta, SMS, WhatsApp, paylaşım: kullanıcı eylemiyle işletim sistemi ekranı açılır; uygulama sessiz gönderim yapmaz.
 - Davetiye fotoğrafı: sistem dosya seçicisi; fotoğraf kitaplığı izni yoktur. Fotoğraflar JSON yedeğe dahil edilmez (kullanıcıya bildirilir).
-- İstenmeyen izinler: konum, kamera, mikrofon, fotoğraf arşivi ve reklam kimliği yoktur.
+- Kendi davetiyeni yükle: JPG/PNG sistem fotoğraf seçicisi (iOS PHPicker) veya dosya seçicisiyle seçilir, yalnız cihazdaki uygulama klasörüne kopyalanır; sunucuya gönderilmez, JSON yedeğe dahil edilmez. `NSPhotoLibraryUsageDescription` Türkçe/İngilizce yerelleştirilmiştir.
+- İstenmeyen izinler: konum, kamera, mikrofon ve reklam kimliği yoktur; fotoğraf arşivinin tamamı okunmaz.
 
 ## Taslak güncellemesi (rehber ve davetiye gönderimi)
 

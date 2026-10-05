@@ -87,7 +87,9 @@ describe('backup photo notices', () => {
     const shown = lastAlert(alert);
     expect(shown.title).toBe(backupPhotoNoticeTitle(TR.t));
     expect(shown.message).toBe(backupPhotoNoticeBody(TR.t));
-    expect(shown.message).toMatch(/fotoğrafları içermez/);
+    expect(shown.message).toMatch(
+      /fotoğrafları ve “Kendi davetiyeni yükle” ile yüklediğiniz davetiye görsellerini içermez/,
+    );
     expect(mockShareText).not.toHaveBeenCalled();
     await shown.buttons.find((button) => button.text === 'Yedeği oluştur')?.onPress?.();
     await waitFor(() => expect(mockShareText).toHaveBeenCalledTimes(1));

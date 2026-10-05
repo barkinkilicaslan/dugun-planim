@@ -118,6 +118,22 @@ export const MIGRATIONS: Migration[] = [
       );
     `,
   },
+  {
+    // Yalnız yeni tablo eklenir; mevcut kayıtlara dokunulmaz.
+    version: 4,
+    name: 'personal_invitations',
+    sql: `
+      CREATE TABLE IF NOT EXISTS personal_invitations (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        image_uri TEXT NOT NULL,
+        width INTEGER NOT NULL,
+        height INTEGER NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+    `,
+  },
 ];
 
 export function pendingMigrations(currentVersion: number): Migration[] {

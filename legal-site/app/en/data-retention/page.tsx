@@ -26,7 +26,9 @@ export default function DataPageEn() {
         In Settings you can create a JSON backup that includes the app and schema version. When restoring, the file
         size, format, version and records are validated; your current data is only replaced after you confirm.
         Invitation designs are included in the backup, but the photos you added to invitations are not included in the
-        backup file; you need to add the photos again after restoring.
+        backup file; you need to add the photos again after restoring. Invitation images you upload with “Upload your
+        own invitation” are not included either; they are kept if you restore on the same device and must be uploaded
+        again on another device.
       </p>
       <h2>Permanent deletion</h2>
       <p>

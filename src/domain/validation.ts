@@ -1,4 +1,5 @@
 import type {
+  PersonalInvitation,
   AppData,
   BudgetItem,
   Guest,
@@ -36,6 +37,10 @@ function date(value: string, label: string, optional = false): string {
     throw new ValidationError(t('validation.dateFormat', { label }));
   }
   return value;
+}
+
+function boundedRequired(value: string, label: string, max: number): string {
+  return boundedText(required(value, label), label, max);
 }
 
 function boundedText(value: string, label: string, max: number): string {
@@ -166,6 +171,17 @@ export function validateVendor(vendor: Vendor): Vendor {
   };
 }
 
+export function validatePersonalInvitation(item: PersonalInvitation): PersonalInvitation {
+  if (!item.imageUri)
+    throw new ValidationError(t('validation.required', { label: t('validation.label.personalImage') }));
+  return {
+    ...item,
+    name: boundedRequired(item.name, t('validation.label.personalName'), 60),
+    width: nonNegativeInteger(Math.round(item.width), t('validation.label.personalImage')),
+    height: nonNegativeInteger(Math.round(item.height), t('validation.label.personalImage')),
+  };
+}
+
 export function validateNote(note: NoteItem): NoteItem {
   return {
     ...note,
@@ -234,5 +250,7 @@ export function validateAppData(data: AppData): AppData {
     vendors: data.vendors.map(validateVendor),
     notes: data.notes.map(validateNote),
     invitationDesigns: designs,
+    // Kişisel davetiye görselleri yedekten gelmez; mevcut cihaz kayıtları uygulama bağlamında korunur.
+    personalInvitations: [],
   };
 }

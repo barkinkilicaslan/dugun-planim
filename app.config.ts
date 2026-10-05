@@ -87,6 +87,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           'Düğün Planım, yalnızca sizin seçtiğiniz kişileri davetli listenize eklemek için Kişiler’e erişir. Rehberiniz cihazdan dışarı gönderilmez.',
       },
     ],
+    [
+      'expo-image-picker',
+      {
+        // iOS: izin metni locales/ altında dile göre yerelleştirilir. Kamera ve mikrofon kullanılmaz.
+        photosPermission:
+          'Düğün Planım, yalnızca sizin seçtiğiniz davetiye görselini uygulamaya kopyalamak için Fotoğraflar’a erişir. Görsel cihazınızdan dışarı gönderilmez.',
+        cameraPermission: false,
+        microphonePermission: false,
+      },
+    ],
     'expo-mail-composer',
     '@react-native-community/datetimepicker',
     'expo-sharing',

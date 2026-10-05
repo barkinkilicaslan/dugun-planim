@@ -23,7 +23,7 @@ export default function SupportPage() {
       <p>
         Eski cihazda Ayarlar → Yedek dosyası oluştur seçeneğini kullanın. Dosyayı güvenli bir hedefe kaydedin, yeni
         cihazda “Yedekten geri yükle” ile seçin ve özetini onaylayın. Davetiye fotoğrafları yedeğe dahil edilmez; yeni
-        cihazda yeniden eklemeniz gerekir.
+        cihazda yeniden eklemeniz gerekir. “Kendi davetiyeni yükle” ile yüklediğiniz görseller de yedeğe girmez.
       </p>
       <h2>Bildirim neden gelmedi?</h2>
       <p>

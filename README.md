@@ -57,7 +57,7 @@ Toplu kontrol: `npm run check`. Gerçekleşen sonuçlar [TEST_REPORT.md](./TEST_
 - Kullanıcı verileri `dugun-planim.db` SQLite veritabanında cihaz içinde kalır.
 - Bildirim izni ancak onboarding açıklamasından sonra açık kullanıcı seçimiyle istenir.
 - JSON yedek, CSV ve PDF yalnız kullanıcı eylemiyle sistem dosya/paylaşım arayüzüne çıkar.
-- JSON yedek davetiye tasarımlarını içerir ancak davetiye fotoğraflarını içermez; uygulama bunu yedek almadan önce ve geri yüklemeden sonra açıkça bildirir. Geri yüklemede fotoğraf alanı boş kalır.
+- JSON yedek davetiye tasarımlarını içerir ancak davetiye fotoğraflarını içermez; uygulama bunu yedek almadan önce ve geri yüklemeden sonra açıkça bildirir. Geri yüklemede fotoğraf alanı boş kalır. "Kendi davetiyeni yükle" ile yüklenen JPG/PNG görseller de yedeğe girmez; aynı cihazda geri yüklemede korunur.
 - İçe aktarılan dosyalar boyut, format, sürüm ve entity düzeyinde doğrulanır.
 - “Tüm verilerimi sil” iki onaydan sonra veritabanını ve planlanmış yerel bildirimleri temizler.
 

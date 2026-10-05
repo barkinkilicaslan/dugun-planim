@@ -9,17 +9,19 @@ export interface BackupEnvelope {
   schemaVersion: number;
   appVersion: string;
   exportedAt: string;
-  payload: AppData;
+  /** Kendi davetiye görselleri yedeğe girmez; bu yüzden `personalInvitations` alanı yoktur. */
+  payload: Omit<AppData, 'personalInvitations'>;
 }
 
 export function createBackup(data: AppData, now = new Date()): string {
+  const { personalInvitations: _personalInvitations, ...rest } = data;
   const envelope: BackupEnvelope = {
     format: BACKUP_FORMAT,
     schemaVersion: SCHEMA_VERSION,
     appVersion: APP_VERSION,
     exportedAt: now.toISOString(),
-    // Davetiye fotoğrafları yedeğe dahil edilmez; cihaz içi dosya yolu da dosyaya yazılmaz.
-    payload: { ...data, invitationDesigns: data.invitationDesigns.map((design) => ({ ...design, photoUri: '' })) },
+    // Davetiye fotoğrafları ve kişisel davetiye görselleri yedeğe dahil edilmez; cihaz içi dosya yolu da yazılmaz.
+    payload: { ...rest, invitationDesigns: data.invitationDesigns.map((design) => ({ ...design, photoUri: '' })) },
   };
   return JSON.stringify(envelope, null, 2);
 }
@@ -41,5 +43,5 @@ export function parseBackup(raw: string): AppData {
     envelope.schemaVersion > SCHEMA_VERSION
   )
     throw new ValidationError(t('backup.unsupportedSchema', { version: String(envelope.schemaVersion) }));
-  return validateAppData(envelope.payload as AppData);
+  return validateAppData({ ...envelope.payload, personalInvitations: [] } as AppData);
 }

@@ -1,7 +1,8 @@
 {
   "ios": {
     "CFBundleDisplayName": "Düğün Planım",
-    "NSContactsUsageDescription": "Düğün Planım only accesses Contacts so you can add the people you choose to your guest list. Your contacts are never sent off your device."
+    "NSContactsUsageDescription": "Düğün Planım only accesses Contacts so you can add the people you choose to your guest list. Your contacts are never sent off your device.",
+    "NSPhotoLibraryUsageDescription": "Düğün Planım only accesses Photos so it can copy the invitation image you choose into the app. The image is never sent off your device."
   },
   "android": {
     "app_name": "Düğün Planım"

@@ -120,6 +120,22 @@ export default function HomeScreen() {
           style={styles.quickButton}
         />
       </View>
+      <Card>
+        <AppText variant="subtitle">{t('home.personal.title')}</AppText>
+        <AppText color={theme.colors.muted}>{t('home.personal.body')}</AppText>
+        <Button
+          label={t('home.personal.upload')}
+          accessibilityLabel={t('home.personal.uploadA11y')}
+          onPress={() => router.push('/personal-invitation')}
+        />
+        {data.personalInvitations.length ? (
+          <Button
+            label={t('home.personal.view', { count: data.personalInvitations.length })}
+            variant="secondary"
+            onPress={() => router.push('/invitations')}
+          />
+        ) : null}
+      </Card>
       <SectionHeader title={t('home.upcoming')} description={t('home.upcomingHint')} />
       {upcoming.length ? (
         <Card>

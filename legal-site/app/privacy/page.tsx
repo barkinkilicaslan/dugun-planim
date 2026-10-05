@@ -36,8 +36,10 @@ export default function PrivacyPage() {
         yalnız sizin seçtiğiniz kişilerin ad, telefon ve e-posta bilgisi davetli listenize kaydedilir, rehberin tamamı
         kopyalanmaz ve hiçbir rehber bilgisi sunucuya gönderilmez. Dosya seçici, yedek, CSV veya davetiye fotoğrafı
         seçtiğiniz anda; paylaşım, e-posta, SMS ve WhatsApp ekranları ise yalnız ilgili gönder/paylaş düğmesine
-        bastığınızda açılır. Uygulama hiçbir mesajı sizin onayınız olmadan göndermez. Konum, kamera, mikrofon ve
-        fotoğraf arşivi erişimi istenmez.
+        bastığınızda açılır. Uygulama hiçbir mesajı sizin onayınız olmadan göndermez. “Kendi davetiyeni yükle”
+        seçeneğinde sistemin fotoğraf veya dosya seçici ekranı açılır; uygulama yalnız sizin seçtiğiniz görsele erişir
+        ve onu cihazdaki uygulama klasörüne kopyalar, fotoğraf arşivinin tamamını okumaz ve görseli sunucuya göndermez.
+        Konum, kamera ve mikrofon erişimi istenmez.
       </p>
       <h2>4. Yedekler ve paylaşımlar</h2>
       <p>

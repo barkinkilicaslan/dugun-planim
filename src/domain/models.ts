@@ -158,6 +158,21 @@ export interface InvitationDesign {
   updatedAt: string;
 }
 
+/**
+ * Kullanıcının kendi hazırladığı davetiye görseli (JPG/PNG). Dosya yalnız cihazdaki uygulama klasöründe tutulur;
+ * sunucuya gönderilmez ve JSON yedeğe dahil edilmez.
+ */
+export interface PersonalInvitation {
+  id: string;
+  name: string;
+  /** Uygulama klasöründeki kalıcı kopya (file://). */
+  imageUri: string;
+  width: number;
+  height: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AppData {
   profile: WeddingProfile;
   tasks: TaskItem[];
@@ -168,6 +183,8 @@ export interface AppData {
   vendors: Vendor[];
   notes: NoteItem[];
   invitationDesigns: InvitationDesign[];
+  /** Yedek dosyasına girmez; geri yüklemede cihazdakiler korunur. */
+  personalInvitations: PersonalInvitation[];
 }
 
 export const APP_VERSION = '1.0.0';
@@ -198,4 +215,5 @@ export const EMPTY_APP_DATA: AppData = {
   vendors: [],
   notes: [],
   invitationDesigns: [],
+  personalInvitations: [],
 };
