@@ -25,3 +25,14 @@
 `store-listing/screenshots/*-source.png` dosyaları çalışan uygulamanın browser QA oturumundan alındı. `scripts/prepare_brand_assets.py` görünür gerçek UI alanını yeniden çizmeden ve oranını bozmadan markalı tuvallere yerleştirir; `scripts/validate-assets.mjs` resmi ölçü ve alfa kurallarını otomatik doğrular.
 
 Üretilen varlıklar yalnız Düğün Planım ürünü için tasarlanmıştır. Nihai yayıncı, yayın öncesi marka tescil/benzerlik araştırması ve hedef ülke hukukunu ayrıca doğrulamalıdır; bu belge hukuki görüş değildir.
+
+## Tema hero görselleri
+
+- Dosyalar: `assets/themes/<tema-kimliği>-hero.png` (1536×1024 PNG, tema başına bir adet; altı tema). Kaynak PNG'ler korunur ve uygulama paketine girmez.
+- Üretim tarihi: 5 Ekim 2026.
+- Yöntem: OpenAI yerleşik ImageGen aracı. Altı görsel bu proje için sıfırdan üretildi.
+- Hiçbir gerçek kişinin fotoğrafı veya kimliği referans olarak kullanılmadı. Görsellerdeki yetişkin çiftler kurgusal ve yapay olarak üretilmiştir.
+- Görsellerde gömülü yazı, logo, marka veya filigran bulunmaz. Çift isimleri, sayaç ve tarih uygulamada gerçek metin olarak çizilir.
+- Uygulama kopyaları: `assets/themes/optimized/<tema-kimliği>-hero.jpg` (1280×853) ve `…-thumb.jpg` (480×320, "Tarzını seç" kartları için); kaynak PNG'lerden yeniden boyutlandırılarak JPEG olarak üretildi. Uygulama yalnızca bu optimize türevleri kullanır.
+- Görselleri uygulamaya bağlayan harita: `src/constants/theme-images.ts` (statik `require`). Görseller harici sunucudan yüklenmez ve kullanıcı verisi içermez.
+- Yayın öncesi doğrulama: Nihai yayıncı, hedef ülke mevzuatına ve kullanılan üretim hizmetinin geçerli kullanım koşullarına uyumu doğrulamalıdır. Bu belge hukuki görüş değildir.

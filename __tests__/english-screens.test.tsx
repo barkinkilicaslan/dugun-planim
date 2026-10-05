@@ -172,25 +172,17 @@ jest.mock('expo-router', () => ({
   router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() },
   useLocalSearchParams: () => mockParams,
 }));
-jest.mock('@/context/theme-context', () => ({
-  useAppTheme: () => ({
-    dark: false,
-    colors: {
-      background: '#fff',
-      primary: '#6F1D3A',
-      accent: '#c7a86b',
-      muted: '#666',
-      warning: '#995500',
-      danger: '#a33',
-      success: '#356A50',
-      surface: '#fff',
-      surfaceAlt: '#eee',
-      text: '#222',
-      border: '#ddd',
-      primaryText: '#fff',
-    },
-  }),
-}));
+const mockThemeControls = {
+  hasChosen: true,
+  themeId: 'romantic-garden',
+  setThemeId: jest.fn(),
+  resetTheme: jest.fn(),
+};
+jest.mock('@/context/theme-context', () => {
+  const { getTheme } = require('@/constants/themes');
+  const theme = getTheme('romantic-garden');
+  return { useAppTheme: () => theme, useThemeControls: () => mockThemeControls };
+});
 jest.mock('@/components/ui/screen', () => {
   const { View } = require('react-native');
   const { AppText } = require('@/components/ui/app-text');

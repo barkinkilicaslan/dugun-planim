@@ -64,3 +64,13 @@ Diğer ─────┬→ Masa Planı
 - Formlar `KeyboardAvoidingView` ve kaydırma alanıyla klavye altında kalmaz.
 - Yatay/dikey yön değişiminde kartlar sarılır; sabit piksel ekran genişliği kullanılmaz.
 - Hareket azaltma tercihinde sürekli/tekrarlı animasyon yoktur; ilk sürümde zorunlu animasyon kullanılmaz.
+
+## Tema sistemi (aşama 1)
+
+Altı tarz (`romantic-garden`, `mediterranean-dream`, `modern-elegance`, `bohemian-sunset`, `midnight-glamour`, `wildflower-meadow`) `src/constants/themes.ts` içindeki merkezi token'larla tanımlanır; ekranlar `useAppTheme()` ile okur, sabit renk yazılmaz.
+
+- Token grupları: renkler (yüzey, metin, kenar, durum, ikon kutusu, ilerleme, alt menü, hero), tipografi (başlık/gövde, etiket aralığı), şekil (kart/kontrol köşesi, ikon kutusu, fotoğraf alanı, ilerleme biçimi, gölge) ve `layout` varyantları (hero, metrik, hızlı işlem) ile dekoratif motif türü.
+- Ana sayfa tek ekrandır; hero alanı tema başına bir fotoğraf (`src/constants/theme-images.ts`) ve soldan sağa solan bir okunabilirlik katmanı (`heroScrim`) kullanır; fotoğrafın üstündeki metin gerçek metindir. Kompozisyon `src/components/home` içindeki ortak bileşenlerde tema varyantıyla değişir. Dekoratif motifler saf `View` ile çizilir; fotoğraflar pakete dahil yerel dosyalardır, harici görsel yoktur.
+- Tercih `expo-sqlite/kv-store` içinde saklanır (yedeğe girmez, tüm veri silinince sıfırlanır). İlk açılışta tarz yoksa `/style-select` gösterilir.
+- Gece Işıltısı tek koyu temadır. Eski `profile.theme` (açık/koyu/sistem) alanı veritabanında ve yedekte geriye uyumluluk için durur, arayüzde kullanılmaz.
+- Kontrast: her tema için metin/yüzey çiftleri testlerle en az 4.5:1 doğrulanır (`__tests__/themes.test.ts`).

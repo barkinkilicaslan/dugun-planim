@@ -52,12 +52,13 @@ function AppNavigator() {
         screenOptions={{
           headerStyle: { backgroundColor: theme.colors.surface },
           headerTintColor: theme.colors.text,
-          headerTitleStyle: { fontWeight: '700' },
+          headerTitleStyle: { fontWeight: '700', fontFamily: theme.typography.heading.fontFamily },
           contentStyle: { backgroundColor: theme.colors.background },
           headerBackTitle: t('nav.back'),
         }}
       >
         <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="style-select" options={{ headerShown: false, gestureEnabled: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false, gestureEnabled: false }} />
         <Stack.Screen name="edit/task" options={{ title: t('nav.task') }} />

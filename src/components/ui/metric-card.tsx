@@ -24,7 +24,7 @@ export function MetricCard({
         {label}
       </AppText>
       <AppText
-        variant="subtitle"
+        variant="title"
         color={color}
         numberOfLines={1}
         adjustsFontSizeToFit
@@ -48,5 +48,5 @@ export function MetricGrid({ children }: React.PropsWithChildren) {
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   card: { flexGrow: 1, flexBasis: 150, minWidth: 140 },
-  value: { fontFamily: 'Georgia', fontSize: 21, lineHeight: 27 },
+  value: { fontSize: 21, lineHeight: 27 },
 });

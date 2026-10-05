@@ -42,22 +42,17 @@ jest.mock('expo-constants', () => ({
   __esModule: true,
   default: { expoConfig: { extra: { supportEmail: 'a@b.co' } } },
 }));
-jest.mock('@/context/theme-context', () => ({
-  useAppTheme: () => ({
-    dark: false,
-    colors: {
-      primary: '#6F1D3A',
-      muted: '#666',
-      warning: '#995500',
-      danger: '#a33',
-      surface: '#fff',
-      surfaceAlt: '#eee',
-      text: '#222',
-      border: '#ddd',
-      primaryText: '#fff',
-    },
-  }),
-}));
+const mockThemeControls = {
+  hasChosen: true,
+  themeId: 'romantic-garden',
+  setThemeId: jest.fn(),
+  resetTheme: jest.fn(),
+};
+jest.mock('@/context/theme-context', () => {
+  const { getTheme } = require('@/constants/themes');
+  const theme = getTheme('romantic-garden');
+  return { useAppTheme: () => theme, useThemeControls: () => mockThemeControls };
+});
 jest.mock('@/components/ui/screen', () => {
   const { View } = require('react-native');
   return { Screen: ({ children }: { children: React.ReactNode }) => <View>{children}</View> };

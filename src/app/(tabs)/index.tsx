@@ -1,24 +1,26 @@
-import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 
-import { AppText } from '@/components/ui/app-text';
+import { HomeHero } from '@/components/home/home-hero';
+import {
+  HomeMetrics,
+  HomeProgress,
+  HomeQuickActions,
+  PersonalInvitationCard,
+  type MetricItem,
+} from '@/components/home/home-sections';
+import { IconBox } from '@/components/theme/decor';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ListRow } from '@/components/ui/list-row';
-import { MetricCard, MetricGrid } from '@/components/ui/metric-card';
-import { ProgressBar } from '@/components/ui/progress';
 import { Screen } from '@/components/ui/screen';
 import { SectionHeader } from '@/components/ui/section-header';
-import { spacing } from '@/constants/theme';
 import { useApp } from '@/context/app-context';
 import { useI18n } from '@/context/language-context';
-import { useAppTheme } from '@/context/theme-context';
 import { dashboardSummary, daysUntil, formatDate, formatMoney } from '@/domain/calculations';
 
 export default function HomeScreen() {
   const { data, refresh, loading } = useApp();
-  const theme = useAppTheme();
   const { t, intl } = useI18n();
   const summary = dashboardSummary(data);
   const dayLabel =
@@ -36,6 +38,7 @@ export default function HomeScreen() {
         title: item.title,
         date: item.dueDate,
         type: t('home.typeTask'),
+        glyph: '✓',
         href: `/edit/task?id=${item.id}` as const,
       })),
     ...data.budgetItems
@@ -45,6 +48,7 @@ export default function HomeScreen() {
         title: item.title,
         date: item.dueDate,
         type: t('home.typePayment'),
+        glyph: '¤',
         href: `/edit/budget?id=${item.id}` as const,
       })),
   ]
@@ -52,77 +56,62 @@ export default function HomeScreen() {
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 3);
 
+  // Uyarı yalnız renkle değil "Bütçenin üzerinde" metniyle de aktarılır.
+  const overBudget = t('home.overBudget');
+  const metrics: MetricItem[] = [
+    { key: 'total', label: t('home.totalBudget'), value: money(summary.budget.totalBudgetCents), glyph: '¤' },
+    {
+      key: 'spent',
+      label: t('home.spent'),
+      value: money(summary.budget.actualCents),
+      tone: summary.budget.overBudgetCents > 0 ? 'warning' : 'default',
+      hint: summary.budget.overBudgetCents > 0 ? overBudget : undefined,
+      glyph: '↓',
+    },
+    {
+      key: 'remaining',
+      label: t('home.remaining'),
+      value: money(summary.budget.availableCents),
+      tone: summary.budget.availableCents < 0 ? 'warning' : 'success',
+      hint: summary.budget.availableCents < 0 ? overBudget : undefined,
+      glyph: '↑',
+    },
+    {
+      key: 'guests',
+      label: t('home.guestReplies'),
+      value: t('home.attendingCount', { count: summary.guests.attending }),
+      hint: t('home.waitingCount', { count: summary.guests.pending }),
+      glyph: '☷',
+    },
+  ];
+
   return (
-    <Screen
-      title={`${data.profile.couple1Name} & ${data.profile.couple2Name}`}
-      subtitle={t('home.subtitle')}
-      refreshing={loading}
-      onRefresh={refresh}
-    >
-      <Card style={{ backgroundColor: theme.colors.primary }}>
-        <AppText variant="caption" color={theme.colors.primaryText}>
-          {t('home.countdownLabel')}
-        </AppText>
-        <AppText
-          variant="display"
-          color={theme.colors.primaryText}
-          accessibilityLabel={summary.days > 0 ? t('home.daysLeftSentence', { days: summary.days }) : dayLabel}
-        >
-          {dayLabel}
-        </AppText>
-        <AppText color={theme.colors.primaryText}>
-          {data.profile.weddingDate ? formatDate(data.profile.weddingDate, data.profile.dateFormat) : t('home.noDate')}
-        </AppText>
-      </Card>
-      <Card>
-        <View style={styles.progressHeader}>
-          <AppText variant="subtitle">{t('home.progressTitle')}</AppText>
-          <AppText variant="subtitle" color={theme.colors.primary}>
-            %{summary.tasks.percentage}
-          </AppText>
-        </View>
-        <ProgressBar value={summary.tasks.percentage} label={t('home.taskProgress')} />
-        <AppText variant="caption" color={theme.colors.muted}>
-          {t('home.progressCounts', { done: summary.tasks.completed, left: summary.tasks.remaining })}
-        </AppText>
-      </Card>
-      <MetricGrid>
-        <MetricCard label={t('home.totalBudget')} value={money(summary.budget.totalBudgetCents)} />
-        <MetricCard
-          label={t('home.spent')}
-          value={money(summary.budget.actualCents)}
-          tone={summary.budget.overBudgetCents > 0 ? 'warning' : 'default'}
-        />
-        <MetricCard
-          label={t('home.remaining')}
-          value={money(summary.budget.availableCents)}
-          tone={summary.budget.availableCents < 0 ? 'warning' : 'success'}
-        />
-        <MetricCard
-          label={t('home.guestReplies')}
-          value={t('home.attendingCount', { count: summary.guests.attending })}
-          hint={t('home.waitingCount', { count: summary.guests.pending })}
-        />
-      </MetricGrid>
+    <Screen refreshing={loading} onRefresh={refresh}>
+      <HomeHero
+        eyebrow={t('home.countdownLabel')}
+        countdown={dayLabel}
+        countdownA11y={summary.days > 0 ? t('home.daysLeftSentence', { days: summary.days }) : dayLabel}
+        dateText={
+          data.profile.weddingDate ? formatDate(data.profile.weddingDate, data.profile.dateFormat) : t('home.noDate')
+        }
+        names={`${data.profile.couple1Name} & ${data.profile.couple2Name}`}
+      />
+      <HomeProgress
+        title={t('home.progressTitle')}
+        percentage={summary.tasks.percentage}
+        progressLabel={t('home.taskProgress')}
+        counts={t('home.progressCounts', { done: summary.tasks.completed, left: summary.tasks.remaining })}
+      />
+      <HomeMetrics items={metrics} />
       <SectionHeader title={t('home.quickActions')} />
-      <View style={styles.quick}>
-        <Button label={t('home.addTask')} onPress={() => router.push('/edit/task')} style={styles.quickButton} />
-        <Button
-          label={t('home.addGuest')}
-          onPress={() => router.push('/edit/guest')}
-          variant="secondary"
-          style={styles.quickButton}
-        />
-        <Button
-          label={t('home.addExpense')}
-          onPress={() => router.push('/edit/budget')}
-          variant="secondary"
-          style={styles.quickButton}
-        />
-      </View>
-      <Card>
-        <AppText variant="subtitle">{t('home.personal.title')}</AppText>
-        <AppText color={theme.colors.muted}>{t('home.personal.body')}</AppText>
+      <HomeQuickActions
+        actions={[
+          { key: 'task', label: t('home.addTask'), glyph: '✓', onPress: () => router.push('/edit/task') },
+          { key: 'guest', label: t('home.addGuest'), glyph: '☷', onPress: () => router.push('/edit/guest') },
+          { key: 'expense', label: t('home.addExpense'), glyph: '¤', onPress: () => router.push('/edit/budget') },
+        ]}
+      />
+      <PersonalInvitationCard title={t('home.personal.title')} body={t('home.personal.body')}>
         <Button
           label={t('home.personal.upload')}
           accessibilityLabel={t('home.personal.uploadA11y')}
@@ -135,7 +124,7 @@ export default function HomeScreen() {
             onPress={() => router.push('/invitations')}
           />
         ) : null}
-      </Card>
+      </PersonalInvitationCard>
       <SectionHeader title={t('home.upcoming')} description={t('home.upcomingHint')} />
       {upcoming.length ? (
         <Card>
@@ -145,6 +134,7 @@ export default function HomeScreen() {
               title={item.title}
               subtitle={item.type}
               meta={formatDate(item.date, data.profile.dateFormat)}
+              leading={<IconBox glyph={item.glyph} size={36} />}
               onPress={() => router.push(item.href)}
             />
           ))}
@@ -160,8 +150,3 @@ export default function HomeScreen() {
     </Screen>
   );
 }
-const styles = StyleSheet.create({
-  progressHeader: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
-  quick: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  quickButton: { flexGrow: 1, minWidth: 125 },
-});

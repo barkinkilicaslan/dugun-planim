@@ -7,7 +7,13 @@ export function SectionHeader({ title, description }: { title: string; descripti
   const theme = useAppTheme();
   return (
     <View style={styles.wrap}>
-      <AppText variant="subtitle">{title}</AppText>
+      <AppText
+        variant="subtitle"
+        accessibilityRole="header"
+        style={{ fontFamily: theme.typography?.heading.fontFamily }}
+      >
+        {title}
+      </AppText>
       {description ? (
         <AppText variant="caption" color={theme.colors.muted}>
           {description}

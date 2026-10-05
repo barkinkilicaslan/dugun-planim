@@ -39,3 +39,8 @@ yarn-error.*
 /store-listing/
 /abyss-*/
 *.md
+
+# Tasarım referansları ve tema kaynak görselleri GitHub'da kalır; mobil build'e yalnızca
+# assets/themes/optimized/ altındaki JPEG türevleri gider (src/constants/theme-images.ts).
+/design-concepts/
+/assets/themes/*-hero.png

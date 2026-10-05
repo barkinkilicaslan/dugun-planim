@@ -6,6 +6,8 @@ import Constants from 'expo-constants';
 import { AppText } from '@/components/ui/app-text';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { StyleOptionRow } from '@/components/theme/style-option-row';
+import { THEME_COPY } from '@/components/theme/theme-copy';
 import { Chips } from '@/components/ui/chips';
 import { DateField } from '@/components/ui/date-field';
 import { ListRow } from '@/components/ui/list-row';
@@ -14,16 +16,11 @@ import { SectionHeader } from '@/components/ui/section-header';
 import { TextField } from '@/components/ui/text-field';
 import { useApp } from '@/context/app-context';
 import { useI18n } from '@/context/language-context';
-import { useAppTheme } from '@/context/theme-context';
+import { useAppTheme, useThemeControls } from '@/context/theme-context';
 import { createBackup, parseBackup } from '@/domain/backup';
 import { backupPhotoNoticeBody, backupPhotoNoticeTitle, restoreCompleteMessage } from '@/domain/backup-notices';
-import {
-  APP_VERSION,
-  type CurrencyCode,
-  type DateFormatPreference,
-  type ThemePreference,
-  type WeddingProfile,
-} from '@/domain/models';
+import { THEME_IDS } from '@/constants/themes';
+import { APP_VERSION, type CurrencyCode, type DateFormatPreference, type WeddingProfile } from '@/domain/models';
 import {
   ADULTS_ONLY_PRESET_COUNT,
   adultsOnlyPreset,
@@ -38,6 +35,7 @@ const cents = (value: string) => Math.max(0, Math.round(Number(value.replace(','
 export default function SettingsScreen() {
   const { data, saveProfile, replaceAll, clearAll } = useApp();
   const theme = useAppTheme();
+  const { themeId, setThemeId, resetTheme } = useThemeControls();
   const { t, locale, preference, setPreference } = useI18n();
   const [profile, setProfile] = useState<WeddingProfile>({ ...data.profile });
   const [saving, setSaving] = useState(false);
@@ -119,7 +117,16 @@ export default function SettingsScreen() {
             {
               text: t('settings.deleteEverything'),
               style: 'destructive',
-              onPress: () => void clearAll().then(() => router.replace('/onboarding')),
+              onPress: () =>
+                void clearAll()
+                  .then(() => {
+                    // Önce yığın başa alınıp "Tarzını seç" açılır, sonra tarz sıfırlanır; böylece alttaki sekme
+                    // düzeninin koruma yönlendirmesi ikinci bir yönlendirme üretmez.
+                    if (router.canDismiss()) router.dismissAll();
+                    router.replace('/style-select');
+                    resetTheme();
+                  })
+                  .catch((error) => Alert.alert(t('settings.deleteFailed'), (error as Error).message)),
             },
           ]),
       },
@@ -248,19 +255,22 @@ export default function SettingsScreen() {
           loading={saving}
         />
       </Card>
-      <SectionHeader title={t('settings.sectionAppearance')} />
+      <SectionHeader title={t('settings.sectionStyle')} />
       <Card>
-        <Chips<ThemePreference>
-          label={t('settings.theme')}
-          value={profile.theme}
-          onChange={(value) => update('theme', value)}
-          options={[
-            { value: 'light', label: t('settings.themeLight') },
-            { value: 'dark', label: t('settings.themeDark') },
-            { value: 'system', label: t('settings.themeSystem') },
-          ]}
-        />
-        <Button label={t('settings.saveTheme')} variant="secondary" onPress={() => void save()} />
+        <View accessibilityRole="radiogroup" style={styles.styles}>
+          {THEME_IDS.map((id) => (
+            <StyleOptionRow key={id} id={id} selected={themeId === id} onPress={setThemeId} />
+          ))}
+        </View>
+        <AppText variant="caption" color={theme.colors.muted}>
+          {t('settings.styleCurrent', { name: t(THEME_COPY[themeId].name) })}
+        </AppText>
+        <AppText variant="caption" color={theme.colors.muted}>
+          {t('settings.styleHint')}
+        </AppText>
+      </Card>
+      <SectionHeader title={t('settings.sectionNotifications')} />
+      <Card>
         <ListRow
           title={t('settings.notifications')}
           subtitle={data.profile.notificationsEnabled ? t('settings.notificationsOn') : t('settings.notificationsOff')}
@@ -314,4 +324,5 @@ const styles = StyleSheet.create({
   switchRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   switchCopy: { flex: 1, gap: 4 },
   presets: { gap: 8 },
+  styles: { gap: 8 },
 });

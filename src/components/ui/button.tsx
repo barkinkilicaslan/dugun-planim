@@ -1,5 +1,6 @@
 import { ActivityIndicator, Pressable, StyleSheet, type ViewStyle } from 'react-native';
-import { radius, spacing } from '@/constants/theme';
+import { spacing } from '@/constants/theme';
+import { controlRadius } from '@/constants/themes';
 import { useAppTheme } from '@/context/theme-context';
 import { AppText } from './app-text';
 
@@ -49,6 +50,7 @@ export function Button({
         {
           backgroundColor: background,
           borderColor: variant === 'ghost' ? theme.colors.border : background,
+          borderRadius: controlRadius(theme),
           opacity: disabled ? 0.45 : pressed ? 0.78 : 1,
         },
         style,
@@ -71,7 +73,6 @@ const styles = StyleSheet.create({
     minWidth: 48,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    borderRadius: radius.md,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
