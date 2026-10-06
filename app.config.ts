@@ -45,7 +45,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'android.permission.WRITE_CONTACTS',
     ],
     adaptiveIcon: {
-      backgroundColor: '#F8F3EA',
+      backgroundColor: '#E9596C',
       foregroundImage: './assets/images/android-icon-foreground.png',
       backgroundImage: './assets/images/android-icon-background.png',
       monochromeImage: './assets/images/android-icon-monochrome.png',
@@ -61,10 +61,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-splash-screen',
       {
-        backgroundColor: '#F8F3EA',
-        dark: { backgroundColor: '#181315' },
+        // Marka: mercan zemin üstünde krem kurdele. Açık ve koyu sistem görünümünde aynıdır; koyu modda da mercan kalır.
+        backgroundColor: '#E9596C',
+        dark: { backgroundColor: '#E9596C' },
         image: './assets/images/splash-icon.png',
-        imageWidth: 180,
+        imageWidth: 240,
       },
     ],
     'expo-sqlite',
@@ -73,7 +74,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-notifications',
       {
         icon: './assets/images/notification-icon.png',
-        color: '#6F1D3A',
+        color: '#E9596C',
         defaultChannel: 'reminders',
         mode: 'production',
         enableBackgroundRemoteNotifications: false,

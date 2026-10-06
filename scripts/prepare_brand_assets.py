@@ -1,4 +1,9 @@
-"""Derive deterministic store-ready assets from the approved ImageGen master mark."""
+"""Derive the legacy store-listing assets (Play icon, feature graphic, screenshots) from the OLD master mark.
+
+The app icon, adaptive icon, splash, favicon, notification icon and the wordmark logos are NO LONGER produced here.
+They now come from the approved "Kurdele" brand design via `node scripts/prepare-brand-assets.mjs`.
+Store assets below still use the previous mark (assets/brand/symbol-master.png) until they are migrated to the new brand.
+"""
 
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
@@ -39,59 +44,6 @@ def contain(symbol: Image.Image, canvas_size: tuple[int, int], ratio: float) -> 
     canvas = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
     canvas.alpha_composite(copy, ((width - copy.width) // 2, (height - copy.height) // 2))
     return canvas
-
-
-def save_icon(symbol: Image.Image) -> None:
-    icon = Image.new("RGB", (1024, 1024), IVORY)
-    layer = contain(symbol, icon.size, 0.72)
-    icon.paste(layer, mask=layer.getchannel("A"))
-    icon.save(IMAGES / "icon.png")
-
-    foreground = contain(symbol, (1024, 1024), 0.54)
-    foreground.save(IMAGES / "android-icon-foreground.png")
-    Image.new("RGB", (1024, 1024), IVORY).save(IMAGES / "android-icon-background.png")
-
-    mono = foreground.getchannel("A")
-    monochrome = Image.new("RGBA", foreground.size, (255, 255, 255, 0))
-    monochrome.putalpha(mono)
-    monochrome.save(IMAGES / "android-icon-monochrome.png")
-
-    contain(symbol, (1024, 1024), 0.42).save(IMAGES / "splash-icon.png")
-
-    favicon = Image.new("RGB", (64, 64), IVORY)
-    fav_layer = contain(symbol, favicon.size, 0.72)
-    favicon.paste(fav_layer, mask=fav_layer.getchannel("A"))
-    favicon.save(IMAGES / "favicon.png")
-
-    notification_source = contain(symbol, (96, 96), 0.72)
-    notification = Image.new("RGBA", notification_source.size, (255, 255, 255, 0))
-    notification.putalpha(notification_source.getchannel("A"))
-    notification.save(IMAGES / "notification-icon.png")
-
-
-def save_logos(symbol: Image.Image) -> None:
-    title_font = font("georgiab.ttf", 92)
-    subtitle_font = font("arial.ttf", 30)
-
-    primary = Image.new("RGB", (1200, 1200), WARM_WHITE)
-    mark = contain(symbol, (1200, 700), 0.56)
-    primary.paste(mark, (0, 28), mark)
-    draw = ImageDraw.Draw(primary)
-    title = "Düğün Planım"
-    title_box = draw.textbbox((0, 0), title, font=title_font)
-    draw.text(((1200 - (title_box[2] - title_box[0])) / 2, 760), title, font=title_font, fill=BURGUNDY)
-    subtitle = "Hayalinizdeki günü birlikte planlayın."
-    subtitle_box = draw.textbbox((0, 0), subtitle, font=subtitle_font)
-    draw.text(((1200 - (subtitle_box[2] - subtitle_box[0])) / 2, 900), subtitle, font=subtitle_font, fill=INK)
-    primary.save(BRAND / "logo-primary.png")
-
-    horizontal = Image.new("RGB", (1800, 600), WARM_WHITE)
-    h_mark = contain(symbol, (560, 560), 0.72)
-    horizontal.paste(h_mark, (20, 20), h_mark)
-    h_draw = ImageDraw.Draw(horizontal)
-    h_draw.text((590, 180), title, font=font("georgiab.ttf", 112), fill=BURGUNDY)
-    h_draw.text((598, 325), subtitle, font=font("arial.ttf", 34), fill=INK)
-    horizontal.save(BRAND / "logo-horizontal.png")
 
 
 def save_store_assets(symbol: Image.Image) -> None:
@@ -207,11 +159,9 @@ def main() -> None:
     for directory in (BRAND, IMAGES, STORE, SCREENSHOTS):
         directory.mkdir(parents=True, exist_ok=True)
     symbol = trimmed_symbol()
-    save_icon(symbol)
-    save_logos(symbol)
     save_store_assets(symbol)
     save_store_screenshots(symbol)
-    print("Brand assets prepared.")
+    print("Legacy store assets prepared (app icon and logos: run scripts/prepare-brand-assets.mjs).")
 
 
 if __name__ == "__main__":

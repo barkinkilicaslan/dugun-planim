@@ -1,17 +1,22 @@
 # Görsel Varlık Kaynağı ve Kullanım Notları
 
-## Ana sembol
+## Marka: Kurdele (güncel)
 
-- Dosya: `assets/brand/symbol-master.png`
-- Tarih: 30 Temmuz 2026
-- Yöntem: OpenAI yerleşik ImageGen aracıyla bu proje için sıfırdan üretildi.
-- Nihai prompt özeti: takvim, planlama ritmi ve birlikteliği soyutlayan; bordo/şampanya altını; kalp, yüzük, yazı, filigran ve marka taklidi içermeyen minimal sembol.
-- Kaynak: `symbol-chroma-source.png`; düz kromaki zemin resmi skill yardımcısıyla alfa kanalına dönüştürüldü.
-- İnceleme: anlamsız yazı/filigran yok; küçük ölçekte kaybolacak ince çizgi yok; açık/koyu arka planda güçlü siluet; özgünlük kısıtları sağlandı.
+- Seçim: Kullanıcı 6 Ekim 2026'da 2 numaralı "Kurdele" ikon tasarımını onayladı.
+- Kaynak dosyalar (yalnız tasarım referansı, uygulamaya bağlanmaz ve EAS arşivine girmez): `design-concepts/brand-ribbon-v1/icon-approved.png` (onaylı ikon), `logo-horizontal-reference.png` (yazılı logo referansı) ve `README.md` (istemler ve notlar).
+- Yöntem: OpenAI yerleşik ImageGen aracı. Üçüncü taraf fotoğraf veya stok kurdele kullanılmadı; kurdele şekli onaylı ikondan alınmıştır ve değiştirilmemiştir.
+- Renkler (onaylı ikondan ölçüldü): mercan `#E9596C` (README'deki `#E85D70` hedefine yakın), krem kurdele `#FCF1E4`; yazılı logoda derin erik `#59233D`.
+- Şeffaf ana dosyalar: `assets/brand/ribbon-symbol-ivory.png` ve `ribbon-symbol-coral.png`. Onaylı ikonun zemini ve kurdelesi iki düz renk olduğundan her pikselin kurdele payı, zemin→kurdele renk doğrusuna izdüşümle hesaplandı; gürültü eşiklendi ve alanı 300 pikselden küçük yalıtılmış kalıntılar atıldı. Sonuç yalnızca ana düğüm ve iki kuyruktan oluşur, döngü delikleri şeffaftır. README'de reddedilen ImageGen şeffaf denemeleri kullanılmadı.
+- Üretim: `node scripts/prepare-brand-assets.mjs` (bağımlılıksız, deterministik) şunları çıkarır: `assets/images/icon.png` (1024×1024, opak, köşeler önceden yuvarlatılmamış), `android-icon-foreground.png` ve `android-icon-monochrome.png` (108 dp tuvalde 66 dp güvenli daire içinde), `android-icon-background.png` (düz mercan), `splash-icon.png` (Android 12 açılış dairesi içinde), `favicon.png` (64×64), `notification-icon.png` (96×96, yalnız beyaz + şeffaflık) ve her iki şeffaf sembol dosyası.
+- Yazılı logolar: `assets/brand/logo-horizontal.png` ve `logo-primary.png`, aynı betik tarafından `scripts/render-brand-logos.ps1` ile (Windows, GDI+) Georgia Bold ile dizilir. "Düğün Planım" yazısı üretilen resimden değil gerçek yazı tipinden gelir; Türkçe karakterler (ü, ğ, noktasız ı) doğrudur.
+- Doğrulama: `npm run assets:check` boyutların yanı sıra köşelerin düz mercan olduğunu, adaptive ön planın güvenli daireyi aşmadığını, tek renkli ve bildirim ikonlarının yalnız beyaz olduğunu ve sembolde yalıtılmış kalıntı bulunmadığını piksel düzeyinde denetler.
+- Altı tema paleti değişmez; marka ikonu bütün temalarda ortaktır.
 
-## Türetilen varlıklar
+## Eski sembol (yalnız eski mağaza varlıkları için)
 
-`scripts/prepare_brand_assets.py` onaylı sembolden uygulama ikonu, adaptive icon katmanları, splash, favicon, bildirim ikonu, ana/yatay logo, feature graphic ve dekoratif arka planları tekrar üretilebilir biçimde çıkarır. iOS 1024×1024 ikonu opak fildişi zemindedir. Adaptive foreground, orta güvenli bölgede tutulur.
+- Dosya: `assets/brand/symbol-master.png` (kaynak: `symbol-chroma-source.png`). 30 Temmuz 2026'da OpenAI yerleşik ImageGen aracıyla bu projede üretilen önceki marka sembolüdür (bordo/şampanya altını).
+- Uygulama ikonu, açılış ekranı, favicon, bildirim ikonu ve yazılı logolar artık bu sembolden üretilmez. `scripts/prepare_brand_assets.py` yalnızca henüz yeni markaya taşınmamış mağaza varlıklarını (Google Play ikonu, feature graphic, mağaza ekran görüntüsü çerçeveleri) bu eski sembolle üretir.
+- Yeni markaya taşınması gereken eski kullanımlar: `assets/store/google-play-icon.png`, `assets/store/feature-graphic.png`, `assets/store/screenshot-background.png`, `store-listing/screenshots/**` (başlık şeridi ve sembol), `assets/store/legal-site-preview.png`, `legal-site/public/{favicon,icon,og}.png`.
 
 ## Hukuki site sosyal görseli
 
