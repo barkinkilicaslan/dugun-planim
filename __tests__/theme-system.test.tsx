@@ -48,7 +48,15 @@ jest.mock('react-native-safe-area-context', () => {
     useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
   };
 });
-const mockRouter = { push: jest.fn(), replace: jest.fn(), canDismiss: jest.fn(() => true), dismissAll: jest.fn() };
+const mockRouter = {
+  push: jest.fn(),
+  replace: jest.fn(),
+  canDismiss: jest.fn(() => true),
+  dismissAll: jest.fn(),
+  back: jest.fn(),
+  canGoBack: jest.fn(() => true),
+};
+let mockSearchParams: Record<string, string> = {};
 jest.mock('expo-router', () => {
   const { Text: RNText } = require('react-native');
   return {
@@ -56,8 +64,11 @@ jest.mock('expo-router', () => {
       push: (...args: unknown[]) => mockRouter.push(...args),
       replace: (...args: unknown[]) => mockRouter.replace(...args),
       canDismiss: () => mockRouter.canDismiss(),
+      canGoBack: () => mockRouter.canGoBack(),
+      back: () => mockRouter.back(),
       dismissAll: () => mockRouter.dismissAll(),
     },
+    useLocalSearchParams: () => mockSearchParams,
     Redirect: ({ href }: { href: string }) => <RNText testID="redirect">{href}</RNText>,
     Tabs: Object.assign(() => <RNText testID="tabs">tabs</RNText>, { Screen: () => null }),
   };
@@ -130,6 +141,7 @@ beforeEach(() => {
   mockStoreBroken = false;
   mockOnboardingCompleted = false;
   jest.clearAllMocks();
+  mockSearchParams = {};
   setActiveLocale('tr');
 });
 afterAll(() => setActiveLocale('tr'));
@@ -244,6 +256,103 @@ describe('"Tarzını seç" screen', () => {
     expect(mockStore.get('dugun-planim.theme')).toBe('bohemian-sunset');
     expect(mockSaveProfile).not.toHaveBeenCalled();
     expect(mockCompleteOnboarding).not.toHaveBeenCalled();
+  });
+});
+
+describe('changing the theme from the home screen (?mode=change)', () => {
+  beforeEach(() => {
+    mockSearchParams = { mode: 'change' };
+    mockStore.set('dugun-planim.theme', 'bohemian-sunset');
+    mockOnboardingCompleted = true;
+  });
+  const noDataTouched = () => {
+    expect(mockSaveProfile).not.toHaveBeenCalled();
+    expect(mockReplaceAll).not.toHaveBeenCalled();
+    expect(mockClearAll).not.toHaveBeenCalled();
+    expect(mockCompleteOnboarding).not.toHaveBeenCalled();
+  };
+
+  it('opens with the current theme already selected and an apply button, not the first-run hint', async () => {
+    const view = await render(withTheme(<StyleSelectScreen />));
+    expect(view.getAllByRole('radio')).toHaveLength(6);
+    expect(view.getByLabelText('Bohem Gün Batımı. Seçili').props.accessibilityState).toMatchObject({ checked: true });
+    expect(view.getByText(/✓ Seçili/)).toBeTruthy();
+    const apply = view.getByLabelText('Bu tarzı uygula');
+    expect(apply.props.accessibilityState).toMatchObject({ disabled: false });
+    expect(view.queryByText('Devam etmek için bir tarz seçin')).toBeNull();
+    expect(view.getByText(/Düğün bilgileriniz ve verileriniz değişmez/)).toBeTruthy();
+    expect(view.getByLabelText('Vazgeç')).toBeTruthy();
+  });
+
+  it('applies the new theme instantly, saves it, returns to the previous screen and touches no data', async () => {
+    const view = await render(withTheme(<StyleSelectScreen />));
+    await fireEvent.press(view.getByLabelText('Gece Işıltısı'));
+    // Henüz uygulanmadı: onaylanana kadar kayıtlı tarz değişmez.
+    expect(mockStore.get('dugun-planim.theme')).toBe('bohemian-sunset');
+    await fireEvent.press(view.getByLabelText('Bu tarzı uygula'));
+    expect(mockStore.get('dugun-planim.theme')).toBe('midnight-glamour');
+    expect(probeText(view)).toBe('midnight-glamour|chosen');
+    expect(mockRouter.back).toHaveBeenCalledTimes(1);
+    // Onboarding'e veya başka bir ekrana yönlendirme yok.
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+    noDataTouched();
+  });
+
+  it('keeps the same theme and just returns when nothing was changed', async () => {
+    const view = await render(withTheme(<StyleSelectScreen />));
+    await fireEvent.press(view.getByLabelText('Bu tarzı uygula'));
+    expect(mockStore.get('dugun-planim.theme')).toBe('bohemian-sunset');
+    expect(mockRouter.back).toHaveBeenCalledTimes(1);
+    noDataTouched();
+  });
+
+  it('cancel returns without changing the stored theme', async () => {
+    const view = await render(withTheme(<StyleSelectScreen />));
+    await fireEvent.press(view.getByLabelText('Kır Çiçekleri'));
+    await fireEvent.press(view.getByLabelText('Vazgeç'));
+    expect(mockRouter.back).toHaveBeenCalledTimes(1);
+    expect(mockStore.get('dugun-planim.theme')).toBe('bohemian-sunset');
+    expect(probeText(view)).toBe('bohemian-sunset|chosen');
+    noDataTouched();
+  });
+
+  it('falls back to the home tabs when there is no screen to go back to', async () => {
+    mockRouter.canGoBack.mockReturnValueOnce(false);
+    const view = await render(withTheme(<StyleSelectScreen />));
+    await fireEvent.press(view.getByLabelText('Modern Zarafet'));
+    await fireEvent.press(view.getByLabelText('Bu tarzı uygula'));
+    expect(mockRouter.replace).toHaveBeenCalledWith('/(tabs)');
+    expect(mockRouter.back).not.toHaveBeenCalled();
+    expect(mockStore.get('dugun-planim.theme')).toBe('modern-elegance');
+  });
+
+  it('persists the change for the next launch', async () => {
+    const view = await render(withTheme(<StyleSelectScreen />));
+    await fireEvent.press(view.getByLabelText('Akdeniz Rüyası'));
+    await fireEvent.press(view.getByLabelText('Bu tarzı uygula'));
+    await view.unmount();
+    mockSearchParams = {};
+    const reopened = await render(withTheme(<Text>x</Text>));
+    expect(probeText(reopened)).toBe('mediterranean-dream|chosen');
+  });
+
+  it('speaks English too', async () => {
+    setActiveLocale('en');
+    const view = await render(withTheme(<StyleSelectScreen />));
+    expect(view.getByLabelText('Apply this style')).toBeTruthy();
+    expect(view.getByLabelText('Cancel')).toBeTruthy();
+    expect(view.getByText(/Your wedding details and data stay unchanged/)).toBeTruthy();
+    expect(view.getByLabelText('Bohemian Sunset. Selected')).toBeTruthy();
+  });
+
+  it('first-run mode is unchanged: nothing is preselected and there is no cancel button', async () => {
+    mockSearchParams = {};
+    mockStore.clear();
+    const view = await render(withTheme(<StyleSelectScreen />));
+    expect(view.queryByText(/✓ Seçili/)).toBeNull();
+    expect(view.getByLabelText('Bu tarzla devam et').props.accessibilityState).toMatchObject({ disabled: true });
+    expect(view.queryByLabelText('Vazgeç')).toBeNull();
+    expect(view.queryByLabelText('Bu tarzı uygula')).toBeNull();
   });
 });
 

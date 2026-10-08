@@ -6,6 +6,7 @@ import {
   HomeProgress,
   HomeQuickActions,
   PersonalInvitationCard,
+  ThemeSwitchRow,
   type MetricItem,
 } from '@/components/home/home-sections';
 import { IconBox } from '@/components/theme/decor';
@@ -17,11 +18,15 @@ import { Screen } from '@/components/ui/screen';
 import { SectionHeader } from '@/components/ui/section-header';
 import { useApp } from '@/context/app-context';
 import { useI18n } from '@/context/language-context';
+import { useThemeControls } from '@/context/theme-context';
+import { THEME_COPY } from '@/components/theme/theme-copy';
 import { dashboardSummary, daysUntil, formatDate, formatMoney } from '@/domain/calculations';
 
 export default function HomeScreen() {
   const { data, refresh, loading } = useApp();
   const { t, intl } = useI18n();
+  const { themeId } = useThemeControls();
+  const themeName = t(THEME_COPY[themeId].name);
   const summary = dashboardSummary(data);
   const dayLabel =
     summary.days > 0
@@ -95,6 +100,13 @@ export default function HomeScreen() {
           data.profile.weddingDate ? formatDate(data.profile.weddingDate, data.profile.dateFormat) : t('home.noDate')
         }
         names={`${data.profile.couple1Name} & ${data.profile.couple2Name}`}
+      />
+      <ThemeSwitchRow
+        currentName={themeName}
+        label={t('home.currentTheme')}
+        actionLabel={t('home.changeTheme')}
+        accessibilityLabel={t('home.changeThemeA11y', { name: themeName })}
+        onPress={() => router.push('/style-select?mode=change')}
       />
       <HomeProgress
         title={t('home.progressTitle')}

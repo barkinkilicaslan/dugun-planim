@@ -4,7 +4,11 @@ import HomeScreen from '@/app/(tabs)/index';
 import { THEME_IDS, getTheme, type ThemeId } from '@/constants/themes';
 import { AppThemeProvider } from '@/context/theme-context';
 import { EMPTY_APP_DATA, EMPTY_PROFILE, type AppData } from '@/domain/models';
-import { setActiveLocale } from '@/i18n';
+import { THEME_COPY } from '@/components/theme/theme-copy';
+import { createTranslator, setActiveLocale } from '@/i18n';
+
+const TR = createTranslator('tr');
+const EN = createTranslator('en');
 
 const now = '2026-10-02T10:00:00.000Z';
 /** Bugünden `days` gün sonrası, YEREL takvim tarihi olarak (uygulama günleri yerel saate göre sayar). */
@@ -133,6 +137,27 @@ describe.each(THEME_IDS)('home screen in %s', (id) => {
     expect(view.getByText('Yaklaşanlar')).toBeTruthy();
     expect(view.getByLabelText('Salonu gez')).toBeTruthy();
     expect(view.getByLabelText('Salon kaparo')).toBeTruthy();
+  });
+
+  it('offers a clearly visible "change theme" action that opens the picker with the current theme', async () => {
+    const view = await renderHome(id);
+    const row = view.getByTestId('home-theme-switch');
+    expect(row.props.accessibilityRole).toBe('button');
+    expect(view.getByText(TR(THEME_COPY[id].name))).toBeTruthy();
+    expect(row.props.accessibilityLabel).toBe('Temayı değiştir. Şu anki tarz: ' + TR(THEME_COPY[id].name));
+    expect(view.getByText(/Temayı değiştir/)).toBeTruthy();
+    await fireEvent.press(row);
+    expect(mockPush).toHaveBeenCalledWith('/style-select?mode=change');
+  });
+
+  it('keeps the change-theme action in English', async () => {
+    setActiveLocale('en');
+    const view = await renderHome(id);
+    expect(view.getByTestId('home-theme-switch').props.accessibilityLabel).toBe(
+      'Change theme. Current style: ' + EN(THEME_COPY[id].name),
+    );
+    expect(view.getByText(/Change theme/)).toBeTruthy();
+    expect(view.getByText('Current style')).toBeTruthy();
   });
 
   it('renders the English content', async () => {

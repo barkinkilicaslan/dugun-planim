@@ -878,6 +878,13 @@ export const en: { [K in keyof typeof tr]: Widen<(typeof tr)[K]> } = {
   'style.subtitle': 'How should your wedding plan look? You can change it anytime in Settings.',
   'style.continue': 'Continue with this style',
   'style.continuePick': 'Pick a style to continue',
+  'style.apply': 'Apply this style',
+  'style.subtitleChange':
+    'The style you pick applies across the whole app. Your wedding details and data stay unchanged.',
+  'home.changeTheme': 'Change theme',
+  'home.currentTheme': 'Current style',
+  'home.changeThemeA11y': ({ name }: { name: string }) => `Change theme. Current style: ${name}`,
+  'intro.skip': 'Tap to skip the intro',
   'style.selected': 'Selected',
   'style.romantic-garden.name': 'Romantic Garden',
   'style.romantic-garden.desc': 'A warm, editorial look in coral, raspberry and lavender.',

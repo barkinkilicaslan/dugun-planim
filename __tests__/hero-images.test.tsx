@@ -34,7 +34,10 @@ const mockStore = new Map<string, string>();
 jest.mock('@/context/app-context', () => ({
   useApp: () => ({ data: mockData, loading: false, refresh: jest.fn() }),
 }));
-jest.mock('expo-router', () => ({ router: { push: jest.fn(), replace: jest.fn() } }));
+jest.mock('expo-router', () => ({
+  router: { push: jest.fn(), replace: jest.fn(), back: jest.fn(), canGoBack: () => true },
+  useLocalSearchParams: () => ({}),
+}));
 jest.mock('expo-sqlite/kv-store', () => ({
   __esModule: true,
   default: {

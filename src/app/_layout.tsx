@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 
+import { IntroGate } from '@/components/brand/brand-intro';
 import { AppText } from '@/components/ui/app-text';
 import { Button } from '@/components/ui/button';
 import { AppProvider, useApp } from '@/context/app-context';
@@ -25,18 +26,18 @@ function AppNavigator() {
   useEffect(() => {
     cleanupInvitationTemp();
   }, []);
-  useEffect(() => {
-    if (!loading) void SplashScreen.hideAsync();
-  }, [loading]);
+  const failed = Boolean(error);
+  // Yükleme ve hata ekranları da tanıtımın altında hazır bekler; tanıtım kapanınca kullanıcı boş ekran görmez.
+  let content: ReactNode;
   if (loading)
-    return (
+    content = (
       <View style={[styles.loading, { backgroundColor: theme.colors.background }]}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
         <AppText>{t('app.preparing')}</AppText>
       </View>
     );
-  if (error)
-    return (
+  else if (failed)
+    content = (
       <View style={[styles.loading, { backgroundColor: theme.colors.background }]}>
         <AppText variant="title">{t('app.openFailed')}</AppText>
         <AppText color={theme.colors.danger} style={styles.errorCopy}>
@@ -45,41 +46,47 @@ function AppNavigator() {
         <Button label={t('app.retry')} onPress={() => void refresh()} />
       </View>
     );
+  else
+    content = (
+      <>
+        <Stack
+          screenOptions={{
+            headerStyle: { backgroundColor: theme.colors.surface },
+            headerTintColor: theme.colors.text,
+            headerTitleStyle: { fontWeight: '700', fontFamily: theme.typography.heading.fontFamily },
+            contentStyle: { backgroundColor: theme.colors.background },
+            headerBackTitle: t('nav.back'),
+          }}
+        >
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="style-select" options={{ headerShown: false, gestureEnabled: false }} />
+          <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false, gestureEnabled: false }} />
+          <Stack.Screen name="edit/task" options={{ title: t('nav.task') }} />
+          <Stack.Screen name="edit/guest" options={{ title: t('nav.guest') }} />
+          <Stack.Screen name="edit/budget" options={{ title: t('nav.budgetItem') }} />
+          <Stack.Screen name="edit/vendor" options={{ title: t('nav.vendor') }} />
+          <Stack.Screen name="edit/note" options={{ title: t('nav.note') }} />
+          <Stack.Screen name="contacts-import" options={{ title: t('nav.contactsImport') }} />
+          <Stack.Screen name="invitations" options={{ title: t('nav.invitations') }} />
+          <Stack.Screen name="invitation-editor" options={{ title: t('nav.invitationEditor') }} />
+          <Stack.Screen name="personal-invitation" options={{ title: t('nav.personalInvitation') }} />
+          <Stack.Screen name="invite-send" options={{ title: t('nav.inviteSend') }} />
+          <Stack.Screen name="tables" options={{ title: t('nav.tables') }} />
+          <Stack.Screen name="venue-editor" options={{ title: t('nav.venueEditor') }} />
+          <Stack.Screen name="vendors" options={{ title: t('nav.vendors') }} />
+          <Stack.Screen name="calendar" options={{ title: t('nav.calendar') }} />
+          <Stack.Screen name="notes" options={{ title: t('nav.notes') }} />
+          <Stack.Screen name="settings" options={{ title: t('nav.settings') }} />
+          <Stack.Screen name="legal/[page]" options={{ title: t('nav.legal') }} />
+        </Stack>
+      </>
+    );
   return (
-    <>
+    <IntroGate loading={loading} failed={failed}>
       <StatusBar style={theme.dark ? 'light' : 'dark'} />
-      <Stack
-        screenOptions={{
-          headerStyle: { backgroundColor: theme.colors.surface },
-          headerTintColor: theme.colors.text,
-          headerTitleStyle: { fontWeight: '700', fontFamily: theme.typography.heading.fontFamily },
-          contentStyle: { backgroundColor: theme.colors.background },
-          headerBackTitle: t('nav.back'),
-        }}
-      >
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="style-select" options={{ headerShown: false, gestureEnabled: false }} />
-        <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false, gestureEnabled: false }} />
-        <Stack.Screen name="edit/task" options={{ title: t('nav.task') }} />
-        <Stack.Screen name="edit/guest" options={{ title: t('nav.guest') }} />
-        <Stack.Screen name="edit/budget" options={{ title: t('nav.budgetItem') }} />
-        <Stack.Screen name="edit/vendor" options={{ title: t('nav.vendor') }} />
-        <Stack.Screen name="edit/note" options={{ title: t('nav.note') }} />
-        <Stack.Screen name="contacts-import" options={{ title: t('nav.contactsImport') }} />
-        <Stack.Screen name="invitations" options={{ title: t('nav.invitations') }} />
-        <Stack.Screen name="invitation-editor" options={{ title: t('nav.invitationEditor') }} />
-        <Stack.Screen name="personal-invitation" options={{ title: t('nav.personalInvitation') }} />
-        <Stack.Screen name="invite-send" options={{ title: t('nav.inviteSend') }} />
-        <Stack.Screen name="tables" options={{ title: t('nav.tables') }} />
-        <Stack.Screen name="venue-editor" options={{ title: t('nav.venueEditor') }} />
-        <Stack.Screen name="vendors" options={{ title: t('nav.vendors') }} />
-        <Stack.Screen name="calendar" options={{ title: t('nav.calendar') }} />
-        <Stack.Screen name="notes" options={{ title: t('nav.notes') }} />
-        <Stack.Screen name="settings" options={{ title: t('nav.settings') }} />
-        <Stack.Screen name="legal/[page]" options={{ title: t('nav.legal') }} />
-      </Stack>
-    </>
+      {content}
+    </IntroGate>
   );
 }
 

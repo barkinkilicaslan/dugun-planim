@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -9,7 +9,7 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { shouldLoadThumbnail } from '@/components/theme/lazy-visibility';
@@ -25,18 +25,25 @@ const MAX_WIDTH = 720;
 const GAP = spacing.md;
 
 /**
- * İlk açılışta (kayıtlı tarz yokken) gösterilen "Tarzını seç" ekranı. Seçim yapılmadan devam edilemez;
- * seçimden sonra onboarding tamamlandıysa ana sayfaya, tamamlanmadıysa onboarding akışına gidilir.
+ * "Tarzını seç" ekranı. İlk açılışta (kayıtlı tarz yokken) seçim yapılmadan devam edilemez; seçimden sonra
+ * onboarding tamamlandıysa ana sayfaya, tamamlanmadıysa onboarding akışına gidilir.
+ *
+ * `?mode=change` ile (ana sayfadaki "Temayı değiştir" eylemi) açılırsa mevcut tarz seçili gelir; yeni seçim uygulanıp
+ * kaydedilir ve kullanıcı geldiği ekrana döner. Onboarding'e veya düğün verilerine dokunulmaz.
  */
 export default function StyleSelectScreen() {
   const { t } = useI18n();
   const base = useAppTheme();
   const { data } = useApp();
-  const { setThemeId, hasChosen } = useThemeControls();
+  const { setThemeId, hasChosen, themeId } = useThemeControls();
+  const { mode } = useLocalSearchParams<{ mode?: string }>();
+  const changing = mode === 'change';
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const [selected, setSelected] = useState<ThemeId | null>(null);
+  const [selected, setSelected] = useState<ThemeId | null>(changing ? themeId : null);
   const [proceeding, setProceeding] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
+  const revealedCurrent = useRef(false);
   const [scrollY, setScrollY] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(0);
   const [gridTop, setGridTop] = useState(0);
@@ -51,6 +58,14 @@ export default function StyleSelectScreen() {
     if (proceeding && hasChosen) router.replace(data.profile.onboardingCompleted ? '/(tabs)' : '/onboarding');
   }, [proceeding, hasChosen, data.profile.onboardingCompleted]);
 
+  // Değiştirme modunda mevcut tarzın kartı ekran dışında kalmasın: ölçüm gelince bir kez o karta kaydırılır.
+  const currentLayout = layouts[themeId];
+  useEffect(() => {
+    if (!changing || revealedCurrent.current || !currentLayout) return;
+    revealedCurrent.current = true;
+    scrollRef.current?.scrollTo({ y: Math.max(0, gridTop + currentLayout.y - spacing.md), animated: false });
+  }, [changing, currentLayout, gridTop]);
+
   const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) =>
     // 120 pt kovalara yuvarlanır: aynı kovada state değişmez, kart ağacı yeniden çizilmez.
     setScrollY(Math.round(event.nativeEvent.contentOffset.y / 120) * 120);
@@ -61,15 +76,25 @@ export default function StyleSelectScreen() {
     );
   };
 
+  function leave() {
+    if (router.canGoBack()) router.back();
+    else router.replace('/(tabs)');
+  }
+
   function proceed() {
     if (!selected || proceeding) return;
     setThemeId(selected);
+    if (changing) {
+      leave();
+      return;
+    }
     setProceeding(true);
   }
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={[styles.safe, { backgroundColor: base.colors.background }]}>
       <ScrollView
+        ref={scrollRef}
         testID="style-scroll"
         onScroll={onScroll}
         scrollEventThrottle={64}
@@ -78,11 +103,25 @@ export default function StyleSelectScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
+          {changing ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('common.cancel')}
+              onPress={leave}
+              hitSlop={8}
+              style={({ pressed }) => [styles.cancel, { opacity: pressed ? 0.6 : 1 }]}
+            >
+              <AppText variant="label" color={base.colors.primary}>
+                {'‹ '}
+                {t('common.cancel')}
+              </AppText>
+            </Pressable>
+          ) : null}
           <View style={styles.header}>
             <AppText variant="display" accessibilityRole="header">
               {t('style.title')}
             </AppText>
-            <AppText color={base.colors.muted}>{t('style.subtitle')}</AppText>
+            <AppText color={base.colors.muted}>{changing ? t('style.subtitleChange') : t('style.subtitle')}</AppText>
           </View>
           <View
             accessibilityRole="radiogroup"
@@ -127,7 +166,7 @@ export default function StyleSelectScreen() {
           )}
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={t('style.continue')}
+            accessibilityLabel={changing ? t('style.apply') : t('style.continue')}
             accessibilityState={{ disabled: !selected }}
             disabled={!selected}
             onPress={proceed}
@@ -141,7 +180,7 @@ export default function StyleSelectScreen() {
             ]}
           >
             <AppText variant="label" color={accent ? accent.primaryText : base.colors.muted} style={styles.ctaLabel}>
-              {t('style.continue')}
+              {changing ? t('style.apply') : t('style.continue')}
             </AppText>
           </Pressable>
         </View>
@@ -162,6 +201,7 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
   },
   header: { gap: spacing.sm },
+  cancel: { minHeight: 44, minWidth: 44, justifyContent: 'center', alignSelf: 'flex-start' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP },
   footer: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: spacing.md },
   footerInner: {

@@ -19,6 +19,64 @@ export interface MetricItem {
   glyph: string;
 }
 
+/**
+ * "Temayı değiştir" eylemi: şu anki tarzı gösterir, dokununca altı temalı seçim ekranını açar. Tek bir düğme olarak
+ * okunur; eylem metni yalnız renkle değil açık bir etiket ve ok işaretiyle de belirtilir. Dokunma alanı en az 56 pt.
+ */
+export function ThemeSwitchRow({
+  currentName,
+  label,
+  actionLabel,
+  accessibilityLabel,
+  onPress,
+}: {
+  currentName: string;
+  label: string;
+  actionLabel: string;
+  accessibilityLabel: string;
+  onPress: () => void;
+}) {
+  const theme = useAppTheme();
+  const c = theme.colors;
+  return (
+    <Pressable
+      testID="home-theme-switch"
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.themeRow,
+        {
+          backgroundColor: c.surface,
+          borderColor: c.border,
+          borderWidth: theme.shape.cardBorderWidth,
+          borderRadius: cardRadius(theme),
+          opacity: pressed ? 0.8 : 1,
+        },
+      ]}
+    >
+      <IconBox glyph="◐" size={40} />
+      <View style={styles.flex}>
+        <Eyebrow color={c.muted}>{label}</Eyebrow>
+        <AppText variant="label" numberOfLines={2}>
+          {currentName}
+        </AppText>
+      </View>
+      <View
+        style={[
+          styles.themeAction,
+          { backgroundColor: c.primary, borderRadius: controlRadius(theme) > 40 ? 999 : controlRadius(theme) },
+        ]}
+      >
+        <AppText variant="label" color={c.primaryText}>
+          {actionLabel}
+          {' ›'}
+        </AppText>
+      </View>
+    </Pressable>
+  );
+}
+
 export function HomeProgress({
   title,
   percentage,
@@ -331,4 +389,6 @@ const styles = StyleSheet.create({
   },
   tileLabel: { textAlign: 'center' },
   decor: { position: 'absolute', top: -8, right: -8, opacity: 0.35 },
+  themeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 64, padding: spacing.md },
+  themeAction: { minHeight: 44, justifyContent: 'center', paddingHorizontal: spacing.md },
 });
