@@ -31,10 +31,17 @@ import {
   validateVendor,
   validateVenueLayoutItem,
 } from '@/domain/validation';
+import type { ClearAllResult, DeleteLeftover, RestoreResult } from '@/domain/data-lifecycle';
+import { removeAllExportFiles } from '@/services/export-files';
+import { removeInvitationTempFiles } from '@/services/invitation-files';
 import {
+  cancelAllScheduledReminders,
+  cancelOrphanedReminders,
   cancelTaskReminder,
   clearAllNotifications,
+  getNotificationPermission,
   requestNotificationConsent,
+  resetNotificationConsent,
   scheduleTaskReminder,
 } from '@/services/notifications';
 import {
@@ -85,8 +92,8 @@ interface AppContextValue {
   setDefaultInvitationDesign: (id: string) => Promise<void>;
   savePersonalInvitation: (item: PersonalInvitation) => Promise<void>;
   deletePersonalInvitation: (id: string) => Promise<void>;
-  replaceAll: (next: AppData) => Promise<void>;
-  clearAll: () => Promise<void>;
+  replaceAll: (next: AppData) => Promise<RestoreResult>;
+  clearAll: () => Promise<ClearAllResult>;
   createId: () => string;
 }
 
@@ -115,8 +122,28 @@ export function AppProvider({ children }: PropsWithChildren) {
         await repository.initialize();
         const loaded = await repository.load();
         if (active) setData(loaded);
-        await removeUnreferencedInvitationPhotos(loaded.invitationDesigns.map((design) => design.photoUri));
-        await removeUnreferencedPersonalInvitationFiles(loaded.personalInvitations.map((item) => item.imageUri));
+        try {
+          await removeUnreferencedInvitationPhotos(loaded.invitationDesigns.map((design) => design.photoUri));
+          await removeUnreferencedPersonalInvitationFiles(loaded.personalInvitations.map((item) => item.imageUri));
+        } catch {
+          // Dosya temizliği başarısız olursa açılış etkilenmez; bir sonraki açılışta yeniden denenir.
+        }
+        // İlk kuruluma dönmüş (veya hiç kurulmamış) bir uygulamada eski bir bildirim izin kararı kalmasın.
+        if (!loaded.profile.onboardingCompleted) {
+          try {
+            await resetNotificationConsent();
+          } catch {
+            // Anahtar silinemezse açılış etkilenmez; bir sonraki açılışta yeniden denenir.
+          }
+        }
+        // Hiçbir göreve ait olmayan eski hatırlatmalar (geri yükleme veya yarım kalmış silme kalıntısı) iptal edilir.
+        try {
+          await cancelOrphanedReminders(
+            new Set(loaded.tasks.map((task) => task.notificationId).filter((id): id is string => Boolean(id))),
+          );
+        } catch {
+          // Bildirim servisi yanıt vermezse açılış etkilenmez; bir sonraki açılışta yeniden denenir.
+        }
       } catch (reason) {
         if (active) setError(reason instanceof Error ? reason.message : t('app.startFailed'));
       } finally {
@@ -291,20 +318,82 @@ export function AppProvider({ children }: PropsWithChildren) {
       },
       replaceAll: async (next) => {
         // Kendi davetiye görselleri yedekte yoktur; geri yüklemede bu cihazdaki kayıtlar ve dosyalar korunur.
-        const valid = { ...validateAppData(next), personalInvitations: data.personalInvitations };
+        const validated = { ...validateAppData(next), personalInvitations: data.personalInvitations };
+        // Yedekteki bildirim kimlikleri başka bir cihaza/oturuma aittir ve bu cihazda geçersizdir. Yedekteki
+        // `notificationsEnabled` değeri de bu cihazın izni sayılmaz: yalnız işletim sistemi izni VARSA açık kalır.
+        // İzin durumu yalnız okunur; izin penceresi açılmaz.
+        const permission = await getNotificationPermission();
+        const backupEnabled = validated.profile.notificationsEnabled;
+        const enabled = backupEnabled && permission === 'granted';
+        const reminderTasks = validated.tasks.filter((task) => task.notificationId && !task.completed && task.dueDate);
+        const valid = {
+          ...validated,
+          profile: { ...validated.profile, notificationsEnabled: enabled },
+          tasks: validated.tasks.map((task) => (task.notificationId ? { ...task, notificationId: undefined } : task)),
+        };
+        // Önce veritabanı: başarısız olursa hatırlatmalara ve dosyalara dokunulmamış olur.
         await repository.replaceAll(valid);
+        // Veritabanı yazıldı: ekran hemen yeni veriyi gösterir. Bundan sonraki adımlar (dosya ve bildirim
+        // uzlaştırması) hata verse bile geri yükleme "başarısız" sayılmaz; kullanıcıya doğru durum bildirilir.
+        setData(valid);
         // Yedek davetiye fotoğrafı içermez; yeni veride kullanılmayan eski fotoğraf dosyaları temizlenir.
         const kept = new Set(valid.invitationDesigns.map((item) => item.photoUri));
         for (const old of data.invitationDesigns)
           if (old.photoUri && !kept.has(old.photoUri)) await removeInvitationPhoto(old.photoUri);
-        setData(valid);
+        // Eski planlı hatırlatmalar (eski görev başlıklarıyla) iptal edilir; yenileri yalnız izin varsa kurulur.
+        try {
+          await cancelAllScheduledReminders();
+        } catch {
+          // Eski hatırlatmalar bir sonraki açılışta yetim olarak iptal edilir.
+        }
+        let tasks = valid.tasks;
+        let remindersRestored = 0;
+        if (enabled) {
+          for (const task of reminderTasks) {
+            let id: string | undefined;
+            try {
+              id = await scheduleTaskReminder(task);
+              if (id) await repository.upsertTask({ ...task, notificationId: id });
+            } catch {
+              if (id) await cancelTaskReminder(id).catch(() => undefined);
+              id = undefined;
+            }
+            if (id) {
+              remindersRestored += 1;
+              const scheduledId = id;
+              tasks = tasks.map((item) => (item.id === task.id ? { ...item, notificationId: scheduledId } : item));
+            }
+          }
+        }
+        setData({ ...valid, tasks });
+        return {
+          notificationsEnabled: enabled,
+          notificationsDowngraded: backupEnabled && !enabled,
+          remindersRestored,
+          // Yedekte hatırlatmalar kapalıysa hiçbir hatırlatma denenmez; "atlandı" sayılmaz.
+          remindersSkipped: backupEnabled ? reminderTasks.length - remindersRestored : 0,
+        };
       },
       clearAll: async () => {
-        await clearAllNotifications();
-        await removeAllInvitationPhotos();
-        await removeAllPersonalInvitationFiles();
+        // Önce veritabanı: başarısız olursa hiçbir dosya veya bildirim silinmemiş olur ve işlem güvenle tekrarlanabilir.
         await repository.clearAll();
         setData({ ...EMPTY_APP_DATA, profile: { ...EMPTY_APP_DATA.profile } });
+        // Veritabanı temizlendikten sonra dış kalıntılar bağımsız temizlenir; biri başarısız olsa da diğerleri denenir
+        // ve kalanlar kullanıcıya bildirilir. İşlem idempotenttir: tekrar çalıştırmak güvenlidir.
+        const leftovers: DeleteLeftover[] = [];
+        const attempt = async (kind: DeleteLeftover, work: () => Promise<unknown> | boolean) => {
+          try {
+            if ((await work()) === false) leftovers.push(kind);
+          } catch {
+            leftovers.push(kind);
+          }
+        };
+        await attempt('reminders', clearAllNotifications);
+        await attempt('invitationPhotos', removeAllInvitationPhotos);
+        await attempt('personalInvitations', removeAllPersonalInvitationFiles);
+        await attempt('exportFiles', () => removeAllExportFiles().failed === 0);
+        await attempt('temporaryFiles', () => removeInvitationTempFiles().failed === 0);
+        return { leftovers };
       },
     }),
     [createId, data, error, loading, refresh, removeEntity, updateEntity],

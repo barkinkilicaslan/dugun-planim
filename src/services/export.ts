@@ -1,13 +1,16 @@
 import { Platform } from 'react-native';
-import { File, Paths } from 'expo-file-system';
+import { File } from 'expo-file-system';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 
+import {
+  createExportFile,
+  discardExportFile,
+  EXPORT_PREVIOUS_MAX_AGE_MS,
+  purgeExportFiles,
+  safeFilename,
+} from '@/services/export-files';
 import { getActiveLocale, t } from '@/i18n';
-
-function safeFilename(name: string): string {
-  return name.replace(/[^a-zA-Z0-9._-]/g, '-');
-}
 
 function downloadOnWeb(filename: string, contents: string, mimeType: string): void {
   if (typeof document === 'undefined') throw new Error(t('export.browserUnavailable'));
@@ -26,11 +29,19 @@ export async function shareTextFile(filename: string, contents: string, mimeType
     downloadOnWeb(safeName, contents, mimeType);
     return;
   }
-  const file = new File(Paths.cache, safeName);
+  // Önceki (5 dakikadan eski) dışa aktarma dosyaları silinir; yeni dosya yalnız uygulamanın kendi önbellek dizinine yazılır.
+  purgeExportFiles(EXPORT_PREVIOUS_MAX_AGE_MS);
+  const file = createExportFile(safeName);
   file.create({ overwrite: true, intermediates: true });
-  file.write(contents);
-  if (!(await Sharing.isAvailableAsync())) throw new Error(t('share.unavailable'));
-  await Sharing.shareAsync(file.uri, { mimeType, dialogTitle: t('export.shareTitle') });
+  try {
+    file.write(contents);
+    if (!(await Sharing.isAvailableAsync())) throw new Error(t('share.unavailable'));
+    await Sharing.shareAsync(file.uri, { mimeType, dialogTitle: t('export.shareTitle') });
+  } catch (error) {
+    // Paylaşım açılamadıysa kişisel veri içeren dosya süre dolmasını beklemeden silinir.
+    discardExportFile(file);
+    throw error;
+  }
 }
 
 export async function shareHtmlAsPdf(filename: string, html: string): Promise<void> {
@@ -42,9 +53,27 @@ export async function shareHtmlAsPdf(filename: string, html: string): Promise<vo
     popup.print();
     return;
   }
-  const result = await Print.printToFileAsync({ html });
-  if (!(await Sharing.isAvailableAsync())) throw new Error(t('share.unavailable'));
-  await Sharing.shareAsync(result.uri, { mimeType: 'application/pdf', dialogTitle: filename });
+  purgeExportFiles(EXPORT_PREVIOUS_MAX_AGE_MS);
+  const printed = await Print.printToFileAsync({ html });
+  // expo-print dosyayı kendi geçici klasörüne yazar; paylaşılacak kopya uygulamanın dışa aktarma dizinine alınır, özgün silinir.
+  const source = new File(printed.uri);
+  const target = createExportFile(filename);
+  try {
+    await source.copy(target);
+  } finally {
+    try {
+      if (source.exists) source.delete();
+    } catch {
+      // Geçici dosya açılışta ve "Tüm verilerimi sil" ile de temizlenir.
+    }
+  }
+  try {
+    if (!(await Sharing.isAvailableAsync())) throw new Error(t('share.unavailable'));
+    await Sharing.shareAsync(target.uri, { mimeType: 'application/pdf', dialogTitle: filename });
+  } catch (error) {
+    discardExportFile(target);
+    throw error;
+  }
 }
 
 export async function pickTextFile(mimeTypes: string[]): Promise<string | null> {

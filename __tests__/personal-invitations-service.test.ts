@@ -145,6 +145,31 @@ describe('pickInvitationFromLibrary', () => {
     await expect(pickInvitationFromLibrary('x')).rejects.toMatchObject({ code: 'size' });
     expect(mockCopied).toHaveLength(0);
   });
+
+  it('rejects unreadable or excessive-resolution images and removes the partial app copy', async () => {
+    mockLaunch.mockResolvedValue({
+      canceled: false,
+      assets: [
+        { uri: 'file:///cache/broken.jpg', fileName: 'broken.jpg', mimeType: 'image/jpeg', width: 0, height: 0 },
+      ],
+    });
+    jest
+      .spyOn(Image, 'getSize')
+      .mockImplementation(((_uri: string, success: (w: number, h: number) => void) =>
+        success(0, 0)) as typeof Image.getSize);
+    await expect(pickInvitationFromLibrary('broken')).rejects.toMatchObject({ code: 'dimensions' });
+    expect(mockDeleted).toHaveLength(1);
+
+    mockDeleted.length = 0;
+    mockLaunch.mockResolvedValue({
+      canceled: false,
+      assets: [
+        { uri: 'file:///cache/huge.jpg', fileName: 'huge.jpg', mimeType: 'image/jpeg', width: 10_000, height: 6_000 },
+      ],
+    });
+    await expect(pickInvitationFromLibrary('huge')).rejects.toMatchObject({ code: 'dimensions' });
+    expect(mockDeleted).toHaveLength(1);
+  });
 });
 
 describe('pickInvitationFromFiles', () => {

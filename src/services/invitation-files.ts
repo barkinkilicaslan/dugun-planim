@@ -14,15 +14,37 @@ const PNG_HEIGHT = 1620;
 /** Dosya adı ön ekleri (her iki dilde); eski oturumlardan kalan geçici dosyalar için ikisi de temizlenir. */
 const TEMP_PREFIXES = ['davetiye-', 'invitation-'];
 
-/** Önceki oturumlardan kalan davetiye PNG/PDF geçici dosyalarını siler. */
-export function cleanupInvitationTemp(): void {
-  if (Platform.OS === 'web') return;
+/** Davetiye PNG/PDF geçici dosyalarını siler; kaç dosyanın silindiğini ve kaçının silinemediğini bildirir. Hata atmaz. */
+export function removeInvitationTempFiles(): { removed: number; failed: number } {
+  const result = { removed: 0, failed: 0 };
+  if (Platform.OS === 'web') return result;
   try {
     for (const entry of Paths.cache.list()) {
-      if (entry instanceof File && TEMP_PREFIXES.some((prefix) => entry.name.startsWith(prefix))) entry.delete();
+      if (!(entry instanceof File) || !TEMP_PREFIXES.some((prefix) => entry.name.startsWith(prefix))) continue;
+      try {
+        entry.delete();
+        result.removed += 1;
+      } catch {
+        result.failed += 1;
+      }
     }
   } catch {
-    // Temizlik başarısız olsa bile uygulama akışı etkilenmemeli; dosyalar sistem tarafından da silinebilir.
+    result.failed += 1;
+  }
+  return result;
+}
+
+/** Önceki oturumlardan kalan davetiye PNG/PDF geçici dosyalarını siler (başarısızlık akışı etkilemez). */
+export function cleanupInvitationTemp(): void {
+  removeInvitationTempFiles();
+}
+
+/** Üreticinin (view-shot, expo-print) bıraktığı geçici dosyayı siler; kopyalama başarısız olsa bile kalıntı kalmasın. */
+function removeQuietly(file: File): void {
+  try {
+    if (file.exists) file.delete();
+  } catch {
+    // Açılışta ve "Tüm verilerimi sil" ile de temizlenir.
   }
 }
 
@@ -53,11 +75,14 @@ export async function renderInvitationPng(
     width: PNG_WIDTH / pixelRatio,
     height: PNG_HEIGHT / pixelRatio,
   });
-  const target = tempFile(`${fileBase}.png`);
   const source = new File(captured);
-  await source.copy(target);
-  if (source.exists) source.delete();
-  return { uri: target.uri, mimeType: 'image/png', filename: target.name };
+  try {
+    const target = tempFile(`${fileBase}.png`);
+    await source.copy(target);
+    return { uri: target.uri, mimeType: 'image/png', filename: target.name };
+  } finally {
+    removeQuietly(source);
+  }
 }
 
 /** PNG davetiyeyi tek sayfalık PDF'e yerleştirir (6 × 9 inç). */
@@ -68,11 +93,14 @@ export async function renderInvitationPdf(
   const base64 = await new File(png.uri).base64();
   const html = `<!doctype html><html lang="tr"><head><meta charset="utf-8"><style>@page{margin:0}html,body{margin:0;padding:0}img{display:block;width:100%;height:100%}</style></head><body><img src="data:image/png;base64,${base64}" /></body></html>`;
   const printed = await Print.printToFileAsync({ html, width: 432, height: 648 });
-  const target = tempFile(`${fileBase}.pdf`);
   const source = new File(printed.uri);
-  await source.copy(target);
-  if (source.exists) source.delete();
-  return { uri: target.uri, mimeType: 'application/pdf', filename: target.name };
+  try {
+    const target = tempFile(`${fileBase}.pdf`);
+    await source.copy(target);
+    return { uri: target.uri, mimeType: 'application/pdf', filename: target.name };
+  } finally {
+    removeQuietly(source);
+  }
 }
 
 export async function shareGeneratedFile(file: GeneratedInvitationFile): Promise<void> {

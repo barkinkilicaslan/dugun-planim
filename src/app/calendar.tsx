@@ -84,6 +84,7 @@ export default function CalendarScreen() {
                 title={event.title}
                 subtitle={event.detail}
                 meta={event.date.slice(8)}
+                accessibilityLabel={`${event.title}, ${event.detail}, ${formatDate(event.date, data.profile.dateFormat)}`}
                 onPress={() => router.push(event.href)}
               />
             ))}

@@ -37,7 +37,12 @@ export default function NoteEditor() {
       {
         text: t('common.delete'),
         style: 'destructive',
-        onPress: () => void deleteNote(form.id).then(() => router.back()),
+        onPress: () =>
+          void deleteNote(form.id)
+            .then(() => router.back())
+            .catch((error) =>
+              Alert.alert(t('common.deleteFailed'), error instanceof Error ? error.message : t('common.unknownError')),
+            ),
       },
     ]);
   }

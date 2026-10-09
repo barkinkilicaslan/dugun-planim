@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Chips } from '@/components/ui/chips';
+import { MoneyField } from '@/components/ui/money-field';
 import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
 import { spacing } from '@/constants/theme';
@@ -11,7 +12,6 @@ import { useApp } from '@/context/app-context';
 import { useI18n } from '@/context/language-context';
 import type { ContractStatus, Vendor } from '@/domain/models';
 
-const cents = (value: string) => Math.max(0, Math.round(Number(value.replace(',', '.')) * 100)) || 0;
 export default function VendorEditor() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { data, createId, saveVendor, deleteVendor } = useApp();
@@ -53,7 +53,12 @@ export default function VendorEditor() {
       {
         text: t('common.delete'),
         style: 'destructive',
-        onPress: () => void deleteVendor(form.id).then(() => router.back()),
+        onPress: () =>
+          void deleteVendor(form.id)
+            .then(() => router.back())
+            .catch((error) =>
+              Alert.alert(t('common.deleteFailed'), error instanceof Error ? error.message : t('common.unknownError')),
+            ),
       },
     ]);
   }
@@ -101,11 +106,10 @@ export default function VendorEditor() {
             />
           ) : null}
         </View>
-        <TextField
+        <MoneyField
           label={t('vendorEditor.quote', { currency: data.profile.currency })}
-          value={form.quoteCents ? String(form.quoteCents / 100) : ''}
-          onChangeText={(value) => update('quoteCents', cents(value))}
-          keyboardType="decimal-pad"
+          cents={form.quoteCents}
+          onChangeCents={(value) => update('quoteCents', value)}
         />
         <Chips<ContractStatus>
           label={t('vendorEditor.contractStatus')}

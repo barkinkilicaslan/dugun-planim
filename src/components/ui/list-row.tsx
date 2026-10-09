@@ -20,10 +20,13 @@ export function ListRow({
   accessibilityLabel?: string;
 }) {
   const theme = useAppTheme();
+  // Satır tek bir erişilebilir öğedir ve etiketi çocuk metinlerin yerine geçer; bu yüzden alt metin ve sağdaki değer
+  // (durum, tutar, tarih) etikete katılmazsa ekran okuyucu yalnız başlığı okur.
+  const spokenLabel = accessibilityLabel ?? [title, subtitle, meta].filter(Boolean).join(', ');
   return (
     <Pressable
       accessibilityRole={onPress ? 'button' : undefined}
-      accessibilityLabel={accessibilityLabel ?? title}
+      accessibilityLabel={spokenLabel}
       onPress={onPress}
       disabled={!onPress}
       style={({ pressed }) => [styles.row, { borderBottomColor: theme.colors.border, opacity: pressed ? 0.72 : 1 }]}

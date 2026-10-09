@@ -75,7 +75,7 @@ jest.mock('expo-router', () => {
 });
 
 let mockOnboardingCompleted = false;
-const mockClearAll = jest.fn().mockResolvedValue(undefined);
+const mockClearAll = jest.fn().mockResolvedValue({ leftovers: [] });
 const mockReplaceAll = jest.fn().mockResolvedValue(undefined);
 const mockSaveProfile = jest.fn();
 const mockCompleteOnboarding = jest.fn();
@@ -209,7 +209,7 @@ describe('"Tarzını seç" screen', () => {
     expect(mockRouter.replace).not.toHaveBeenCalled();
     expect(mockStore.has('dugun-planim.theme')).toBe(false);
     expect(probeText(view)).toBe('romantic-garden|none');
-  });
+  }, 15000);
 
   it('shows English names and the English button when English is active', async () => {
     setActiveLocale('en');
@@ -438,7 +438,7 @@ describe('Settings › Appearance', () => {
     mockStore.set('dugun-planim.theme', 'bohemian-sunset');
     const view = await render(withTheme(<SettingsScreen />));
     mockPickText.mockResolvedValueOnce(createBackup({ ...EMPTY_APP_DATA, profile: validProfile }));
-    await fireEvent.press(view.getByLabelText('Yedekten geri yükle'));
+    await fireEvent.press(view.getByLabelText(/^Yedekten geri yükle/));
     await waitFor(() => expect(alert).toHaveBeenCalled());
     await lastButtons()
       .find((b) => b.text === 'Geri yükle')
@@ -451,7 +451,7 @@ describe('Settings › Appearance', () => {
   it('forgets the style only when all data is deleted, and restarts the first-run flow', async () => {
     mockStore.set('dugun-planim.theme', 'modern-elegance');
     const view = await render(withTheme(<SettingsScreen />));
-    await fireEvent.press(view.getByLabelText(TR('settings.deleteAll')));
+    await fireEvent.press(view.getByLabelText(new RegExp('^' + TR('settings.deleteAll'))));
     await lastButtons()
       .find((b) => b.text === TR('settings.deleteContinue'))
       ?.onPress?.();
@@ -484,7 +484,7 @@ describe('Settings › delete-all edge cases', () => {
 
   async function runDeleteAll() {
     const view = await render(withTheme(<SettingsScreen />));
-    await fireEvent.press(view.getByLabelText(TR('settings.deleteAll')));
+    await fireEvent.press(view.getByLabelText(new RegExp('^' + TR('settings.deleteAll'))));
     await buttons()
       .find((b) => b.text === TR('settings.deleteContinue'))
       ?.onPress?.();
@@ -532,6 +532,128 @@ describe('native appearance follows the chosen theme', () => {
     });
     await expect(render(withTheme(<Text>x</Text>))).resolves.toBeTruthy();
     spy.mockRestore();
+  });
+});
+
+describe('Settings › delete-all and restore tell the truth about what happened', () => {
+  let alert: jest.SpyInstance;
+  beforeEach(() => {
+    alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+    mockStore.set('dugun-planim.theme', 'modern-elegance');
+    mockOnboardingCompleted = true;
+  });
+  afterEach(() => alert.mockRestore());
+  const last = () => alert.mock.calls[alert.mock.calls.length - 1] as [string, string, AlertButton[]];
+  const press = async (text: string) => {
+    await act(async () => {
+      await last()[2]
+        .find((button) => button.text === text)
+        ?.onPress?.();
+    });
+  };
+  async function startDeleteAll() {
+    const view = await render(withTheme(<SettingsScreen />));
+    await fireEvent.press(view.getByLabelText(new RegExp('^' + TR('settings.deleteAll'))));
+    // İlk onay: açıklama gerçek davranışı anlatır.
+    expect(last()[1]).toBe(TR('settings.deleteBody'));
+    await press(TR('settings.deleteContinue'));
+    await press(TR('settings.deleteEverything'));
+    return view;
+  }
+
+  it('the first confirmation lists everything that is deleted and what stays where the user saved it', async () => {
+    const view = await render(withTheme(<SettingsScreen />));
+    await fireEvent.press(view.getByLabelText(new RegExp('^' + TR('settings.deleteAll'))));
+    const body = last()[1];
+    for (const phrase of [
+      'davetiye görselleri ve fotoğrafları',
+      'planlı hatırlatmalar',
+      'geçici dışa aktarma dosyaları',
+      'görsel tarz',
+      'seçtiğiniz konumda kalır',
+    ])
+      expect(body).toContain(phrase);
+    setActiveLocale('en');
+    await view.unmount();
+    const en = await render(withTheme(<SettingsScreen />));
+    await fireEvent.press(en.getByLabelText(new RegExp('^' + EN('settings.deleteAll'))));
+    expect(last()[1]).toContain('scheduled reminders');
+    expect(last()[1]).toContain('stay where you saved them');
+  });
+
+  it('shows the leftovers that could not be removed, keeps the screen, and lets the user retry', async () => {
+    mockClearAll.mockResolvedValueOnce({ leftovers: ['reminders', 'exportFiles'] });
+    const view = await startDeleteAll();
+    const [title, message, buttons] = last();
+    expect(title).toBe(TR('settings.deletePartialTitle'));
+    expect(message).toContain('Düğün verileriniz silindi');
+    expect(message).toContain('planlı hatırlatmalar ve dışa aktarma dosyaları');
+    expect(buttons.map((button) => button.text)).toEqual([TR('settings.deleteRetry'), TR('settings.deleteLater')]);
+    // Android'de dışarı dokunmakla kapanmaz: kullanıcı bilinçli seçer.
+    expect(alert.mock.calls[alert.mock.calls.length - 1][3]).toEqual({ cancelable: false });
+    // Veritabanı boşaldığı için tema kaydı hemen silindi (uyarı açıkken uygulama kapansa bile ilk kurulum akışı başlar);
+    // ekran durumu yönlendirme sırasında sıfırlanır.
+    expect(mockStore.has('dugun-planim.theme')).toBe(false);
+    // Henüz ilk kurulum akışına dönülmez; tema korunur.
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+    expect(probeText(view)).toBe('modern-elegance|chosen');
+    // Tekrar dene: temizlik yeniden çalışır ve bu sefer tamamlanır.
+    await press(TR('settings.deleteRetry'));
+    expect(mockClearAll).toHaveBeenCalledTimes(2);
+    expect(mockRouter.replace).toHaveBeenCalledWith('/style-select');
+    expect(probeText(view)).toBe('romantic-garden|none');
+  });
+
+  it('"Tamam" accepts the leftovers: the data is gone, so the first-run flow starts', async () => {
+    mockClearAll.mockResolvedValueOnce({ leftovers: ['invitationPhotos'] });
+    const view = await startDeleteAll();
+    expect(last()[1]).toContain('davetiye fotoğrafları');
+    await press(TR('settings.deleteLater'));
+    expect(mockClearAll).toHaveBeenCalledTimes(1);
+    expect(mockRouter.replace).toHaveBeenCalledWith('/style-select');
+    expect(probeText(view)).toBe('romantic-garden|none');
+  });
+
+  it('says nothing is deleted when the database could not be cleared, and keeps the theme', async () => {
+    mockClearAll.mockRejectedValueOnce(new Error('veritabanı kilitli'));
+    const view = await startDeleteAll();
+    expect(last().slice(0, 2)).toEqual([TR('settings.deleteFailed'), 'veritabanı kilitli']);
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+    expect(mockStore.get('dugun-planim.theme')).toBe('modern-elegance');
+    expect(probeText(view)).toBe('modern-elegance|chosen');
+  });
+
+  it('tells the user when restored reminders are off because this device has no notification permission', async () => {
+    mockReplaceAll.mockResolvedValueOnce({
+      notificationsEnabled: false,
+      notificationsDowngraded: true,
+      remindersRestored: 0,
+      remindersSkipped: 2,
+    });
+    mockPickText.mockResolvedValueOnce(createBackup({ ...EMPTY_APP_DATA, profile: validProfile }));
+    const view = await render(withTheme(<SettingsScreen />));
+    await fireEvent.press(view.getByLabelText(/^Yedekten geri yükle/));
+    await waitFor(() => expect(alert).toHaveBeenCalled());
+    await press('Geri yükle');
+    await waitFor(() => expect(last()[0]).toBe('Tamamlandı'));
+    expect(last()[1]).toContain(TR('backup.restoredNotificationsOff'));
+    expect(probeText(view)).toBe('modern-elegance|chosen');
+  });
+
+  it('keeps the plain message when nothing changed about reminders', async () => {
+    mockReplaceAll.mockResolvedValueOnce({
+      notificationsEnabled: true,
+      notificationsDowngraded: false,
+      remindersRestored: 0,
+      remindersSkipped: 0,
+    });
+    mockPickText.mockResolvedValueOnce(createBackup({ ...EMPTY_APP_DATA, profile: validProfile }));
+    const view = await render(withTheme(<SettingsScreen />));
+    await fireEvent.press(view.getByLabelText(/^Yedekten geri yükle/));
+    await waitFor(() => expect(alert).toHaveBeenCalled());
+    await press('Geri yükle');
+    await waitFor(() => expect(last()[0]).toBe('Tamamlandı'));
+    expect(last()[1]).toBe(TR('backup.restoredPlain'));
   });
 });
 

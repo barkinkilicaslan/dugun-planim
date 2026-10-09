@@ -26,6 +26,23 @@ export async function configureNotifications(): Promise<void> {
   }
 }
 
+export type NotificationPermission = 'granted' | 'denied' | 'undetermined' | 'unavailable';
+
+/** Bu cihazdaki işletim sistemi bildirim iznini okur. İzin penceresi AÇMAZ ve hiçbir şeyi değiştirmez. */
+export async function getNotificationPermission(): Promise<NotificationPermission> {
+  if (Platform.OS === 'web') return 'unavailable';
+  try {
+    const result = await Notifications.getPermissionsAsync();
+    if (result.granted || result.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL) return 'granted';
+    const status = result.ios?.status;
+    return status === Notifications.IosAuthorizationStatus.NOT_DETERMINED || result.canAskAgain
+      ? 'undetermined'
+      : 'denied';
+  } catch {
+    return 'unavailable';
+  }
+}
+
 export async function requestNotificationConsent(): Promise<boolean> {
   if (Platform.OS === 'web') return false;
   const result = await Notifications.requestPermissionsAsync();
@@ -57,7 +74,45 @@ export async function cancelTaskReminder(notificationId?: string): Promise<void>
   if (notificationId) await Notifications.cancelScheduledNotificationAsync(notificationId);
 }
 
-export async function clearAllNotifications(): Promise<void> {
+/** Uygulamanın planladığı tüm hatırlatmaları iptal eder; kayıtlı izin kararına (SecureStore) dokunmaz. */
+export async function cancelAllScheduledReminders(): Promise<void> {
+  if (Platform.OS === 'web') return;
   await Notifications.cancelAllScheduledNotificationsAsync();
+}
+
+/**
+ * Hiçbir görevin kayıtlı bildirim kimliğiyle eşleşmeyen, uygulamanın görev hatırlatmalarını iptal eder (ör. geri
+ * yüklemeden veya yarım kalmış bir silmeden kalanlar). Yalnız `data.taskId` taşıyan, uygulamanın kendi hatırlatmaları sayılır.
+ */
+export async function cancelOrphanedReminders(known: ReadonlySet<string>): Promise<number> {
+  if (Platform.OS === 'web') return 0;
+  let cancelled = 0;
+  for (const scheduled of await Notifications.getAllScheduledNotificationsAsync()) {
+    const taskId = (scheduled.content?.data as { taskId?: unknown } | undefined)?.taskId;
+    if (typeof taskId !== 'string' || known.has(scheduled.identifier)) continue;
+    await Notifications.cancelScheduledNotificationAsync(scheduled.identifier);
+    cancelled += 1;
+  }
+  return cancelled;
+}
+
+/** Kayıtlı bildirim izin kararını (SecureStore) siler. */
+export async function resetNotificationConsent(): Promise<void> {
   if (await SecureStore.isAvailableAsync()) await SecureStore.deleteItemAsync(CONSENT_KEY);
+}
+
+/** Tüm hatırlatmaları iptal eder ve kayıtlı izin kararını siler. İkisi de denenir; ilk hata sonda yeniden atılır. */
+export async function clearAllNotifications(): Promise<void> {
+  let failure: unknown;
+  try {
+    await cancelAllScheduledReminders();
+  } catch (error) {
+    failure = error;
+  }
+  try {
+    await resetNotificationConsent();
+  } catch (error) {
+    failure ??= error;
+  }
+  if (failure) throw failure;
 }

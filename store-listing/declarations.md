@@ -24,7 +24,8 @@ Uygulama özel veya standart dışı şifreleme uygulamaz. Sistem/Expo çalışm
 - Veri paylaşılıyor: `Hayır`
 - Geçici işlenen ağ verisi: `Yok`
 - Hesap oluşturma: `Yok`
-- Kullanıcı veri silme talebi: `Uygulama içinde Ayarlar → Tüm verilerimi sil; hesap silme URL'si uygulanmaz.`
+- Kullanıcı veri silme talebi: `Uygulama içinde Ayarlar → Tüm verilerimi sil (iki onay); hesap silme URL'si uygulanmaz.` Silinenler: yerel veritabanı, bu cihaza yüklenen davetiye görselleri ve fotoğrafları, planlı hatırlatmalar, uygulamanın önbellekteki geçici dışa aktarma dosyaları ve görsel tarz tercihi. Kullanıcının daha önce paylaştığı yedek/CSV/PDF kopyaları kullanıcının seçtiği konumda kalır. Bir kalıntı silinemezse kullanıcıya bildirilir ve açılışta yeniden denenir.
+- Yedek ve cihaz yedekleri: JSON yedek şifrelenmez ve kişisel veri içerir (kullanıcıya yedek öncesi söylenir). Uygulama verisi işletim sistemi cihaz yedeğinden (iCloud/Android Otomatik Yedekleme) hariç tutulmamıştır; bu, geliştiriciye veri aktarımı sayılmaz. Dosya/fotoğraf seçicinin yazdığı geçici kopyaları işletim sistemi yönetir ve "Tüm verilerimi sil" bunları kapsamaz. Yayından önce hukuk/yayıncı onayıyla gizlilik politikasına eklenmelidir.
 - Güvenlik uygulamaları: kullanıcı verisi geliştirici sunucusuna aktarılmadığından aktarımda şifreleme sorusu uygulanmaz; dışa aktarılan hedefi kullanıcı seçer.
 
 ## Google içerik derecelendirmesi taslağı
@@ -38,8 +39,9 @@ Uygulama özel veya standart dışı şifreleme uygulamaz. Sistem/Expo çalışm
 - Paylaşım/yazdırma: JSON, CSV veya PDF dışa aktarma seçildiğinde.
 - Kişiler (iOS `NSContactsUsageDescription`, Android `READ_CONTACTS`): yalnız “Rehberden davetli ekle” eylemiyle, Türkçe açıklama ekranından sonra. Yalnız kullanıcının seçtiği kişiler cihazdaki veritabanına yazılır; sunucuya gönderilmez. `WRITE_CONTACTS` kaldırılmıştır.
 - E-posta, SMS, WhatsApp, paylaşım: kullanıcı eylemiyle işletim sistemi ekranı açılır; uygulama sessiz gönderim yapmaz.
-- Davetiye fotoğrafı: sistem dosya seçicisi; fotoğraf kitaplığı izni yoktur. Fotoğraflar JSON yedeğe dahil edilmez (kullanıcıya bildirilir).
+- Davetiye tasarımı fotoğrafı: sistem dosya seçicisi (Dosyalar/Fotoğraflar uygulaması üzerinden seçilen tek dosya); bu akış için fotoğraf kitaplığı izni istenmez. Fotoğraflar JSON yedeğe dahil edilmez (kullanıcıya bildirilir).
 - Kendi davetiyeni yükle: JPG/PNG sistem fotoğraf seçicisi (iOS PHPicker) veya dosya seçicisiyle seçilir, yalnız cihazdaki uygulama klasörüne kopyalanır; sunucuya gönderilmez, JSON yedeğe dahil edilmez. `NSPhotoLibraryUsageDescription` Türkçe/İngilizce yerelleştirilmiştir.
+- Fotoğraf erişimi (tek tutarlı beyan): uygulama fotoğraf kitaplığını **okumaz**; yalnız kullanıcının sistem seçicisinde seçtiği tek görseli uygulama klasörüne kopyalar. iOS'ta bu seçici PHPicker'dır ve Expo belgelerine göre görsel seçmek için ayrı izin penceresi gerekmez (cihazda TestFlight ile doğrulanmalıdır). `Info.plist` içinde yine de TR/EN `NSPhotoLibraryUsageDescription` açıklaması bulunur ("yalnızca seçtiğiniz davetiye görselini uygulamaya kopyalamak için"); sistem bir izin isterse bu metin gösterilir. Android'de `READ_EXTERNAL_STORAGE`/`WRITE_EXTERNAL_STORAGE` engellenmiştir (sistem fotoğraf seçicisi kullanılır).
 - İstenmeyen izinler: konum, kamera, mikrofon ve reklam kimliği yoktur; fotoğraf arşivinin tamamı okunmaz.
 
 ## Taslak güncellemesi (rehber ve davetiye gönderimi)

@@ -135,8 +135,8 @@ describe.each(THEME_IDS)('home screen in %s', (id) => {
     expect(view.getByText('Kendi davetiyeni yükle')).toBeTruthy();
     expect(view.getByLabelText(/Kendi davetiyeni yükle\. Cihazdan/)).toBeTruthy();
     expect(view.getByText('Yaklaşanlar')).toBeTruthy();
-    expect(view.getByLabelText('Salonu gez')).toBeTruthy();
-    expect(view.getByLabelText('Salon kaparo')).toBeTruthy();
+    expect(view.getByLabelText(/^Salonu gez,/)).toBeTruthy();
+    expect(view.getByLabelText(/^Salon kaparo,/)).toBeTruthy();
   });
 
   it('offers a clearly visible "change theme" action that opens the picker with the current theme', async () => {

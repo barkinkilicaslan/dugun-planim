@@ -54,7 +54,12 @@ export default function TaskEditor() {
       {
         text: t('common.delete'),
         style: 'destructive',
-        onPress: () => void deleteTask(form.id).then(() => router.back()),
+        onPress: () =>
+          void deleteTask(form.id)
+            .then(() => router.back())
+            .catch((error) =>
+              Alert.alert(t('common.deleteFailed'), error instanceof Error ? error.message : t('common.unknownError')),
+            ),
       },
     ]);
   }

@@ -223,7 +223,12 @@ export default function InviteSendScreen() {
 
   async function markSent(guestId: string) {
     const guest = guestById(guestId);
-    if (guest) await saveGuest(markInviteSent(guest, new Date().toISOString(), channel));
+    if (!guest) return;
+    try {
+      await saveGuest(markInviteSent(guest, new Date().toISOString(), channel));
+    } catch (error) {
+      Alert.alert(t('common.saveFailed'), error instanceof Error ? error.message : t('common.unknownError'));
+    }
   }
 
   const entry = queue ? currentEntry(queue) : undefined;

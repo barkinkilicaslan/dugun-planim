@@ -60,9 +60,14 @@ jest.mock('@/services/invitation-files', () => ({
   renderInvitationPdf: jest.fn(),
   renderInvitationPng: jest.fn(),
   shareGeneratedFile: jest.fn(),
+  removeInvitationTempFiles: jest.fn(() => ({ removed: 0, failed: 0 })),
 }));
 jest.mock('@/services/notifications', () => ({
   clearAllNotifications: jest.fn().mockResolvedValue(undefined),
+  getNotificationPermission: jest.fn().mockResolvedValue('denied'),
+  cancelAllScheduledReminders: jest.fn().mockResolvedValue(undefined),
+  cancelOrphanedReminders: jest.fn().mockResolvedValue(0),
+  resetNotificationConsent: jest.fn().mockResolvedValue(undefined),
   requestNotificationConsent: jest.fn(),
   scheduleTaskReminder: jest.fn(),
   cancelTaskReminder: jest.fn(),

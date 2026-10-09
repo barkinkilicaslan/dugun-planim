@@ -35,4 +35,23 @@ describe('guest CSV', () => {
     expect(() => csvToGuests('wrong,header\nvalue,value', () => 'x')).toThrow('başlıkları');
     expect(() => parseCsvRows('"unfinished')).toThrow('kapanmamış');
   });
+
+  it.each(['=1+1', '+SUM(A1:A2)', '-1+2', '@SUM(A1:A2)', ' \t=1+1'])(
+    'exports formula-leading guest text as spreadsheet-safe text and preserves it on re-import: %s',
+    (name) => {
+      const csv = guestsToCsv([{ ...guest, name }]);
+      const exportedCell = parseCsvRows(csv)[1][0];
+      expect(exportedCell).toBe(`\t${name}`);
+      const imported = csvToGuests(csv, () => 'new-id');
+      // Guest names are intentionally trimmed by validation; spreadsheet protection itself is removed.
+      expect(imported[0].name).toBe(name.trim());
+    },
+  );
+
+  it('preserves whitespace and formula-like text in notes across export and import', () => {
+    const notes = ' \t=1+1';
+    const csv = guestsToCsv([{ ...guest, notes }]);
+    expect(parseCsvRows(csv)[1][8]).toBe(`\t${notes}`);
+    expect(csvToGuests(csv, () => 'new-id')[0].notes).toBe(notes);
+  });
 });

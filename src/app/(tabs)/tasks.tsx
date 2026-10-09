@@ -145,7 +145,22 @@ export default function TasksScreen() {
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel={t('tasks.editTask', { title: task.title })}
+                  accessibilityLabel={t('tasks.editTaskDetails', {
+                    title: task.title,
+                    details: [
+                      task.completed ? t('tasks.completed') : null,
+                      overdue ? t('tasks.overdue') : null,
+                      task.priority === 'high'
+                        ? t('tasks.priorityHigh')
+                        : task.priority === 'medium'
+                          ? t('tasks.priorityMedium')
+                          : t('tasks.priorityLow'),
+                      task.dueDate ? formatDate(task.dueDate, data.profile.dateFormat) : null,
+                      task.category,
+                    ]
+                      .filter(Boolean)
+                      .join(', '),
+                  })}
                   onPress={() => router.push(`/edit/task?id=${task.id}`)}
                   style={styles.copy}
                 >

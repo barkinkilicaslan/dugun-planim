@@ -46,6 +46,10 @@ jest.mock('@/data/repository', () => ({
 }));
 jest.mock('@/services/notifications', () => ({
   clearAllNotifications: jest.fn().mockResolvedValue(undefined),
+  getNotificationPermission: jest.fn().mockResolvedValue('denied'),
+  cancelAllScheduledReminders: jest.fn().mockResolvedValue(undefined),
+  cancelOrphanedReminders: jest.fn().mockResolvedValue(0),
+  resetNotificationConsent: jest.fn().mockResolvedValue(undefined),
   requestNotificationConsent: jest.fn(),
   scheduleTaskReminder: jest.fn(),
   cancelTaskReminder: jest.fn(),

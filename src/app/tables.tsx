@@ -58,7 +58,14 @@ export default function TablesScreen() {
   function confirmDelete(table: SeatingTable) {
     Alert.alert(t('tables.deleteTitle', { table: table.name }), t('tables.deleteBody'), [
       { text: t('common.cancel'), style: 'cancel' },
-      { text: t('common.delete'), style: 'destructive', onPress: () => void deleteTable(table.id) },
+      {
+        text: t('common.delete'),
+        style: 'destructive',
+        onPress: () =>
+          void deleteTable(table.id).catch((error) =>
+            Alert.alert(t('common.deleteFailed'), error instanceof Error ? error.message : t('common.unknownError')),
+          ),
+      },
     ]);
   }
   async function exportPdf() {

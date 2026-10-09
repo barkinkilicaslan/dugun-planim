@@ -3,7 +3,12 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
 import SettingsScreen from '@/app/settings';
 import { createBackup } from '@/domain/backup';
-import { backupPhotoNoticeBody, backupPhotoNoticeTitle, restoreCompleteMessage } from '@/domain/backup-notices';
+import {
+  backupCreateNoticeBody,
+  backupPhotoNoticeBody,
+  backupPhotoNoticeTitle,
+  restoreCompleteMessage,
+} from '@/domain/backup-notices';
 import { createInvitationDesign } from '@/domain/invitation-content';
 import { TR } from './fixtures';
 import { EMPTY_APP_DATA, EMPTY_PROFILE } from '@/domain/models';
@@ -23,14 +28,14 @@ const design = {
   photoUri: 'file:///x/invitation-photos/d1.jpg',
 };
 const data = { ...EMPTY_APP_DATA, profile, invitationDesigns: [design] };
+let mockCurrentData = data;
 
 const mockReplaceAll = jest.fn().mockResolvedValue(undefined);
 const mockShareText = jest.fn().mockResolvedValue(undefined);
 const mockPickText = jest.fn();
 jest.mock('@/context/app-context', () => ({
-  useApp: () => ({ data: mockData(), saveProfile: jest.fn(), replaceAll: mockReplaceAll, clearAll: jest.fn() }),
+  useApp: () => ({ data: mockCurrentData, saveProfile: jest.fn(), replaceAll: mockReplaceAll, clearAll: jest.fn() }),
 }));
-const mockData = () => data;
 jest.mock('@/services/export', () => ({
   shareTextFile: (...args: unknown[]) => mockShareText(...args),
   pickTextFile: (...args: unknown[]) => mockPickText(...args),
@@ -72,16 +77,20 @@ describe('backup photo notices', () => {
   let alert: jest.SpyInstance;
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCurrentData = data;
     alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
   });
   afterEach(() => alert.mockRestore());
 
   it('warns before creating a backup and only shares after the user continues', async () => {
     const view = await render(<SettingsScreen />);
-    await fireEvent.press(view.getByLabelText('Yedek dosyası oluştur'));
+    await fireEvent.press(view.getByLabelText(/^Yedek dosyası oluştur/));
     const shown = lastAlert(alert);
     expect(shown.title).toBe(backupPhotoNoticeTitle(TR.t));
-    expect(shown.message).toBe(backupPhotoNoticeBody(TR.t));
+    expect(shown.message).toBe(backupCreateNoticeBody(TR.t));
+    expect(shown.message).toContain(backupPhotoNoticeBody(TR.t));
+    // Dosya şifreli değildir ve kişisel veri taşır; kullanıcı bunu paylaşmadan önce okur.
+    expect(shown.message).toMatch(/şifrelenmez; davetli adları, telefon ve e-posta/);
     expect(shown.message).toMatch(
       /fotoğrafları ve “Kendi davetiyeni yükle” ile yüklediğiniz davetiye görsellerini içermez/,
     );
@@ -93,7 +102,7 @@ describe('backup photo notices', () => {
 
   it('cancelling the warning creates no backup', async () => {
     const view = await render(<SettingsScreen />);
-    await fireEvent.press(view.getByLabelText('Yedek dosyası oluştur'));
+    await fireEvent.press(view.getByLabelText(/^Yedek dosyası oluştur/));
     expect(lastAlert(alert).buttons.find((button) => button.text === 'Vazgeç')?.style).toBe('cancel');
     expect(mockShareText).not.toHaveBeenCalled();
   });
@@ -104,7 +113,7 @@ describe('backup photo notices', () => {
     expect(raw).not.toContain('invitation-photos');
     expect(raw).toContain('"photoUri": ""');
     mockPickText.mockResolvedValueOnce(raw);
-    await fireEvent.press(view.getByLabelText('Yedekten geri yükle'));
+    await fireEvent.press(view.getByLabelText(/^Yedekten geri yükle/));
     await waitFor(() => expect(alert).toHaveBeenCalled());
     const confirm = lastAlert(alert);
     expect(confirm.title).toBe('Yedek geri yüklensin mi?');
@@ -120,5 +129,17 @@ describe('backup photo notices', () => {
 
   it('does not mention photos after restoring a backup without designs', () => {
     expect(restoreCompleteMessage(TR.t, 0)).toBe('Yedek başarıyla geri yüklendi.');
+  });
+
+  it('refreshes the mounted profile form after a backup replaces the wedding data', async () => {
+    const view = await render(<SettingsScreen />);
+    expect(view.getByDisplayValue('1')).toBeTruthy();
+    mockCurrentData = {
+      ...data,
+      profile: { ...profile, couple1Name: 'Mina', estimatedBudgetCents: 25_000 },
+    };
+    await view.rerender(<SettingsScreen />);
+    expect(view.getByDisplayValue('Mina')).toBeTruthy();
+    expect(view.getByDisplayValue('250')).toBeTruthy();
   });
 });

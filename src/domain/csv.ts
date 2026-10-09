@@ -3,10 +3,19 @@ import { t } from '@/i18n';
 import { validateGuest, ValidationError } from './validation';
 
 const HEADERS = ['ad', 'telefon', 'taraf', 'kisi_sayisi', 'cocuk_sayisi', 'rsvp', 'grup', 'yemek_alerji', 'notlar'];
+const SPREADSHEET_FORMULA_PREFIX = /^[\u0000-\u0020\uFEFF]*[=+\-@]/;
 
 function escapeCell(value: string | number): string {
-  const text = String(value);
-  return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  const raw = String(value);
+  // CSV has no cell types. Prefix formula-like text with a tab so spreadsheet apps treat it as data.
+  // The matching importer removes only this export marker, preserving round-trip values.
+  const text = typeof value === 'string' && SPREADSHEET_FORMULA_PREFIX.test(raw) ? `\t${raw}` : raw;
+  return /[",\r\n\t]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function restoreExportedCell(value: string | undefined): string {
+  if (value?.startsWith('\t') && SPREADSHEET_FORMULA_PREFIX.test(value.slice(1))) return value.slice(1);
+  return value ?? '';
 }
 
 export function guestsToCsv(guests: Guest[]): string {
@@ -67,8 +76,8 @@ export function csvToGuests(input: string, idFactory: () => string): Guest[] {
     ) as Guest['rsvp'];
     const guest: Guest = {
       id: idFactory(),
-      name: cells[0] ?? '',
-      phone: cells[1] ?? '',
+      name: restoreExportedCell(cells[0]),
+      phone: restoreExportedCell(cells[1]),
       email: '',
       side: (['couple1', 'couple2', 'common'].includes(cells[2]) ? cells[2] : 'common') as Guest['side'],
       partySize: Number(cells[3]),
@@ -80,8 +89,8 @@ export function csvToGuests(input: string, idFactory: () => string): Guest[] {
       lastInviteChannel: '',
       inviteStatus: 'none',
       group: (['family', 'friends', 'work', 'other'].includes(cells[6]) ? cells[6] : 'other') as Guest['group'],
-      mealNotes: cells[7] ?? '',
-      notes: cells[8] ?? '',
+      mealNotes: restoreExportedCell(cells[7]),
+      notes: restoreExportedCell(cells[8]),
       createdAt: now,
       updatedAt: now,
     };

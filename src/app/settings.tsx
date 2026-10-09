@@ -11,6 +11,7 @@ import { THEME_COPY } from '@/components/theme/theme-copy';
 import { Chips } from '@/components/ui/chips';
 import { DateField } from '@/components/ui/date-field';
 import { ListRow } from '@/components/ui/list-row';
+import { MoneyField } from '@/components/ui/money-field';
 import { Screen } from '@/components/ui/screen';
 import { SectionHeader } from '@/components/ui/section-header';
 import { TextField } from '@/components/ui/text-field';
@@ -18,7 +19,13 @@ import { useApp } from '@/context/app-context';
 import { useI18n } from '@/context/language-context';
 import { useAppTheme, useThemeControls } from '@/context/theme-context';
 import { createBackup, parseBackup } from '@/domain/backup';
-import { backupPhotoNoticeBody, backupPhotoNoticeTitle, restoreCompleteMessage } from '@/domain/backup-notices';
+import {
+  backupCreateNoticeBody,
+  backupPhotoNoticeBody,
+  backupPhotoNoticeTitle,
+  restoreCompleteMessage,
+} from '@/domain/backup-notices';
+import { deletePartialBody } from '@/domain/data-lifecycle';
 import { THEME_IDS } from '@/constants/themes';
 import { APP_VERSION, type CurrencyCode, type DateFormatPreference, type WeddingProfile } from '@/domain/models';
 import {
@@ -30,18 +37,20 @@ import {
 } from '@/domain/invitation-templates';
 import { type LanguagePreference } from '@/i18n';
 import { requestNotificationConsent } from '@/services/notifications';
+import { clearThemeId } from '@/services/theme-storage';
 import { pickTextFile, shareTextFile } from '@/services/export';
-const cents = (value: string) => Math.max(0, Math.round(Number(value.replace(',', '.')) * 100)) || 0;
 export default function SettingsScreen() {
   const { data, saveProfile, replaceAll, clearAll } = useApp();
   const theme = useAppTheme();
   const { themeId, setThemeId, resetTheme } = useThemeControls();
   const { t, locale, preference, setPreference } = useI18n();
-  const [profile, setProfile] = useState<WeddingProfile>({ ...data.profile });
+  const [profileDraft, setProfileDraft] = useState({ source: data.profile, value: { ...data.profile } });
+  // If a backup replaces the profile while Settings stays mounted, render the new profile immediately.
+  const profile = profileDraft.source === data.profile ? profileDraft.value : data.profile;
   const [saving, setSaving] = useState(false);
   const supportEmail = String(Constants.expoConfig?.extra?.supportEmail ?? 'appsupportline@gmail.com');
   const update = <K extends keyof WeddingProfile>(key: K, value: WeddingProfile[K]) =>
-    setProfile((current) => ({ ...current, [key]: value }));
+    setProfileDraft({ source: data.profile, value: { ...profile, [key]: value } });
   async function save() {
     try {
       setSaving(true);
@@ -79,7 +88,7 @@ export default function SettingsScreen() {
   }
   /** Yedek alınmadan önce fotoğrafların dosyaya girmediği açıkça söylenir. */
   function backup() {
-    Alert.alert(backupPhotoNoticeTitle(t), backupPhotoNoticeBody(t), [
+    Alert.alert(backupPhotoNoticeTitle(t), backupCreateNoticeBody(t), [
       { text: t('common.cancel'), style: 'cancel' },
       { text: t('settings.backupConfirm'), onPress: () => void shareBackup() },
     ]);
@@ -95,14 +104,47 @@ export default function SettingsScreen() {
           text: t('settings.restoreConfirm'),
           onPress: () =>
             void replaceAll(restored)
-              .then(() =>
-                Alert.alert(t('settings.restoreDone'), restoreCompleteMessage(t, restored.invitationDesigns.length)),
+              .then((result) =>
+                Alert.alert(
+                  t('settings.restoreDone'),
+                  restoreCompleteMessage(t, restored.invitationDesigns.length, result),
+                ),
               )
               .catch((error) => Alert.alert(t('settings.restoreFailed'), error.message)),
         },
       ]);
     } catch (error) {
       Alert.alert(t('settings.backupInvalid'), (error as Error).message);
+    }
+  }
+  /** Silme tamamlanınca ilk kurulum akışına döner: önce yığın başa alınıp "Tarzını seç" açılır, sonra tarz sıfırlanır. */
+  function finishDelete() {
+    if (router.canDismiss()) router.dismissAll();
+    router.replace('/style-select');
+    resetTheme();
+  }
+  async function runDeleteAll() {
+    try {
+      const { leftovers } = await clearAll();
+      // Veritabanı boşaldı: görsel tarz tercihi de hemen silinir; uygulama uyarı açıkken kapatılsa bile bir sonraki
+      // açılış ilk kurulum akışına (tarz seçimi) döner. Ekran durumu yönlendirme sırasında sıfırlanır.
+      clearThemeId();
+      if (leftovers.length === 0) return finishDelete();
+      // Veritabanı temizlendi; yalnız bazı dış kalıntılar silinemedi. Kullanıcıya doğru durum anlatılır ve yeniden
+      // denenebilir (işlem tekrarlanabilir); açılışta da otomatik denenir.
+      Alert.alert(
+        t('settings.deletePartialTitle'),
+        deletePartialBody(t, leftovers),
+        [
+          { text: t('settings.deleteRetry'), onPress: () => void runDeleteAll() },
+          { text: t('settings.deleteLater'), onPress: finishDelete },
+        ],
+        // Android'de dışarı dokunmakla kapanmasın: kullanıcı bilinçli seçsin, ekran yarım kalmasın.
+        { cancelable: false },
+      );
+    } catch (error) {
+      // Veritabanı temizlenemedi: hiçbir dosya, bildirim veya kayıt silinmedi; tekrar denenebilir.
+      Alert.alert(t('settings.deleteFailed'), (error as Error).message);
     }
   }
   function deleteEverything() {
@@ -117,16 +159,7 @@ export default function SettingsScreen() {
             {
               text: t('settings.deleteEverything'),
               style: 'destructive',
-              onPress: () =>
-                void clearAll()
-                  .then(() => {
-                    // Önce yığın başa alınıp "Tarzını seç" açılır, sonra tarz sıfırlanır; böylece alttaki sekme
-                    // düzeninin koruma yönlendirmesi ikinci bir yönlendirme üretmez.
-                    if (router.canDismiss()) router.dismissAll();
-                    router.replace('/style-select');
-                    resetTheme();
-                  })
-                  .catch((error) => Alert.alert(t('settings.deleteFailed'), (error as Error).message)),
+              onPress: () => void runDeleteAll(),
             },
           ]),
       },
@@ -177,11 +210,10 @@ export default function SettingsScreen() {
           value={profile.weddingDate}
           onChange={(value) => update('weddingDate', value)}
         />
-        <TextField
+        <MoneyField
           label={t('settings.estimatedBudget')}
-          value={profile.estimatedBudgetCents ? String(profile.estimatedBudgetCents / 100) : ''}
-          onChangeText={(value) => update('estimatedBudgetCents', cents(value))}
-          keyboardType="decimal-pad"
+          cents={profile.estimatedBudgetCents}
+          onChangeCents={(value) => update('estimatedBudgetCents', value)}
         />
         <TextField
           label={t('settings.estimatedGuests')}
@@ -275,6 +307,9 @@ export default function SettingsScreen() {
           title={t('settings.notifications')}
           subtitle={data.profile.notificationsEnabled ? t('settings.notificationsOn') : t('settings.notificationsOff')}
           meta={data.profile.notificationsEnabled ? t('common.on') : t('common.off')}
+          accessibilityLabel={`${t('settings.notifications')}, ${
+            data.profile.notificationsEnabled ? t('settings.notificationsOn') : t('settings.notificationsOff')
+          }`}
           onPress={() => void enableNotifications()}
         />
       </Card>

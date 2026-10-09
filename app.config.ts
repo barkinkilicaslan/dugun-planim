@@ -19,7 +19,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   locales: { tr: './locales/tr.json', en: './locales/en.json' },
   ios: {
     bundleIdentifier: PACKAGE_ID,
-    buildNumber: '6',
+    buildNumber: '7',
     supportsTablet: true,
     icon: './assets/images/icon.png',
     infoPlist: {

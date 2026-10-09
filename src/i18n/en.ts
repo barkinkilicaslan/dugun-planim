@@ -7,6 +7,8 @@ export const en: { [K in keyof typeof tr]: Widen<(typeof tr)[K]> } = {
   'common.save': 'Save',
   'common.cancel': 'Cancel',
   'common.delete': 'Delete',
+  'common.deleteFailed': 'Could not delete the item',
+  'common.saveFailed': 'Could not save the item',
   'common.edit': 'Edit',
   'common.add': '+ Add',
   'common.all': 'All',
@@ -142,6 +144,8 @@ export const en: { [K in keyof typeof tr]: Widen<(typeof tr)[K]> } = {
   'tasks.category': 'Category',
   'tasks.markDone': ({ title }) => `Mark ${title} as done`,
   'tasks.editTask': ({ title }) => `Edit task ${title}`,
+  'tasks.editTaskDetails': ({ title, details }) => `${title}. ${details}. Edit task`,
+  'tasks.completed': 'Completed',
   'tasks.overdue': 'Overdue',
   'tasks.priorityHigh': 'High priority',
   'tasks.priorityMedium': 'Medium priority',
@@ -173,6 +177,7 @@ export const en: { [K in keyof typeof tr]: Widen<(typeof tr)[K]> } = {
   'date.field.pickTime': 'Select a time',
   'validation.required': ({ label }) => `${label} is required.`,
   'validation.nonNegativeInteger': ({ label }) => `${label} must be a whole number, zero or greater.`,
+  'validation.amountMax': ({ label }) => `${label} can be at most 1,000,000,000.`,
   'validation.dateFormat': ({ label }) => `${label} must be a valid date in YYYY-MM-DD format.`,
   'validation.maxLength': ({ label, max }) => `${label} can be at most ${max} characters.`,
   'validation.label.name1': 'First name',
@@ -240,7 +245,15 @@ export const en: { [K in keyof typeof tr]: Widen<(typeof tr)[K]> } = {
   'backup.photoNoticeTitle': 'Invitation photos and uploaded invitations are not included in the backup',
   'backup.photoNoticeBody':
     'The backup file contains your invitation designs and template choices, but not the photos you added to invitations or the invitation images you uploaded with “Upload your own invitation”. If you restore the backup on another device, you will need to add them again; if you restore it on this device, your uploaded invitations are kept.',
+  'backup.plainTextNotice':
+    'The backup file is not encrypted; it contains personal details such as guest names, phone numbers and emails as readable text. Save or send it only somewhere you trust.',
   'backup.restoredPlain': 'The backup was restored successfully.',
+  'backup.restoredNotificationsOff':
+    'Reminders were on in the backup, but they are off because this device has no notification permission. You can turn notifications on in Settings.',
+  'backup.restoredRemindersRestored': ({ count }) =>
+    `${count} task ${count === 1 ? 'reminder was' : 'reminders were'} scheduled again on this device.`,
+  'backup.restoredRemindersSkipped': ({ count }) =>
+    `${count} task ${count === 1 ? 'reminder' : 'reminders'} could not be scheduled (the date may have passed).`,
   'backup.restoredWithDesigns': ({ count }) =>
     `The backup was restored successfully. ${count} invitation ${count === 1 ? 'design' : 'designs'} came back; invitation photos are empty because they are not included in the backup file. You can add the photos again in the invitation editor.`,
   'contacts.duplicatePhone': ({ name }) => `This phone number is already saved for guest “${name}”.`,
@@ -385,6 +398,7 @@ export const en: { [K in keyof typeof tr]: Widen<(typeof tr)[K]> } = {
   'personal.error.openSettings': 'Open Settings',
   'personal.error.badFormat': 'Only JPG or PNG images can be uploaded. PDF is not supported yet.',
   'personal.error.tooLarge': 'The image is larger than the 15 MB limit.',
+  'personal.error.badDimensions': 'The image cannot be read or exceeds the 50-megapixel limit.',
   'personal.error.copy': 'The image could not be copied to this device. Please try again.',
   'personal.share': 'Share image',
   'personal.sendToGuests': 'Send to guests',
@@ -612,7 +626,7 @@ export const en: { [K in keyof typeof tr]: Widen<(typeof tr)[K]> } = {
     'JSON, CSV and PDF files you export stay in the destination you choose and cannot be deleted automatically from within the app. Invitation photos are not included in the backup file.',
   'legal.data.s3.title': 'Deletion',
   'legal.data.s3.body':
-    'Settings → Delete all my data clears local app data and scheduled reminders after two confirmations.',
+    'Settings → Delete all my data clears local app data, invitation images you added on this device, scheduled reminders, temporary export files and your chosen visual style after two confirmations.',
   'legal.licenses.title': 'Open Source Licenses',
   'legal.licenses.s1.title': 'Core packages',
   'legal.licenses.s1.body':
@@ -848,6 +862,17 @@ export const en: { [K in keyof typeof tr]: Widen<(typeof tr)[K]> } = {
   'settings.savedBody': 'Your settings have been updated.',
   'settings.saveFailed': 'Could not save settings',
   'settings.deleteFailed': 'Could not delete your data',
+  'settings.deletePartialTitle': 'Data deleted, some leftovers remain',
+  'settings.deletePartialBody': ({ items }) =>
+    `Your wedding data was deleted. These could not be cleaned up for now: ${items}. You can try again; the app also retries on its next launch.`,
+  'settings.deleteRetry': 'Try again',
+  'settings.deleteLater': 'Later',
+  'settings.leftover.and': ' and ',
+  'settings.leftover.reminders': 'scheduled reminders',
+  'settings.leftover.invitationPhotos': 'invitation photos',
+  'settings.leftover.personalInvitations': 'uploaded invitation images',
+  'settings.leftover.exportFiles': 'export files',
+  'settings.leftover.temporaryFiles': 'temporary invitation files',
   'settings.notificationsGranted': 'Notifications on',
   'settings.notificationsGrantedBody': 'You can choose a local reminder for new tasks.',
   'settings.notificationsDenied': 'Permission not granted',
@@ -864,7 +889,8 @@ export const en: { [K in keyof typeof tr]: Widen<(typeof tr)[K]> } = {
   'settings.restoreFailed': 'Could not restore',
   'settings.backupInvalid': 'Invalid backup',
   'settings.deleteTitle': 'Delete all local data?',
-  'settings.deleteBody': 'Tasks, guests, budget, tables, vendors and notes will be permanently deleted.',
+  'settings.deleteBody':
+    'All your planning data, the invitation images and photos you added on this device, scheduled reminders, temporary export files and your visual style choice are permanently deleted.\n\nBackup, CSV and PDF copies you shared earlier stay where you saved them, so you need to delete those yourself.',
   'settings.deleteContinue': 'Continue',
   'settings.deleteFinalTitle': 'Final confirmation',
   'settings.deleteFinalBody': 'This cannot be undone. Do you really want to delete all data?',

@@ -1,15 +1,15 @@
-# Release Checklist — 1.0.0 (1)
+# Release Checklist — 1.0.0 (iOS build 7 planned)
 
-Son güncelleme: 2 Ekim 2026. İşaretli maddeler bu çalışma alanında doğrulandı; fiziksel cihaz, mağaza formu veya insan incelemesi gerektirenler açık bırakıldı.
+Son güncelleme: 9 Ekim 2026. EAS’ta 1.0.0 (6) TestFlight’a yüklendi; bu çalışma alanındaki yeni düzeltmeler build 6’da yok. Sıradaki iOS paketi build 7 olmalı. App Review’a gönderim veya mağaza yayını yapılmadı. İşaretli maddeler doğrulanmış durumları, açık maddeler cihaz, mağaza formu veya insan incelemesi gerektirenleri gösterir.
 
 ## Kod ve kalite
 
 - [x] Expo SDK 57 / React Native 0.86 / TypeScript strict
 - [x] Typecheck, lint ve formatter kontrolü
-- [x] Birim, component, migration, onboarding, yedek ve silme testleri
+- [x] Birim, component, migration, onboarding, yedek ve silme testleri (46 suite, 635 test)
 - [x] Expo Doctor 20/20
 - [x] Web production export
-- [x] Hukuki site production build ve rota testleri
+- [x] Hukuki site statik build ve rota testleri (30/30; son yerel değişiklikler henüz yayımlanmadı)
 - [x] Gerçek çalışan web uygulamasında onboarding, persistence ve CRUD smoke testi
 - [x] Özelleştirilebilir salon planında hızlı yerleşim, özellik düzenleme, kilitleme, önizleme ve yeniden açılış kalıcılık testi
 - [ ] Fiziksel Android telefon/tablet smoke testi
@@ -20,11 +20,11 @@ Son güncelleme: 2 Ekim 2026. İşaretli maddeler bu çalışma alanında doğru
 ## Kimlik ve kullanıcı girdileri
 
 - [ ] `com.barkin.dugunplanim` Google Play'de benzersiz mi doğrula; gerekirse `EXPO_PUBLIC_PACKAGE_ID` ile mağaza kaydı açılmadan önce değiştir
-- [x] Aynı bundle ID'yi Apple Developer/App Store Connect'te kaydet
+- [x] Aynı bundle ID'yi Apple Developer/App Store Connect'te kaydet (`com.barkin.dugunplanim`; App ID `6818340839`)
 - [ ] Apple SKU oluştur
 - [ ] Yayıncı adı, hukuki kişi/adres, telefon ve AB trader statüsünü doldur
 - [x] Gerçek destek e-postasını `appsupportline@gmail.com` olarak yapılandır
-- [x] Hukuki siteyi GitHub Pages'te yayınla ve `EXPO_PUBLIC_LEGAL_BASE_URL`/`NEXT_PUBLIC_SITE_URL` değerlerini doğrula
+- [x] Hukuki site GitHub Pages'te mevcut; yeni veri-yedeği açıklamalarının yayımı bekliyor
 - [ ] Hedef ülkeleri ve yerel tüketici/mahremiyet gereksinimlerini hukuk danışmanıyla doğrula
 
 ## Gizlilik ve içerik
@@ -102,12 +102,13 @@ npx eas-cli@latest submit --platform android --profile production
 - [ ] IPA'yı TestFlight'a yükle; processing ve export compliance sonucunu kontrol et
 - [ ] TestFlight internal smoke testi ve App Review notları
 
-İlk üretim paketi 2 Ekim 2026 tarihinde oluşturuldu ve App Store Connect'e yüklendi:
+Son TestFlight paketi 9 Ekim 2026 tarihinde oluşturuldu ve App Store Connect'e yüklendi:
 
-- EAS build: `4e899a1b-967d-4bcf-b3c4-45e31b4366ae`
-- EAS submission: `988fbe7e-06f9-4b4a-a32e-d1741d9166db`
+- EAS build: `0160523f-166b-4020-b65e-51de75e1ec2f`
+- EAS submission: `f98f120a-8ca5-47aa-893d-64cea57e0f87`
 - App Store Connect app ID: `6818340839`
-- Sürüm/build: `1.0.0 (1)`
+- Sürüm/build: `1.0.0 (6)`
+- Apple'ın işleme ve TestFlight'ta kurulum durumu ayrıca doğrulanmalı.
 
 Komut:
 

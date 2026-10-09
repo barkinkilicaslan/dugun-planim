@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Chips } from '@/components/ui/chips';
+import { MoneyField } from '@/components/ui/money-field';
 import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
 import { spacing } from '@/constants/theme';
@@ -11,7 +12,6 @@ import { useApp } from '@/context/app-context';
 import { useI18n } from '@/context/language-context';
 import type { BudgetItem } from '@/domain/models';
 
-const cents = (value: string) => Math.max(0, Math.round(Number(value.replace(',', '.')) * 100)) || 0;
 export default function BudgetEditor() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { data, createId, saveBudgetItem, deleteBudgetItem } = useApp();
@@ -52,7 +52,12 @@ export default function BudgetEditor() {
       {
         text: t('common.delete'),
         style: 'destructive',
-        onPress: () => void deleteBudgetItem(form.id).then(() => router.back()),
+        onPress: () =>
+          void deleteBudgetItem(form.id)
+            .then(() => router.back())
+            .catch((error) =>
+              Alert.alert(t('common.deleteFailed'), error instanceof Error ? error.message : t('common.unknownError')),
+            ),
       },
     ]);
   }
@@ -71,23 +76,20 @@ export default function BudgetEditor() {
           onChangeText={(value) => update('category', value)}
           placeholder={t('budgetEditor.categoryPlaceholder')}
         />
-        <TextField
+        <MoneyField
           label={t('budgetEditor.planned', { currency: data.profile.currency })}
-          value={form.plannedCents ? String(form.plannedCents / 100) : ''}
-          onChangeText={(value) => update('plannedCents', cents(value))}
-          keyboardType="decimal-pad"
+          cents={form.plannedCents}
+          onChangeCents={(value) => update('plannedCents', value)}
         />
-        <TextField
+        <MoneyField
           label={t('budgetEditor.actual', { currency: data.profile.currency })}
-          value={form.actualCents ? String(form.actualCents / 100) : ''}
-          onChangeText={(value) => update('actualCents', cents(value))}
-          keyboardType="decimal-pad"
+          cents={form.actualCents}
+          onChangeCents={(value) => update('actualCents', value)}
         />
-        <TextField
+        <MoneyField
           label={t('budgetEditor.paid', { currency: data.profile.currency })}
-          value={form.paidCents ? String(form.paidCents / 100) : ''}
-          onChangeText={(value) => update('paidCents', cents(value))}
-          keyboardType="decimal-pad"
+          cents={form.paidCents}
+          onChangeCents={(value) => update('paidCents', value)}
         />
         <TextField
           label={t('budgetEditor.due')}

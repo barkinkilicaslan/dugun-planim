@@ -3,6 +3,8 @@ export const tr = {
   'common.save': 'Kaydet',
   'common.cancel': 'Vazgeç',
   'common.delete': 'Sil',
+  'common.deleteFailed': 'Kayıt silinemedi',
+  'common.saveFailed': 'Kayıt kaydedilemedi',
   'common.edit': 'Düzenle',
   'common.add': '+ Ekle',
   'common.all': 'Tümü',
@@ -138,6 +140,9 @@ export const tr = {
   'tasks.category': 'Kategori',
   'tasks.markDone': ({ title }: { title: string }) => `${title} tamamlandı olarak işaretle`,
   'tasks.editTask': ({ title }: { title: string }) => `${title} görevini düzenle`,
+  'tasks.editTaskDetails': ({ title, details }: { title: string; details: string }) =>
+    `${title}. ${details}. Görevi düzenle`,
+  'tasks.completed': 'Tamamlandı',
   'tasks.overdue': 'Gecikti',
   'tasks.priorityHigh': 'Yüksek öncelik',
   'tasks.priorityMedium': 'Orta öncelik',
@@ -170,6 +175,7 @@ export const tr = {
   'date.field.pickTime': 'Saat seçin',
   'validation.required': ({ label }: { label: string }) => `${label} zorunludur.`,
   'validation.nonNegativeInteger': ({ label }: { label: string }) => `${label} negatif olmayan tam sayı olmalıdır.`,
+  'validation.amountMax': ({ label }: { label: string }) => `${label} en fazla 1.000.000.000 olabilir.`,
   'validation.dateFormat': ({ label }: { label: string }) => `${label} YYYY-AA-GG biçiminde geçerli olmalıdır.`,
   'validation.maxLength': ({ label, max }: { label: string; max: number }) =>
     `${label} en fazla ${max} karakter olabilir.`,
@@ -238,7 +244,15 @@ export const tr = {
   'backup.photoNoticeTitle': 'Davetiye fotoğrafları ve yüklediğiniz davetiyeler yedeğe dahil edilmez',
   'backup.photoNoticeBody':
     'Yedek dosyası davetiye tasarımlarınızı ve şablon seçimlerinizi içerir, ancak davetiyelere eklediğiniz fotoğrafları ve “Kendi davetiyeni yükle” ile yüklediğiniz davetiye görsellerini içermez. Yedeği başka bir cihaza geri yüklerseniz bunları yeniden eklemeniz gerekir; bu cihazda geri yüklerseniz yüklediğiniz davetiyeler korunur.',
+  'backup.plainTextNotice':
+    'Yedek dosyası şifrelenmez; davetli adları, telefon ve e-posta gibi kişisel bilgilerinizi okunabilir metin olarak içerir. Yalnızca güvendiğiniz bir yere kaydedin veya gönderin.',
   'backup.restoredPlain': 'Yedek başarıyla geri yüklendi.',
+  'backup.restoredNotificationsOff':
+    'Yedekte hatırlatmalar açıktı, ancak bu cihazda bildirim izni olmadığı için hatırlatmalar kapalı. İsterseniz Ayarlar’dan bildirimleri açabilirsiniz.',
+  'backup.restoredRemindersRestored': ({ count }: { count: number }) =>
+    `${count} görevin hatırlatması bu cihaz için yeniden planlandı.`,
+  'backup.restoredRemindersSkipped': ({ count }: { count: number }) =>
+    `${count} görevin hatırlatması planlanamadı (tarihi geçmiş olabilir).`,
   'backup.restoredWithDesigns': ({ count }: { count: number }) =>
     `Yedek başarıyla geri yüklendi. ${count} davetiye tasarımı geri geldi; davetiye fotoğrafları yedek dosyasına dahil olmadığı için boş. Fotoğrafları davetiye düzenleyicisinden yeniden ekleyebilirsiniz.`,
   'contacts.duplicatePhone': ({ name }: { name: string }) =>
@@ -382,6 +396,7 @@ export const tr = {
   'personal.error.openSettings': 'Ayarlar’ı aç',
   'personal.error.badFormat': 'Yalnız JPG veya PNG görsel yüklenebilir. PDF desteği henüz yok.',
   'personal.error.tooLarge': 'Görsel 15 MB sınırını aşıyor.',
+  'personal.error.badDimensions': 'Görsel okunamıyor veya çözünürlüğü 50 megapiksel sınırını aşıyor.',
   'personal.error.copy': 'Görsel cihaza kopyalanamadı. Lütfen tekrar deneyin.',
   'personal.share': 'Görseli paylaş',
   'personal.sendToGuests': 'Davetlilere gönder',
@@ -612,7 +627,7 @@ export const tr = {
     'Dışa aktardığınız JSON, CSV ve PDF dosyaları seçtiğiniz hedefte kalır ve uygulama içinden otomatik silinemez. Davetiye fotoğrafları yedek dosyasına dahil edilmez.',
   'legal.data.s3.title': 'Silme',
   'legal.data.s3.body':
-    'Ayarlar → Tüm verilerimi sil işlemi iki onaydan sonra yerel uygulama verilerini ve planlanmış hatırlatmaları temizler.',
+    'Ayarlar → Tüm verilerimi sil işlemi iki onaydan sonra yerel uygulama verilerini, bu cihaza yüklediğiniz davetiye görsellerini, planlanmış hatırlatmaları, geçici dışa aktarma dosyalarını ve seçtiğiniz görsel tarz tercihini temizler.',
   'legal.licenses.title': 'Açık Kaynak Lisansları',
   'legal.licenses.s1.title': 'Temel paketler',
   'legal.licenses.s1.body':
@@ -862,6 +877,17 @@ export const tr = {
   'settings.savedBody': 'Ayarlarınız güncellendi.',
   'settings.saveFailed': 'Ayarlar kaydedilemedi',
   'settings.deleteFailed': 'Veriler silinemedi',
+  'settings.deletePartialTitle': 'Veriler silindi, bazı kalıntılar kaldı',
+  'settings.deletePartialBody': ({ items }: { items: string }) =>
+    `Düğün verileriniz silindi. Şunlar şimdilik temizlenemedi: ${items}. Tekrar deneyebilirsiniz; uygulama bir sonraki açılışta da bunları temizlemeyi dener.`,
+  'settings.deleteRetry': 'Tekrar dene',
+  'settings.deleteLater': 'Daha sonra',
+  'settings.leftover.and': ' ve ',
+  'settings.leftover.reminders': 'planlı hatırlatmalar',
+  'settings.leftover.invitationPhotos': 'davetiye fotoğrafları',
+  'settings.leftover.personalInvitations': 'yüklenen davetiye görselleri',
+  'settings.leftover.exportFiles': 'dışa aktarma dosyaları',
+  'settings.leftover.temporaryFiles': 'davetiye geçici dosyaları',
   'settings.notificationsGranted': 'Bildirimler açık',
   'settings.notificationsGrantedBody': 'Yeni görevlerde yerel hatırlatma seçebilirsiniz.',
   'settings.notificationsDenied': 'İzin verilmedi',
@@ -878,7 +904,8 @@ export const tr = {
   'settings.restoreFailed': 'Geri yüklenemedi',
   'settings.backupInvalid': 'Yedek geçersiz',
   'settings.deleteTitle': 'Tüm yerel veriler silinsin mi?',
-  'settings.deleteBody': 'Görevler, davetliler, bütçe, masalar, tedarikçiler ve notlar kalıcı olarak silinir.',
+  'settings.deleteBody':
+    'Tüm plan verileriniz, bu cihaza yüklediğiniz davetiye görselleri ve fotoğrafları, planlı hatırlatmalar, geçici dışa aktarma dosyaları ve görsel tarz tercihiniz kalıcı olarak silinir.\n\nDaha önce paylaştığınız yedek, CSV ve PDF kopyaları seçtiğiniz konumda kalır; onları ayrıca silmeniz gerekir.',
   'settings.deleteContinue': 'Devam et',
   'settings.deleteFinalTitle': 'Son onay',
   'settings.deleteFinalBody': 'Bu işlem geri alınamaz. Gerçekten tüm verileri silmek istiyor musunuz?',

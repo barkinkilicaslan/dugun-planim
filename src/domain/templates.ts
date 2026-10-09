@@ -84,9 +84,13 @@ export const TASK_TEMPLATES: TaskTemplate[] = [
 ];
 
 function shiftMonths(dateString: string, months: number): string {
-  const wedding = new Date(`${dateString}T12:00:00`);
-  wedding.setMonth(wedding.getMonth() - months);
-  return wedding.toISOString().slice(0, 10);
+  const [year, month, day] = dateString.split('-').map(Number);
+  const targetMonthIndex = month - 1 - months;
+  const targetYear = year + Math.floor(targetMonthIndex / 12);
+  const normalizedMonth = ((targetMonthIndex % 12) + 12) % 12;
+  const lastDayOfTargetMonth = new Date(Date.UTC(targetYear, normalizedMonth + 1, 0)).getUTCDate();
+  const targetDay = Math.min(day, lastDayOfTargetMonth);
+  return new Date(Date.UTC(targetYear, normalizedMonth, targetDay)).toISOString().slice(0, 10);
 }
 
 export function createTemplateTasks(

@@ -38,6 +38,7 @@ export default function NotesScreen() {
               title={note.title}
               subtitle={note.content}
               meta={formatTimestampDate(note.updatedAt, locale)}
+              accessibilityLabel={`${note.title}, ${note.content.replace(/\s+/g, ' ').trim().slice(0, 80)}, ${formatTimestampDate(note.updatedAt, locale)}`}
               onPress={() => router.push(`/edit/note?id=${note.id}`)}
             />
           ))}

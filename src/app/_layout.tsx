@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, AppState, StyleSheet, View } from 'react-native';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { AppProvider, useApp } from '@/context/app-context';
 import { LanguageProvider, useI18n } from '@/context/language-context';
 import { AppThemeProvider, useAppTheme } from '@/context/theme-context';
+import { EXPORT_MAX_AGE_MS, purgeExportFiles, purgeLegacyExportFiles } from '@/services/export-files';
 import { cleanupInvitationTemp } from '@/services/invitation-files';
 import { configureNotifications } from '@/services/notifications';
 
@@ -24,7 +25,15 @@ function AppNavigator() {
     void configureNotifications();
   }, [locale]);
   useEffect(() => {
+    // Açılışta önceki oturumlardan kalan geçici dosyalar silinir: davetiye PNG/PDF'leri, dışa aktarma dosyaları ve eski
+    // sürümlerin kalıntıları. Uygulama uzun süre arka planda kalıp öne gelince yarım saatten eski dışa aktarmalar silinir.
     cleanupInvitationTemp();
+    purgeExportFiles();
+    purgeLegacyExportFiles();
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') purgeExportFiles(EXPORT_MAX_AGE_MS);
+    });
+    return () => subscription.remove();
   }, []);
   const failed = Boolean(error);
   // Yükleme ve hata ekranları da tanıtımın altında hazır bekler; tanıtım kapanınca kullanıcı boş ekran görmez.

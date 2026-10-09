@@ -46,4 +46,105 @@ describe('portable backup', () => {
     ).toThrow('desteklenmiyor'));
   it('rejects oversized untrusted input before parsing', () =>
     expect(() => parseBackup('x'.repeat(10_000_001))).toThrow('boyutu'));
+
+  it.each([
+    [
+      'missing payload',
+      { format: 'dugun-planim-backup', schemaVersion: 3, appVersion: '1.0.0', exportedAt: '2026-07-30T12:00:00.000Z' },
+    ],
+    [
+      'missing profile',
+      {
+        format: 'dugun-planim-backup',
+        schemaVersion: 3,
+        appVersion: '1.0.0',
+        exportedAt: '2026-07-30T12:00:00.000Z',
+        payload: { ...data, profile: null },
+      },
+    ],
+    [
+      'non-object task',
+      {
+        format: 'dugun-planim-backup',
+        schemaVersion: 3,
+        appVersion: '1.0.0',
+        exportedAt: '2026-07-30T12:00:00.000Z',
+        payload: { ...data, tasks: [null] },
+      },
+    ],
+  ])('rejects malformed backup structure (%s) with a user-facing validation error', (_case, envelope) => {
+    expect(() => parseBackup(JSON.stringify(envelope))).toThrow('Yedek yapısı geçersiz.');
+  });
+
+  it('rejects duplicate entity IDs and dangling guest/vendor links', () => {
+    const envelope = (payload: object) =>
+      JSON.stringify({
+        format: 'dugun-planim-backup',
+        schemaVersion: 3,
+        appVersion: '1.0.0',
+        exportedAt: '2026-07-30T12:00:00.000Z',
+        payload,
+      });
+    const task = {
+      id: 'same',
+      title: 'Görev',
+      category: 'Planlama',
+      description: '',
+      dueDate: '',
+      priority: 'medium',
+      completed: false,
+      createdAt: '2026-07-30T12:00:00.000Z',
+      updatedAt: '2026-07-30T12:00:00.000Z',
+    };
+    const guest = {
+      id: 'guest-1',
+      name: 'Ada',
+      phone: '',
+      email: '',
+      side: 'common',
+      partySize: 1,
+      childCount: 0,
+      rsvp: 'pending',
+      notes: '',
+      mealNotes: '',
+      group: 'other',
+      rsvpSource: 'none',
+      rsvpRespondedAt: '',
+      lastInviteSentAt: '',
+      lastInviteChannel: '',
+      inviteStatus: 'none',
+      createdAt: '2026-07-30T12:00:00.000Z',
+      updatedAt: '2026-07-30T12:00:00.000Z',
+    };
+    const budgetItem = {
+      id: 'budget-1',
+      title: 'Salon',
+      category: 'Mekân',
+      plannedCents: 1000,
+      actualCents: 1000,
+      paidCents: 0,
+      dueDate: '',
+      vendorId: 'missing',
+      notes: '',
+      createdAt: '2026-07-30T12:00:00.000Z',
+      updatedAt: '2026-07-30T12:00:00.000Z',
+    };
+    const withDuplicateTasks = { ...data, tasks: [task, { ...task }] };
+    expect(() => parseBackup(envelope(withDuplicateTasks))).toThrow('Yedek yapısı geçersiz.');
+    expect(() => parseBackup(envelope({ ...data, guests: [{ ...guest, tableId: 'missing' }] }))).toThrow(
+      'Yedek yapısı geçersiz.',
+    );
+    expect(() => parseBackup(envelope({ ...data, budgetItems: [budgetItem] }))).toThrow('Yedek yapısı geçersiz.');
+  });
+
+  it('rejects enum values that the app cannot safely display', () => {
+    const raw = JSON.stringify({
+      format: 'dugun-planim-backup',
+      schemaVersion: 3,
+      appVersion: '1.0.0',
+      exportedAt: '2026-07-30T12:00:00.000Z',
+      payload: { ...data, profile: { ...data.profile, currency: 'BTC' } },
+    });
+    expect(() => parseBackup(raw)).toThrow('Yedek yapısı geçersiz.');
+  });
 });

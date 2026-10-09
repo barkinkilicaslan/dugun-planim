@@ -12,6 +12,7 @@ import type {
   WeddingProfile,
 } from './models';
 import { isValidDateString } from './calculations';
+import { MAX_MONEY_CENTS } from './money';
 import { isValidEmail, normalizeEmail } from './contacts';
 import { INVITATION_TEMPLATE_IDS } from './invitation-templates';
 import { INVITE_CHANNELS, INVITE_STATUSES, RSVP_SOURCES, RSVP_STATUSES } from './rsvp';
@@ -28,6 +29,13 @@ function required(value: string, label: string): string {
 
 function nonNegativeInteger(value: number, label: string): number {
   if (!Number.isInteger(value) || value < 0) throw new ValidationError(t('validation.nonNegativeInteger', { label }));
+  return value;
+}
+
+/** Kuruş cinsinden tutar: negatif olmayan tam sayı ve `MAX_MONEY_CENTS` sınırı (toplamlar güvenli tam sayı içinde kalır). */
+function money(value: number, label: string): number {
+  nonNegativeInteger(value, label);
+  if (value > MAX_MONEY_CENTS) throw new ValidationError(t('validation.amountMax', { label }));
   return value;
 }
 
@@ -55,7 +63,7 @@ export function validateProfile(profile: WeddingProfile): WeddingProfile {
     couple1Name: required(profile.couple1Name, t('validation.label.name1')),
     couple2Name: required(profile.couple2Name, t('validation.label.name2')),
     weddingDate: date(profile.weddingDate, t('validation.label.weddingDate')),
-    estimatedBudgetCents: nonNegativeInteger(profile.estimatedBudgetCents, t('validation.label.budget')),
+    estimatedBudgetCents: money(profile.estimatedBudgetCents, t('validation.label.budget')),
     estimatedGuestCount: nonNegativeInteger(profile.estimatedGuestCount, t('validation.label.guestCount')),
     adultsOnly: Boolean(profile.adultsOnly),
     adultsOnlyMessage: boundedText(profile.adultsOnlyMessage ?? '', t('validation.label.adultsOnlyMessage'), 400),
@@ -148,10 +156,7 @@ export function validateVenueLayoutItem(item: VenueLayoutItem): VenueLayoutItem 
 export function validateBudgetItem(item: BudgetItem): BudgetItem {
   const values = [item.plannedCents, item.actualCents, item.paidCents];
   values.forEach((value, index) =>
-    nonNegativeInteger(
-      value,
-      [t('validation.label.planned'), t('validation.label.actual'), t('validation.label.paid')][index],
-    ),
+    money(value, [t('validation.label.planned'), t('validation.label.actual'), t('validation.label.paid')][index]),
   );
   if (item.paidCents > item.actualCents) throw new ValidationError(t('validation.paidExceeds'));
   return {
@@ -167,7 +172,7 @@ export function validateVendor(vendor: Vendor): Vendor {
     ...vendor,
     name: required(vendor.name, t('validation.label.vendorName')),
     category: required(vendor.category, t('validation.label.category')),
-    quoteCents: nonNegativeInteger(vendor.quoteCents, t('validation.label.quote')),
+    quoteCents: money(vendor.quoteCents, t('validation.label.quote')),
   };
 }
 

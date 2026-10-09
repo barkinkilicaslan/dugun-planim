@@ -83,7 +83,12 @@ export default function GuestEditor() {
       {
         text: t('common.delete'),
         style: 'destructive',
-        onPress: () => void deleteGuest(form.id).then(() => router.back()),
+        onPress: () =>
+          void deleteGuest(form.id)
+            .then(() => router.back())
+            .catch((error) =>
+              Alert.alert(t('common.deleteFailed'), error instanceof Error ? error.message : t('common.unknownError')),
+            ),
       },
     ]);
   }
@@ -208,7 +213,14 @@ export default function GuestEditor() {
             disabled={existing.inviteStatus === 'markedSent'}
             onPress={() => {
               const stamp = new Date().toISOString();
-              void saveGuest(markInviteSent(existing, stamp)).then(() => router.back());
+              void saveGuest(markInviteSent(existing, stamp))
+                .then(() => router.back())
+                .catch((error) =>
+                  Alert.alert(
+                    t('common.saveFailed'),
+                    error instanceof Error ? error.message : t('common.unknownError'),
+                  ),
+                );
             }}
           />
           <Button
@@ -217,7 +229,14 @@ export default function GuestEditor() {
             disabled={existing.inviteStatus === 'none'}
             onPress={() => {
               const stamp = new Date().toISOString();
-              void saveGuest(clearInviteStatus(existing, stamp)).then(() => router.back());
+              void saveGuest(clearInviteStatus(existing, stamp))
+                .then(() => router.back())
+                .catch((error) =>
+                  Alert.alert(
+                    t('common.saveFailed'),
+                    error instanceof Error ? error.message : t('common.unknownError'),
+                  ),
+                );
             }}
           />
         </Card>

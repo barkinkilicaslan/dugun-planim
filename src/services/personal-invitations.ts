@@ -15,9 +15,10 @@ import { cleanupInvitationTemp, type GeneratedInvitationFile } from './invitatio
 
 const DIRECTORY = 'personal-invitations';
 const MAX_BYTES = 15 * 1024 * 1024;
+const MAX_PIXELS = 50_000_000;
 const EXTENSIONS = ['jpg', 'jpeg', 'png'];
 
-export type PersonalInvitationErrorCode = 'permission' | 'format' | 'size' | 'copy' | 'web' | 'missing';
+export type PersonalInvitationErrorCode = 'permission' | 'format' | 'size' | 'dimensions' | 'copy' | 'web' | 'missing';
 
 export class PersonalInvitationError extends Error {
   constructor(
@@ -76,6 +77,20 @@ async function copyIntoApp(
     const file = new File(target, `${id.replace(/[^a-zA-Z0-9-]/g, '')}-${Date.now()}.${extension}`);
     await source.copy(file);
     const dimensions = size.width > 0 && size.height > 0 ? size : await measure(file.uri);
+    if (
+      !Number.isFinite(dimensions.width) ||
+      !Number.isFinite(dimensions.height) ||
+      dimensions.width < 1 ||
+      dimensions.height < 1 ||
+      dimensions.width * dimensions.height > MAX_PIXELS
+    ) {
+      try {
+        if (file.exists) file.delete();
+      } catch {
+        // A failed import must not replace or invalidate an existing saved invitation.
+      }
+      throw new PersonalInvitationError('dimensions', t('personal.error.badDimensions'));
+    }
     return { uri: file.uri, ...dimensions };
   } catch (reason) {
     if (reason instanceof PersonalInvitationError) throw reason;

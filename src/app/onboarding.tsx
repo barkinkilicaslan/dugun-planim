@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Chips } from '@/components/ui/chips';
 import { DateField } from '@/components/ui/date-field';
+import { MoneyField } from '@/components/ui/money-field';
 import { ProgressBar } from '@/components/ui/progress';
 import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
@@ -111,13 +112,10 @@ export default function OnboardingScreen() {
               update('weddingDate', value);
             }}
           />
-          <TextField
+          <MoneyField
             label={t('onboarding.budgetEstimate')}
-            value={profile.estimatedBudgetCents ? String(profile.estimatedBudgetCents / 100) : ''}
-            onChangeText={(value) =>
-              update('estimatedBudgetCents', Math.max(0, Math.round(Number(value.replace(',', '.')) * 100)) || 0)
-            }
-            keyboardType="decimal-pad"
+            cents={profile.estimatedBudgetCents}
+            onChangeCents={(value) => update('estimatedBudgetCents', value)}
           />
           <TextField
             label={t('onboarding.guestEstimate')}
