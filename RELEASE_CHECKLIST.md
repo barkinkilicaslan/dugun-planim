@@ -103,6 +103,8 @@ npx eas-cli@latest submit --platform android --profile production
 - [ ] Build 7'yi TestFlight internal tester grubundan iPhone'a kur ve cihaz testini tamamla
 - [ ] TestFlight internal smoke testi ve App Review notları
 
+Build 7 için mevcut verileri silmeden uygulanacak cihaz test sırası: [TESTFLIGHT_QA_BUILD7.md](./TESTFLIGHT_QA_BUILD7.md).
+
 Son TestFlight paketi 9 Ekim 2026 tarihinde oluşturuldu ve App Store Connect'e yüklendi:
 
 - EAS build: `62626cf9-12e2-4056-b7e5-ed7074921402`
