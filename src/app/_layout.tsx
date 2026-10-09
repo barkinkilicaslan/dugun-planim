@@ -26,7 +26,7 @@ function AppNavigator() {
   }, [locale]);
   useEffect(() => {
     // Açılışta önceki oturumlardan kalan geçici dosyalar silinir: davetiye PNG/PDF'leri, dışa aktarma dosyaları ve eski
-    // sürümlerin kalıntıları. Uygulama uzun süre arka planda kalıp öne gelince yarım saatten eski dışa aktarmalar silinir.
+    // sürümlerin kalıntıları. Uygulama arka planda en az bir saat kaldıktan sonra öne gelirse eski dışa aktarmalar silinir.
     cleanupInvitationTemp();
     purgeExportFiles();
     purgeLegacyExportFiles();
