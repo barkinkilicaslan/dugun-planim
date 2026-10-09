@@ -37,6 +37,7 @@ yarn-error.*
 /__tests__/
 /legal-site/
 /store-listing/
+/store.config.json
 /abyss-*/
 /.claude/
 *.md
