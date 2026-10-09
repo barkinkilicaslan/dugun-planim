@@ -1,6 +1,6 @@
-# Release Checklist — 1.0.0 (iOS build 7 planned)
+# Release Checklist — 1.0.0 (iOS build 7 in TestFlight)
 
-Son güncelleme: 9 Ekim 2026. EAS’ta 1.0.0 (6) TestFlight’a yüklendi; bu çalışma alanındaki yeni düzeltmeler build 6’da yok. Sıradaki iOS paketi build 7 olmalı. App Review’a gönderim veya mağaza yayını yapılmadı. İşaretli maddeler doğrulanmış durumları, açık maddeler cihaz, mağaza formu veya insan incelemesi gerektirenleri gösterir.
+Son güncelleme: 9 Ekim 2026. Build 7 App Store Connect’e yüklendi ve Apple tarafından beta testine hazırlandı; bu cihazda kurulup sınanması bekleniyor. App Review’a gönderim veya mağaza yayını yapılmadı. Build 7’den sonra yeni iOS build’i yalnızca test bulgusu gerektirirse alınmalı. İşaretli maddeler doğrulanmış durumları, açık maddeler cihaz, mağaza formu veya insan incelemesi gerektirenleri gösterir.
 
 ## Kod ve kalite
 
@@ -99,16 +99,17 @@ npx eas-cli@latest submit --platform android --profile production
 - [ ] Türkçe metadata, privacy URL, destek/pazarlama URL'si
 - [ ] 4 iPhone ve 4 iPad screenshot
 - [ ] App Privacy, yaş derecelendirmesi, ihracat uyumluluğu, trader ve inceleme iletişimi
-- [ ] IPA'yı TestFlight'a yükle; processing ve export compliance sonucunu kontrol et
+- [x] Build 7'yi TestFlight'a yükle; Apple build'i beta testine hazır duruma getirdi
+- [ ] Build 7'yi TestFlight internal tester grubundan iPhone'a kur ve cihaz testini tamamla
 - [ ] TestFlight internal smoke testi ve App Review notları
 
 Son TestFlight paketi 9 Ekim 2026 tarihinde oluşturuldu ve App Store Connect'e yüklendi:
 
-- EAS build: `0160523f-166b-4020-b65e-51de75e1ec2f`
-- EAS submission: `f98f120a-8ca5-47aa-893d-64cea57e0f87`
+- EAS build: `62626cf9-12e2-4056-b7e5-ed7074921402`
+- EAS submission: `535833c6-918c-4af7-818a-2576dc35770c`
 - App Store Connect app ID: `6818340839`
-- Sürüm/build: `1.0.0 (6)`
-- Apple'ın işleme ve TestFlight'ta kurulum durumu ayrıca doğrulanmalı.
+- Sürüm/build: `1.0.0 (7)`
+- Apple durumu: beta testine hazır; gerçek iPhone kurulumu henüz kullanıcı tarafından doğrulanmadı.
 
 Komut:
 
