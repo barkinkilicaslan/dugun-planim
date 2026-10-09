@@ -21,7 +21,7 @@ Character/byte counts and Apple limits are verified by `npm run metadata:check`.
 ```text
 Düğün Planım brings your wedding preparations into one calm plan, with no account required. The app is available in Turkish and English; it follows your device language automatically, or you can change it in Settings.
 
-Organize tasks by date, category and priority, spot overdue items and follow your preparation progress. Pick your wedding date from the calendar and the starter tasks are prepared around it.
+Organize tasks by date, category and priority, spot overdue items and follow your preparation progress. Browse 60 wedding task ideas across 12 categories, add only the ones you need, and choose their due dates yourself.
 
 GUESTS AND RSVP
 - Keep guests with name, side, group, number of adults and children, and meal or allergy notes.
@@ -62,7 +62,8 @@ This app does not provide professional wedding, legal or financial advice.
 - What's New:
 
 ```text
-The first release of Düğün Planım:
+Düğün Planım brings your wedding preparations into one plan:
+- 60 wedding task ideas across 12 categories; only the ideas you choose are added to your plan
 - Turkish and English interface; the language follows your device or can be changed in Settings
 - Pick your wedding date from the calendar
 - Add the contacts you select to your guest list

@@ -21,7 +21,7 @@ Karakter/bayt sayıları ve Apple sınırları `npm run metadata:check` ile doğ
 ```text
 Düğün Planım, düğün hazırlığınızı tek bir sakin planda toplayan, hesap gerektirmeyen bir planlama uygulamasıdır. Uygulama Türkçe ve İngilizce kullanılabilir; dili cihaz diline göre otomatik seçer veya Ayarlar'dan değiştirebilirsiniz.
 
-Görevlerinizi tarih, kategori ve önceliğe göre düzenleyin, geciken işleri görün ve hazırlık ilerlemenizi izleyin. Düğün tarihinizi takvimden seçin; başlangıç görevleri bu tarihe göre hazırlanır.
+Görevlerinizi tarih, kategori ve önceliğe göre düzenleyin, geciken işleri görün ve hazırlık ilerlemenizi izleyin. 12 kategorideki 60 düğün görevi önerisi arasından ihtiyacınız olanları seçip planınıza ekleyin; tarihlerini siz belirlersiniz.
 
 DAVETLİLER VE RSVP
 - Davetlileri ad, taraf, grup, kişi ve çocuk sayısı ile yemek/alerji notlarıyla kaydedin.
@@ -62,7 +62,8 @@ Bu uygulama profesyonel düğün, hukuk veya finans danışmanlığı sağlamaz.
 - Bu sürümdeki yenilikler:
 
 ```text
-Düğün Planım'ın ilk sürümü:
+Düğün Planım ile düğün hazırlıklarınızı tek yerde planlayın:
+- 12 kategoride 60 düğün görevi önerisi; yalnızca seçtikleriniz planınıza eklenir
 - Türkçe ve İngilizce arayüz; dil otomatik seçilir veya Ayarlar'dan değiştirilir
 - Takvimden düğün tarihi seçimi
 - Rehberden seçtiğiniz kişileri davetli listesine ekleme
