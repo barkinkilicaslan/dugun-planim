@@ -56,6 +56,33 @@ jest.mock('@/services/notifications', () => ({
 }));
 
 describe('all data deletion', () => {
+  it('completes onboarding without generating overdue starter tasks', async () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => <AppProvider>{children}</AppProvider>;
+    const { result } = await renderHook(() => useApp(), { wrapper });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    await act(async () =>
+      result.current.completeOnboarding(
+        {
+          couple1Name: 'Zeynep',
+          couple2Name: 'Emre',
+          weddingDate: '2027-08-15',
+          estimatedBudgetCents: 45000000,
+          estimatedGuestCount: 120,
+          currency: 'TRY',
+          theme: 'system',
+          dateFormat: 'DD.MM.YYYY',
+          notificationsEnabled: false,
+          onboardingCompleted: false,
+          adultsOnly: false,
+          adultsOnlyMessage: '',
+        },
+        false,
+      ),
+    );
+    expect(repository.replaceAll).toHaveBeenCalledWith(expect.objectContaining({ tasks: [] }));
+    expect(result.current.data.tasks).toEqual([]);
+  });
+
   it('clears persistence and returns state to onboarding-safe empty data', async () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => <AppProvider>{children}</AppProvider>;
     const { result } = await renderHook(() => useApp(), { wrapper });

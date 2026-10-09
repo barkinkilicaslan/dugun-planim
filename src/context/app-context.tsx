@@ -2,7 +2,6 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import * as Crypto from 'expo-crypto';
 
 import { repository } from '@/data/repository';
-import { createTemplateTasks } from '@/domain/templates';
 import { t } from '@/i18n';
 import {
   EMPTY_APP_DATA,
@@ -183,7 +182,7 @@ export function AppProvider({ children }: PropsWithChildren) {
         const next = {
           ...EMPTY_APP_DATA,
           profile: nextProfile,
-          tasks: createTemplateTasks(nextProfile.weddingDate, createId),
+          tasks: [],
         };
         await repository.replaceAll(next);
         setData(next);

@@ -9,11 +9,13 @@ describe('database migrations', () => {
     expect(versions).toEqual(versions.map((_, index) => index + 1));
   });
   it('returns only pending migrations and includes integrity constraints', () => {
-    expect(pendingMigrations(0)).toHaveLength(4);
-    expect(pendingMigrations(1)).toHaveLength(3);
-    expect(pendingMigrations(2)).toHaveLength(2);
-    expect(pendingMigrations(3)).toHaveLength(1);
-    expect(pendingMigrations(4)).toHaveLength(0);
+    expect(pendingMigrations(0)).toHaveLength(6);
+    expect(pendingMigrations(1)).toHaveLength(5);
+    expect(pendingMigrations(2)).toHaveLength(4);
+    expect(pendingMigrations(3)).toHaveLength(3);
+    expect(pendingMigrations(4)).toHaveLength(2);
+    expect(pendingMigrations(5)).toHaveLength(1);
+    expect(pendingMigrations(6)).toHaveLength(0);
     expect(MIGRATIONS[0].sql).toContain('PRAGMA foreign_keys = ON');
     expect(MIGRATIONS[0].sql).toContain('paid_cents <= actual_cents');
     expect(MIGRATIONS[0].sql).toContain('ON DELETE SET NULL');

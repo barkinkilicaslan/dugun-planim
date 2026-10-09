@@ -75,7 +75,16 @@ export default function TasksScreen() {
         done: data.tasks.filter((task) => task.completed).length,
         total: data.tasks.length,
       })}
-      action={<Button label={t('common.add')} onPress={() => router.push('/edit/task')} />}
+      action={
+        <View style={styles.headerActions}>
+          <Button
+            label={t('tasks.suggestions')}
+            variant="secondary"
+            onPress={() => router.push('/task-suggestions' as never)}
+          />
+          <Button label={t('common.add')} onPress={() => router.push('/edit/task')} />
+        </View>
+      }
     >
       <TextField
         label={t('tasks.search')}
@@ -201,14 +210,15 @@ export default function TasksScreen() {
               ? t('common.searchChangeHint')
               : t('tasks.emptyHint')
           }
-          actionLabel={t('home.addTask')}
-          onAction={() => router.push('/edit/task')}
+          actionLabel={t('tasks.suggestions')}
+          onAction={() => router.push('/task-suggestions' as never)}
         />
       )}
     </Screen>
   );
 }
 const styles = StyleSheet.create({
+  headerActions: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', gap: spacing.xs },
   taskRow: { flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start' },
   check: {
     width: 44,

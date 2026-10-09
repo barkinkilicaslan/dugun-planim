@@ -72,6 +72,7 @@ function AppNavigator() {
           <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false, gestureEnabled: false }} />
           <Stack.Screen name="edit/task" options={{ title: t('nav.task') }} />
+          <Stack.Screen name="task-suggestions" options={{ title: t('tasks.suggestions') }} />
           <Stack.Screen name="edit/guest" options={{ title: t('nav.guest') }} />
           <Stack.Screen name="edit/budget" options={{ title: t('nav.budgetItem') }} />
           <Stack.Screen name="edit/vendor" options={{ title: t('nav.vendor') }} />

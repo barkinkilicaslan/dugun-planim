@@ -1,4 +1,4 @@
-import { t as translateActive, type MessageKey, type Translator } from '@/i18n';
+import { createTranslator, t as translateActive, type MessageKey, type Translator } from '@/i18n';
 import type { TaskItem, TaskPriority } from './models';
 
 interface TaskTemplate {
@@ -110,4 +110,35 @@ export function createTemplateTasks(
     createdAt: now,
     updatedAt: now,
   }));
+}
+
+/** Finds only untouched auto-seeded tasks from the old onboarding batch; personal tasks are never inferred by title alone. */
+export function findLegacyAutoTaskIds(
+  tasks: TaskItem[],
+  weddingDate: string,
+  today = new Date().toISOString().slice(0, 10),
+): string[] {
+  const signatures = new Map<string, string>();
+  for (const locale of ['tr', 'en'] as const) {
+    for (const task of createTemplateTasks(weddingDate, () => '', createTranslator(locale))) {
+      signatures.set(
+        [task.category, task.title, task.description, task.dueDate, task.priority].join('\u0000'),
+        task.dueDate,
+      );
+    }
+  }
+  const matched = tasks.filter((task) => {
+    if (
+      task.completed ||
+      task.notificationId ||
+      task.updatedAt !== task.createdAt ||
+      !task.dueDate ||
+      task.dueDate >= today
+    )
+      return false;
+    return signatures.has([task.category, task.title, task.description, task.dueDate, task.priority].join('\u0000'));
+  });
+  const batches = new Map<string, TaskItem[]>();
+  for (const task of matched) batches.set(task.createdAt, [...(batches.get(task.createdAt) ?? []), task]);
+  return [...batches.values()].filter((batch) => batch.length >= 2).flatMap((batch) => batch.map((task) => task.id));
 }

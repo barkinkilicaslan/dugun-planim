@@ -17,7 +17,7 @@ const data = {
 describe('portable backup', () => {
   it('round-trips a versioned backup', () => {
     const raw = createBackup(data, new Date('2026-07-30T12:00:00.000Z'));
-    expect(JSON.parse(raw)).toMatchObject({ format: 'dugun-planim-backup', schemaVersion: 3, appVersion: '1.0.0' });
+    expect(JSON.parse(raw)).toMatchObject({ format: 'dugun-planim-backup', schemaVersion: 4, appVersion: '1.0.0' });
     expect(parseBackup(raw)).toEqual(data);
   });
   it('migrates a schema 1 backup without a venue layout', () => {

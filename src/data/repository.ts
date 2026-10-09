@@ -16,6 +16,7 @@ import {
   type WeddingProfile,
 } from '@/domain/models';
 import { pendingMigrations } from './migrations';
+import { findLegacyAutoTaskIds } from '@/domain/templates';
 
 type Db = SQLite.SQLiteDatabase;
 let databasePromise: Promise<Db> | undefined;
@@ -34,6 +35,34 @@ async function migrate(db: Db): Promise<void> {
       await db.execAsync(`PRAGMA user_version = ${migration.version}`);
     });
   }
+}
+
+async function cleanLegacyOverdueTasks(db: Db): Promise<void> {
+  const marker = await db.getFirstAsync<{ value: string }>(
+    "SELECT value FROM app_meta WHERE key = 'legacy_task_cleanup_v1'",
+  );
+  if (marker) return;
+  const profile = await db.getFirstAsync<{ wedding_date: string }>('SELECT wedding_date FROM profile WHERE id = 1');
+  if (profile?.wedding_date) {
+    const rows = await db.getAllAsync<Record<string, string | number | null>>('SELECT * FROM tasks');
+    const tasks: TaskItem[] = rows.map((r) => ({
+      id: String(r.id),
+      category: String(r.category),
+      title: String(r.title),
+      description: String(r.description),
+      dueDate: String(r.due_date),
+      priority: String(r.priority) as TaskItem['priority'],
+      completed: Boolean(r.completed),
+      notificationId: r.notification_id ? String(r.notification_id) : undefined,
+      createdAt: String(r.created_at),
+      updatedAt: String(r.updated_at),
+    }));
+    const ids = findLegacyAutoTaskIds(tasks, profile.wedding_date);
+    if (ids.length) await db.runAsync(`DELETE FROM tasks WHERE id IN (${ids.map(() => '?').join(',')})`, ...ids);
+  }
+  await db.runAsync(
+    "INSERT INTO app_meta (key, value) VALUES ('legacy_task_cleanup_v1', 'done') ON CONFLICT(key) DO UPDATE SET value='done'",
+  );
 }
 
 async function saveProfileWithDb(db: Db, profile: WeddingProfile): Promise<void> {
@@ -63,8 +92,9 @@ async function saveProfileWithDb(db: Db, profile: WeddingProfile): Promise<void>
 
 async function upsertTaskWithDb(db: Db, task: TaskItem): Promise<void> {
   await db.runAsync(
-    `INSERT INTO tasks VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-     ON CONFLICT(id) DO UPDATE SET category=excluded.category,title=excluded.title,description=excluded.description,due_date=excluded.due_date,priority=excluded.priority,completed=excluded.completed,notification_id=excluded.notification_id,updated_at=excluded.updated_at`,
+    `INSERT INTO tasks (id, category, title, description, due_date, priority, completed, notification_id, created_at, updated_at, suggestion_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET category=excluded.category,title=excluded.title,description=excluded.description,due_date=excluded.due_date,priority=excluded.priority,completed=excluded.completed,notification_id=excluded.notification_id,updated_at=excluded.updated_at,suggestion_id=excluded.suggestion_id`,
     task.id,
     task.category,
     task.title,
@@ -75,6 +105,7 @@ async function upsertTaskWithDb(db: Db, task: TaskItem): Promise<void> {
     task.notificationId ?? null,
     task.createdAt,
     task.updatedAt,
+    task.suggestionId ?? null,
   );
 }
 
@@ -239,7 +270,9 @@ async function upsertNoteWithDb(db: Db, note: NoteItem): Promise<void> {
 
 export const repository = {
   async initialize(): Promise<void> {
-    await migrate(await database());
+    const db = await database();
+    await migrate(db);
+    await cleanLegacyOverdueTasks(db);
   },
 
   async load(): Promise<AppData> {
@@ -300,6 +333,7 @@ export const repository = {
         notificationId: r.notification_id ? String(r.notification_id) : undefined,
         createdAt: String(r.created_at),
         updatedAt: String(r.updated_at),
+        suggestionId: r.suggestion_id ? String(r.suggestion_id) : undefined,
       })),
       guests: guestRows.map((r) => ({
         id: String(r.id),

@@ -1,0 +1,460 @@
+import type { TaskPriority } from './models';
+
+export type TaskSuggestionCategory =
+  | 'planning'
+  | 'budget'
+  | 'venue'
+  | 'guests'
+  | 'vendors'
+  | 'ceremony'
+  | 'style'
+  | 'food'
+  | 'media'
+  | 'logistics'
+  | 'weddingDay'
+  | 'after';
+export interface TaskSuggestion {
+  id: string;
+  category: TaskSuggestionCategory;
+  title: string;
+  titleEn: string;
+  description: string;
+  descriptionEn: string;
+  priority: TaskPriority;
+}
+
+const rows: [TaskSuggestionCategory, string, string, string, string, TaskPriority?][] = [
+  [
+    'planning',
+    'Düğün önceliklerinizi birlikte belirleyin',
+    'Agree on your wedding priorities',
+    'En önemli üç şeyi seçin: bütçe, konuk deneyimi, mekân veya başka bir konu.',
+    'Choose your three priorities: budget, guest experience, venue or anything else.',
+    'high',
+  ],
+  [
+    'planning',
+    'Ortak yapılacaklar ve karar listesi oluşturun',
+    'Create a shared decisions list',
+    'Kararları, sorumluları ve son tarihleri tek yerde toplayın.',
+    'Keep decisions, owners and due dates in one place.',
+  ],
+  [
+    'planning',
+    'Düğün günü için yaklaşık akış çıkarın',
+    'Draft the wedding-day schedule',
+    'Tören, fotoğraf, yemek ve eğlence için tahmini saatleri not edin.',
+    'Note approximate times for ceremony, photos, dinner and festivities.',
+  ],
+  [
+    'planning',
+    'Önemli kararlar için yedek plan belirleyin',
+    'Create backup plans for key decisions',
+    'Hava, tedarikçi iptali ve ulaşım sorunları için alternatif düşünün.',
+    'Consider alternatives for weather, vendor cancellations and transport.',
+  ],
+  [
+    'planning',
+    'Haftalık düğün planlama görüşmesi ayarlayın',
+    'Schedule a weekly planning check-in',
+    'Kısa bir görüşmeyle ilerlemeyi ve sıradaki işleri değerlendirin.',
+    'Use a short check-in to review progress and next steps.',
+  ],
+  [
+    'budget',
+    'Bütçeyi kategorilere ayırın',
+    'Break the budget into categories',
+    'Mekân, yemek, kıyafet, fotoğraf ve diğer kalemler için sınır koyun.',
+    'Set limits for venue, food, attire, photography and other items.',
+  ],
+  [
+    'budget',
+    'Beklenmeyen giderler için pay ayırın',
+    'Set aside a contingency fund',
+    'Toplam bütçenin bir bölümünü sonradan çıkabilecek giderler için koruyun.',
+    'Reserve part of the total for unexpected costs.',
+  ],
+  [
+    'budget',
+    'Teklifleri aynı kapsam üzerinden karşılaştırın',
+    'Compare quotes on the same scope',
+    'Her tedarikçiden dahil olan hizmetleri ve ek ücretleri netleştirin.',
+    'Clarify included services and extra fees with every vendor.',
+  ],
+  [
+    'budget',
+    'Ödeme tarihlerini takvime ekleyin',
+    'Add payment dates to your calendar',
+    'Kapora, taksit ve kalan ödemelerin tarihlerini kaydedin.',
+    'Record deposit, installment and balance due dates.',
+  ],
+  [
+    'budget',
+    'Bütçeyi düzenli olarak güncelleyin',
+    'Review the budget regularly',
+    'Gerçekleşen harcamaları ve kalan tutarı birlikte gözden geçirin.',
+    'Review actual spending and remaining funds together.',
+  ],
+  [
+    'venue',
+    'Mekân için ihtiyaç listenizi hazırlayın',
+    'List your venue requirements',
+    'Kapasite, erişilebilirlik, ulaşım, otopark ve hava planını düşünün.',
+    'Consider capacity, accessibility, transport, parking and weather plans.',
+  ],
+  [
+    'venue',
+    'Mekân ziyaretleri için soru listesi hazırlayın',
+    'Prepare questions for venue visits',
+    'Saat sınırı, kurulum, iptal koşulları ve dahil hizmetleri sorun.',
+    'Ask about time limits, setup, cancellation and included services.',
+  ],
+  [
+    'venue',
+    'Mekân sözleşmesini dikkatlice inceleyin',
+    'Review the venue contract carefully',
+    'Tarih, ücretler, iptal ve değişiklik koşullarını doğrulayın.',
+    'Verify date, fees, cancellation and change terms.',
+  ],
+  [
+    'venue',
+    'Mekânın ölçülerini ve yerleşimini alın',
+    'Get venue dimensions and layout',
+    'Masa, sahne, dans pisti ve girişler için plan isteyin.',
+    'Request a plan for tables, stage, dance floor and entrances.',
+  ],
+  [
+    'venue',
+    'Mekân için yağmur/kapalı alan planı belirleyin',
+    'Confirm an indoor or rain plan',
+    'Açık alan etkinliğinde kötü hava alternatifi ve karar saatini netleştirin.',
+    'For outdoor events, confirm a weather alternative and decision time.',
+  ],
+  [
+    'guests',
+    'İlk davetli taslağını hazırlayın',
+    'Draft the guest list',
+    'İki tarafın konuklarını ve yaklaşık kişi sayılarını birleştirin.',
+    'Combine both sides’ guests and estimated headcounts.',
+  ],
+  [
+    'guests',
+    'Davetli iletişim bilgilerini tamamlayın',
+    'Complete guest contact details',
+    'Davet ve katılım yanıtları için telefon veya e-posta bilgilerini kontrol edin.',
+    'Check phone or email details for invitations and replies.',
+  ],
+  [
+    'guests',
+    'Davetli listesi için son yanıt tarihini belirleyin',
+    'Set an RSVP deadline',
+    'Mekân ve yemek sayılarını yetiştirecek bir tarih seçin.',
+    'Choose a date that leaves time to confirm venue and meal counts.',
+  ],
+  [
+    'guests',
+    'Ailelerle özel ihtiyaçları konuşun',
+    'Discuss guests’ special needs',
+    'Erişilebilirlik, çocuk, beslenme ve ulaşım ihtiyaçlarını sorun.',
+    'Ask about accessibility, children, dietary and transport needs.',
+  ],
+  [
+    'guests',
+    'Katılım yanıtlarını takip edin',
+    'Track guest responses',
+    'Yanıt vermeyen konuklar için nazik bir takip planı hazırlayın.',
+    'Plan a considerate follow-up for guests who have not replied.',
+  ],
+  [
+    'vendors',
+    'Fotoğrafçı portföyü ve paketlerini karşılaştırın',
+    'Compare photographer portfolios and packages',
+    'Teslim kapsamı, çekim süresi, yedek ekipman ve teslim tarihini sorun.',
+    'Ask about deliverables, coverage, backup equipment and delivery date.',
+  ],
+  [
+    'vendors',
+    'Müzik grubu veya DJ ile görüşün',
+    'Meet the band or DJ',
+    'Müzik listesi, istek parçalar, ses sistemi ve kurulum saatini konuşun.',
+    'Discuss playlists, requests, sound equipment and setup time.',
+  ],
+  [
+    'vendors',
+    'Çiçekçiyle renk ve mevsim seçeneklerini görüşün',
+    'Discuss flowers and seasonal options',
+    'Konseptinize uygun mevsim çiçekleri ve teslimatı değerlendirin.',
+    'Review seasonal flowers that fit your concept and delivery.',
+  ],
+  [
+    'vendors',
+    'Düğün koordinatörü ihtiyacını değerlendirin',
+    'Decide whether you need a coordinator',
+    'Gün içi görevleri kimin yöneteceğini ve kapsamı belirleyin.',
+    'Decide who will coordinate the day and what is covered.',
+  ],
+  [
+    'vendors',
+    'Tüm tedarikçi sözleşmelerini tek yerde saklayın',
+    'Store all vendor contracts together',
+    'İletişim, hizmet kapsamı, ödeme ve iptal maddelerini arşivleyin.',
+    'Keep contacts, scope, payment and cancellation terms together.',
+  ],
+  [
+    'vendors',
+    'Tedarikçilere gün akışını ve iletişim kişisini iletin',
+    'Share the schedule and contact person with vendors',
+    'Herkesin aynı güncel plana ve aranacak kişiye sahip olduğundan emin olun.',
+    'Ensure everyone has the current plan and a day-of contact.',
+  ],
+  [
+    'ceremony',
+    'Tören biçimini ve gerekli belgeleri araştırın',
+    'Research ceremony format and required documents',
+    'Yerel yetkili kaynaklardan gerekli belgeleri ve başvuru sürelerini doğrulayın.',
+    'Verify documents and lead times with local official sources.',
+  ],
+  [
+    'ceremony',
+    'Tören metni ve müzik seçimlerini konuşun',
+    'Choose ceremony readings and music',
+    'Törene katılacak kişilerle metin, müzik ve akışı kararlaştırın.',
+    'Agree on readings, music and order with ceremony participants.',
+  ],
+  [
+    'ceremony',
+    'Tören provası planlayın',
+    'Plan a ceremony rehearsal',
+    'Katılımcılarla buluşma saatini, giriş sırasını ve prova yerini belirleyin.',
+    'Set the time, procession order and location with participants.',
+  ],
+  [
+    'ceremony',
+    'Yüzüklerin kimde olacağını belirleyin',
+    'Choose who will keep the rings',
+    'Yüzükleri törene güvenle getirecek kişiyi ve yedek planı belirleyin.',
+    'Choose who will safely bring the rings and a backup plan.',
+  ],
+  [
+    'style',
+    'Gelinlik ve damatlık araştırmasına başlayın',
+    'Start attire research',
+    'Bütçe, teslimat süresi, prova ve değişiklik ihtiyaçlarını not edin.',
+    'Note budget, lead time, fittings and alteration needs.',
+  ],
+  [
+    'style',
+    'Kıyafet provalarını takvime ekleyin',
+    'Schedule attire fittings',
+    'Provaları ve son değişiklikler için yeterli zamanı planlayın.',
+    'Allow enough time for fittings and final alterations.',
+  ],
+  [
+    'style',
+    'Saç ve makyaj denemesi ayarlayın',
+    'Arrange hair and makeup trials',
+    'İlham görselleri ve zaman planıyla prova randevusu alın.',
+    'Book a trial with inspiration images and timing.',
+  ],
+  [
+    'style',
+    'Düğün konsepti ve renk paletini netleştirin',
+    'Finalize the wedding concept and palette',
+    'Davetiyeden çiçeklere kadar kullanılacak ana renkleri seçin.',
+    'Choose the main colors for invitations, flowers and details.',
+  ],
+  [
+    'style',
+    'Aksesuar ve rahat ayakkabı planı yapın',
+    'Plan accessories and comfortable shoes',
+    'Gün boyu rahatlık için yedek ayakkabı ve gerekli aksesuarları düşünün.',
+    'Consider backup shoes and accessories for all-day comfort.',
+  ],
+  [
+    'food',
+    'Menü tadımı ve yemek seçeneklerini planlayın',
+    'Plan menu tasting and meal options',
+    'Özel beslenme ihtiyaçları ve çocuk menüsü seçeneklerini sorun.',
+    'Ask about dietary needs and children’s meal options.',
+  ],
+  [
+    'food',
+    'Pasta tasarımı ve teslimatını netleştirin',
+    'Finalize cake design and delivery',
+    'Porsiyon, alerjen, saklama ve teslim saatini doğrulayın.',
+    'Confirm portions, allergens, storage and delivery time.',
+  ],
+  [
+    'food',
+    'İçecek ve servis planını belirleyin',
+    'Plan drinks and service',
+    'İçecek çeşitlerini, servis saatlerini ve kişi başı miktarları konuşun.',
+    'Discuss drink options, service times and quantities per guest.',
+  ],
+  [
+    'food',
+    'Tedarikçi ve ekip için yemek ayarlayın',
+    'Arrange meals for vendors and crew',
+    'Gün boyu çalışan ekiplerin yemek ve mola ihtiyaçlarını mekânla görüşün.',
+    'Coordinate meals and breaks for teams working all day.',
+  ],
+  [
+    'media',
+    'Fotoğraf çekim listesi hazırlayın',
+    'Create a photography shot list',
+    'Önemli aile grupları ve kaçırılmamasını istediğiniz anları yazın.',
+    'List family groupings and moments you do not want missed.',
+  ],
+  [
+    'media',
+    'İlk dans ve özel anlar için şarkıları seçin',
+    'Choose songs for special moments',
+    'İlk dans, giriş, pasta ve diğer özel anlar için parçaları belirleyin.',
+    'Choose songs for the first dance, entrance, cake and other moments.',
+  ],
+  [
+    'media',
+    'Misafir fotoğraf paylaşım yöntemini belirleyin',
+    'Choose how guests can share photos',
+    'Konukların fotoğrafları kolayca paylaşacağı bir albüm veya yöntem seçin.',
+    'Choose an album or method for guests to share photos easily.',
+  ],
+  [
+    'media',
+    'Çekim ekibiyle son planı teyit edin',
+    'Confirm the final plan with the photo team',
+    'Adres, saat, çekim listesi ve iletişim kişisini paylaşın.',
+    'Share address, timing, shot list and contact person.',
+  ],
+  [
+    'logistics',
+    'Konuklar için ulaşım seçeneklerini araştırın',
+    'Research guest transport options',
+    'Toplu taşıma, servis, taksi ve otopark bilgilerini derleyin.',
+    'Gather public transport, shuttle, taxi and parking details.',
+  ],
+  [
+    'logistics',
+    'Şehir dışından gelen konuklar için konaklama bilgisi hazırlayın',
+    'Prepare lodging information for out-of-town guests',
+    'Yakındaki konaklama seçeneklerini ve rezervasyon bilgilerini paylaşın.',
+    'Share nearby lodging options and booking details.',
+  ],
+  [
+    'logistics',
+    'Erişilebilirlik ihtiyaçlarını mekânla teyit edin',
+    'Confirm accessibility with the venue',
+    'Rampalar, asansör, oturma ve tuvalet erişimini kontrol edin.',
+    'Check ramps, elevators, seating and restroom access.',
+  ],
+  [
+    'logistics',
+    'Düğün günü acil durum çantası hazırlayın',
+    'Prepare a wedding-day emergency kit',
+    'İğne-iplik, yara bandı, leke çıkarıcı ve temel ihtiyaçları ekleyin.',
+    'Pack thread, bandages, stain remover and essentials.',
+  ],
+  [
+    'logistics',
+    'Düğün günü sorumlularını ve telefonlarını paylaşın',
+    'Share day-of roles and phone numbers',
+    'Acil durumda aranacak kişileri ve görevlerini listeleyin.',
+    'List key contacts and their responsibilities for emergencies.',
+  ],
+  [
+    'logistics',
+    'Davetiyeleri son kez kontrol edip gönderin',
+    'Proofread and send the invitations',
+    'İsim, tarih, adres, yanıt yöntemi ve son tarihi doğrulayın.',
+    'Verify names, date, address, RSVP method and deadline.',
+  ],
+  [
+    'logistics',
+    'Masa planını katılım yanıtlarına göre güncelleyin',
+    'Update seating based on RSVPs',
+    'Kesinleşen yanıtlarla masa kapasitesini ve özel grupları kontrol edin.',
+    'Check table capacity and groups against confirmed replies.',
+  ],
+  [
+    'weddingDay',
+    'Düğün günü çantalarını ve eşyaları hazırlayın',
+    'Pack wedding-day bags and essentials',
+    'Kıyafet, belgeler, yüzükler, şarj cihazı ve kişisel eşyaları kontrol edin.',
+    'Check attire, documents, rings, chargers and personal items.',
+  ],
+  [
+    'weddingDay',
+    'Tedarikçi varış ve kurulum saatlerini teyit edin',
+    'Confirm vendor arrival and setup times',
+    'Mekân erişimi, teslimatlar ve kurulum sırasını yazılı teyit edin.',
+    'Confirm venue access, deliveries and setup order in writing.',
+  ],
+  [
+    'weddingDay',
+    'Ödeme zarflarını veya bahşişleri hazırlayın',
+    'Prepare payment envelopes or tips',
+    'Varsa gün içinde yapılacak ödemeleri isim ve tutarlarla düzenleyin.',
+    'Organize any day-of payments by name and amount.',
+  ],
+  [
+    'weddingDay',
+    'Düğün günü planının basılı veya çevrimdışı kopyasını hazırlayın',
+    'Prepare an offline copy of the day plan',
+    'Telefon erişimi olmazsa kullanılacak kopyaları sorumlulara verin.',
+    'Give key people copies in case phones are unavailable.',
+  ],
+  [
+    'weddingDay',
+    'Düğün günü için hava durumunu ve yedek planı kontrol edin',
+    'Check the forecast and backup plan',
+    'Son hava durumuna göre açık/kapalı alan kararını ve ekipmanı teyit edin.',
+    'Confirm indoor/outdoor decisions and equipment based on the forecast.',
+  ],
+  [
+    'after',
+    'Hediye ve teşekkür listesi oluşturun',
+    'Create a gift and thank-you list',
+    'Hediyeleri not edin ve teşekkür mesajları için takip listesi hazırlayın.',
+    'Record gifts and prepare a follow-up list for thank-you notes.',
+  ],
+  [
+    'after',
+    'Fotoğraf ve video teslim tarihlerini takip edin',
+    'Track photo and video delivery dates',
+    'Sözleşmedeki teslim tarihlerini ve seçki aşamalarını not edin.',
+    'Note contractual delivery dates and selection steps.',
+  ],
+  [
+    'after',
+    'Kıyafet temizliği ve saklama planı yapın',
+    'Plan attire cleaning and storage',
+    'Kıyafetlerin profesyonel temizliği ve güvenli saklanmasını araştırın.',
+    'Research professional cleaning and safe storage.',
+  ],
+  [
+    'after',
+    'Resmî soyadı veya belge güncelleme ihtiyaçlarını araştırın',
+    'Research any name or document updates',
+    'Kişisel tercihinize göre ilgili kurumların güncel adımlarını kontrol edin.',
+    'Check current steps with relevant offices based on your own choices.',
+  ],
+  [
+    'after',
+    'Düğün bütçesinin son hesabını çıkarın',
+    'Close out the wedding budget',
+    'Son faturaları, iadeleri ve toplam gerçekleşen harcamayı kaydedin.',
+    'Record final invoices, refunds and total actual spending.',
+  ],
+];
+
+export const TASK_SUGGESTIONS: TaskSuggestion[] = rows.map(
+  ([category, title, titleEn, description, descriptionEn, priority], index) => ({
+    id: `wedding-${String(index + 1).padStart(3, '0')}`,
+    category,
+    title,
+    titleEn,
+    description,
+    descriptionEn,
+    priority: priority ?? 'medium',
+  }),
+);

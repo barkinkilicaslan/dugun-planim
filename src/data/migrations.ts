@@ -134,6 +134,16 @@ export const MIGRATIONS: Migration[] = [
       );
     `,
   },
+  {
+    version: 5,
+    name: 'task_suggestion_ids',
+    sql: `ALTER TABLE tasks ADD COLUMN suggestion_id TEXT;`,
+  },
+  {
+    version: 6,
+    name: 'task_cleanup_marker',
+    sql: `CREATE TABLE IF NOT EXISTS app_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);`,
+  },
 ];
 
 export function pendingMigrations(currentVersion: number): Migration[] {

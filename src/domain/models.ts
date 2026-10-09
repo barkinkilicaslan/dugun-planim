@@ -38,6 +38,7 @@ export interface TaskItem {
   priority: TaskPriority;
   completed: boolean;
   notificationId?: string;
+  suggestionId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -188,7 +189,7 @@ export interface AppData {
 }
 
 export const APP_VERSION = '1.0.0';
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 export const EMPTY_PROFILE: WeddingProfile = {
   couple1Name: '',
