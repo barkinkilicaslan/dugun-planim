@@ -1,11 +1,14 @@
 import type { Metadata } from 'next';
 import { LegalLayout } from '../legal-layout';
 import { pageMetadata } from '../metadata';
+
+export const dynamic = 'force-static';
+
 export const metadata: Metadata = pageMetadata(
   'tr',
   'privacy',
   'Gizlilik Politikası',
-  'Düğün Planım gizlilik politikası: verileriniz cihazınızda kalır, hesap ve izleme yoktur.',
+  'Düğün Planım gizlilik politikası: planlama verileri yerel saklanır; cihaz yedekleri işletim sistemi ayarlarına bağlıdır. Hesap veya izleme yoktur.',
 );
 export default function PrivacyPage() {
   return (
@@ -14,7 +17,7 @@ export default function PrivacyPage() {
       page="privacy"
       eyebrow="Gizlilik"
       title="Gizlilik Politikası"
-      intro="Düğün Planım, kişisel planlama verilerinizi cihazınızda tutacak şekilde tasarlanmıştır."
+      intro="Düğün Planım planlama verilerinizi uygulamanın cihazdaki alanında saklar. İşletim sisteminiz, ayarlarınıza göre bunları cihaz yedeğine dahil edebilir."
     >
       <h2>1. Toplanan ve saklanan bilgiler</h2>
       <p>
@@ -43,13 +46,19 @@ export default function PrivacyPage() {
       </p>
       <h2>4. Yedekler ve paylaşımlar</h2>
       <p>
-        JSON yedek, CSV veya PDF oluşturduğunuzda hedefi işletim sisteminin güvenli paylaşım ekranında siz seçersiniz.
-        Bu dosyalar seçilen hedefin kurallarına tabi olur ve uygulama tarafından uzaktan yönetilemez.
+        JSON yedek, CSV veya PDF oluşturduğunuzda hedefi işletim sisteminin paylaşım ekranında siz seçersiniz. JSON
+        yedek dosyası uygulama tarafından şifrelenmez; davetli adları, telefon ve e-posta gibi kişisel bilgiler
+        içerebilir. Yalnızca güvendiğiniz bir yerde saklayın veya paylaşın. Bu dosyalar seçilen hedefin kurallarına tabi
+        olur ve uygulama tarafından uzaktan yönetilemez. Cihazınızın yedekleme ayarlarına bağlı olarak işletim sistemi
+        uygulama verilerini iCloud veya Android cihaz yedeğine dahil edebilir. Bu yedekler Apple ya da Google tarafından
+        yönetilir; Düğün Planım hesabı veya geliştirici sunucusu tarafından alınmaz.
       </p>
       <h2>5. Saklama ve silme</h2>
       <p>
         Veriler siz silene veya uygulamayı kaldırana kadar yerel olarak tutulur. Ayarlar içindeki “Tüm verilerimi sil”
-        işlemi iki onaydan sonra uygulama verilerini ve yerel hatırlatmaları temizler.
+        işlemi iki onaydan sonra uygulama verilerini, bu cihaza yüklediğiniz davetiye görsellerini ve fotoğraflarını,
+        yerel hatırlatmaları, uygulamanın önbellekte tuttuğu geçici dışa aktarma dosyalarını ve seçtiğiniz görsel tarz
+        tercihini temizler.
       </p>
       <h2>6. Çocukların gizliliği ve değişiklikler</h2>
       <p>

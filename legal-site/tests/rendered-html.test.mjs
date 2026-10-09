@@ -161,7 +161,7 @@ test('English pages carry English metadata descriptions', async () => {
   const privacy = await html('/en/privacy/');
   assert.match(
     privacy,
-    /<meta name="description" content="Düğün Planım privacy policy: your data stays on your device/,
+    /<meta name="description" content="Düğün Planım privacy policy: planning data is stored locally; device backups depend on operating system settings/,
   );
   assert.match(privacy, /property="og:locale" content="en_US"/);
   const home = await html('/en/');
@@ -199,7 +199,9 @@ test('the English privacy policy states the real data practices', async () => {
 test('the English data and support pages state the backup and language facts', async () => {
   const data = await html('/en/data-retention/');
   assert.match(data, /photos you added to invitations are not included in the\s+backup file/);
-  assert.match(data, /no automatic\s+server copy or cloud sync/);
+  assert.match(data, /does not operate\s+its own server copy or sync service/);
+  assert.match(data, /JSON backup files are not encrypted by the app/);
+  assert.match(data, /operating system may include\s+app data in an iCloud or Android device backup/);
   const support = await html('/en/support/');
   assert.match(support, /Invitation photos are not included in the backup/);
   assert.match(support, /Settings → Language/);
@@ -211,6 +213,8 @@ test('the Turkish pages keep their content and now state the same facts', async 
   assert.match(privacy, /Rehber izni yalnızca/);
   assert.match(privacy, /Çevrimiçi\s+RSVP hizmeti yoktur/);
   assert.match(privacy, /yalnız cihazınızda yerel olarak saklanır/);
+  assert.match(privacy, /JSON\s+yedek dosyası uygulama tarafından şifrelenmez/);
+  assert.match(privacy, /işletim sistemi\s+uygulama verilerini iCloud veya Android cihaz yedeğine dahil edebilir/);
   const data = await html('/data-retention/');
   assert.match(data, /fotoğraflar yedek dosyasına dahil edilmez/);
   const support = await html('/support/');

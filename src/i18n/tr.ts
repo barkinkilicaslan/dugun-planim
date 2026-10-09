@@ -601,7 +601,7 @@ export const tr = {
   'legal.privacy.title': 'Gizlilik Politikası',
   'legal.privacy.s1.title': 'Kısa özet',
   'legal.privacy.s1.body':
-    'Düğün Planım hesap açmadan çalışır. Girdiğiniz çift, görev, davetli, bütçe, masa, tedarikçi ve not verileri cihazınızdaki yerel veritabanında saklanır; bizim yönettiğimiz bir sunucuya gönderilmez.',
+    'Düğün Planım hesap açmadan çalışır. Girdiğiniz çift, görev, davetli, bütçe, masa, tedarikçi ve not verileri cihazınızdaki yerel veritabanında saklanır; bizim yönettiğimiz bir sunucuya gönderilmez. İşletim sistemi ayarlarınıza bağlı olarak cihaz verileri iCloud veya Android cihaz yedeklerine dahil edilebilir; bu kopyaları platform yönetir, biz almayız.',
   'legal.privacy.s2.title': 'İzinler',
   'legal.privacy.s2.body':
     'Bildirim izni yalnız açıklama sonrası ve açık seçiminizle, görev hatırlatmaları için istenir. Rehber izni yalnızca “Rehberden davetli ekle” seçeneğine bastığınızda ve nedenini okuduktan sonra istenir; yalnız seçtiğiniz kişiler davetli listenize kaydedilir ve rehberiniz sunucuya gönderilmez. Dosya seçici, paylaşım, e-posta, SMS ve WhatsApp ekranları yalnız ilgili düğmeye dokunduğunuzda açılır; uygulama hiçbir mesajı onayınız olmadan göndermez. Konum, kamera, mikrofon veya izleme izni istenmez.',
@@ -621,10 +621,10 @@ export const tr = {
   'legal.data.title': 'Veri Saklama ve Silme',
   'legal.data.s1.title': 'Saklama',
   'legal.data.s1.body':
-    'Uygulama verileri cihazın uygulamaya ayrılmış yerel alanında siz silene veya uygulamayı kaldırana kadar tutulur. Otomatik sunucu kopyası yoktur.',
+    'Uygulama verileri cihazın uygulamaya ayrılmış yerel alanında siz silene veya uygulamayı kaldırana kadar tutulur. Otomatik sunucu kopyası yoktur. İşletim sistemi ayarlarınıza bağlı olarak bu veriler iCloud veya Android cihaz yedeklerine dahil edilebilir; bu kopyaları ilgili platform yönetir, biz almayız.',
   'legal.data.s2.title': 'Yedekler',
   'legal.data.s2.body':
-    'Dışa aktardığınız JSON, CSV ve PDF dosyaları seçtiğiniz hedefte kalır ve uygulama içinden otomatik silinemez. Davetiye fotoğrafları yedek dosyasına dahil edilmez.',
+    'JSON yedeği şifrelenmez ve davetli adları, telefon veya e-posta gibi kişisel bilgiler içerebilir; güvenli saklayın ve yalnızca güvendiğiniz kişilerle paylaşın. Dışa aktardığınız JSON, CSV ve PDF dosyaları seçtiğiniz hedefte kalır; uygulama bunları oradan silemez. Paylaşım için oluşturulan geçici uygulama kopyaları otomatik temizlenir. Davetiye fotoğrafları JSON yedeğine dahil edilmez.',
   'legal.data.s3.title': 'Silme',
   'legal.data.s3.body':
     'Ayarlar → Tüm verilerimi sil işlemi iki onaydan sonra yerel uygulama verilerini, bu cihaza yüklediğiniz davetiye görsellerini, planlanmış hatırlatmaları, geçici dışa aktarma dosyalarını ve seçtiğiniz görsel tarz tercihini temizler.',
@@ -637,7 +637,8 @@ export const tr = {
     'Bu yazılım açık kaynak bileşenler içerir. İlgili telif bildirimleri korunur; üçüncü taraf markaları bu ürünün sponsoru değildir.',
   'legal.support.title': 'Destek ve Sık Sorulan Sorular',
   'legal.support.s1.title': 'Verilerim nerede?',
-  'legal.support.s1.body': 'Veriler bu cihazda saklanır. Yeni cihaza geçmeden önce Ayarlar’dan yedek oluşturun.',
+  'legal.support.s1.body':
+    'Veriler bu cihazda saklanır ve bizim yönettiğimiz bir sunucuya gönderilmez. İşletim sistemi ayarlarınıza bağlı olarak iCloud veya Android cihaz yedeklerine dahil edilebilir. Yeni cihaza geçmeden önce Ayarlar’dan şifresiz yedek oluşturun ve güvenli saklayın.',
   'legal.support.s2.title': 'Bildirim gelmiyor',
   'legal.support.s2.body':
     'Sistem ayarlarında Düğün Planım bildirim iznini kontrol edin ve görevde gelecekte bir son tarih ile hatırlatma seçildiğini doğrulayın.',

@@ -8,7 +8,7 @@ Karakter/bayt sayıları ve Apple sınırları `npm run metadata:check` ile doğ
 - Alt başlık: `Düğün planı, davetiye, masa`
 - Birincil kategori: `Lifestyle`
 - İkincil kategori: `Productivity`
-- Promosyon metni: `Düğün görevlerini, davetlileri, davetiyeleri, masa planını ve bütçeyi tek yerde yönetin. Hesap gerekmez; verileriniz cihazınızda kalır.`
+- Promosyon metni: `Düğün planınızı tek yerde yönetin. Hesap yok; veriler uygulama alanında saklanır, cihaz yedekleri işletim sistemi ayarlarınıza bağlıdır.`
 - Anahtar kelimeler: `nişan,gelin,damat,rsvp,bütçe,davetli,görev,takvim,salon,tedarikçi,liste,evlilik,organizasyon`
 - Destek URL'si: `https://barkinkilicaslan.github.io/dugun-planim/support/`
 - Gizlilik politikası URL'si: `https://barkinkilicaslan.github.io/dugun-planim/privacy/`
@@ -47,7 +47,7 @@ BÜTÇE VE TEDARİKÇİLER
 - Görev ve ödeme tarihlerini takvimde görün.
 
 GİZLİLİK
-- Kullanıcı hesabı veya veri sunucusu yoktur; planlama verileriniz cihazınızda kalır.
+- Kullanıcı hesabı veya geliştirici veri sunucusu yoktur; planlama verileri uygulamanın cihazdaki alanında saklanır. İşletim sisteminiz, ayarlarınıza göre bu verileri cihaz yedeğine dahil edebilir.
 - Reklam, üçüncü taraf analiz ve izleme SDK'sı kullanılmaz.
 - Çevrimiçi RSVP hizmeti yoktur.
 - JSON yedek, CSV ve PDF dosyalarının hedefini yalnız siz seçersiniz. Davetiye fotoğrafları JSON yedeğe dahil edilmez.
@@ -112,8 +112,8 @@ Tüm verileri silme: Ayarlar > "Tüm verilerimi sil" iki onay ister ve yerel ver
 | ----------- | -------: | ---: | ------------- |
 | name        |       12 |   16 | 30 karakter   |
 | subtitle    |       27 |   31 | 30 karakter   |
-| promo       |      135 |  147 | 170 karakter  |
-| description |     2407 | 2614 | 4000 karakter |
+| promo       |      136 |  151 | 170 karakter  |
+| description |     2519 | 2733 | 4000 karakter |
 | keywords    |       92 |   97 | 100 bayt      |
 | whatsNew    |      507 |  556 | 4000 karakter |
 | review      |     1582 | 1700 | 4000 bayt     |

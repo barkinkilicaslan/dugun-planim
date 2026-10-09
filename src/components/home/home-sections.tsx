@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Eyebrow } from '@/components/home/home-hero';
 import { IconBox, Motif } from '@/components/theme/decor';
 import { AppText } from '@/components/ui/app-text';
@@ -7,6 +7,7 @@ import { ProgressBar } from '@/components/ui/progress';
 import { cardRadius, controlRadius } from '@/constants/themes';
 import { spacing } from '@/constants/theme';
 import { useAppTheme } from '@/context/theme-context';
+import { shouldCompactMetricValue } from '@/domain/metric-display';
 
 export type Tone = 'default' | 'warning' | 'success';
 
@@ -116,6 +117,7 @@ function toneColor(tone: Tone | undefined, theme: ReturnType<typeof useAppTheme>
 /** Bütçe ve davetli özetleri; düzen (kart, karo, çizgili liste) temadan gelir. */
 function MetricsBody({ items }: { items: MetricItem[] }) {
   const theme = useAppTheme();
+  const { width } = useWindowDimensions();
   const c = theme.colors;
   const variant = theme.layout.metrics;
 
@@ -145,7 +147,7 @@ function MetricsBody({ items }: { items: MetricItem[] }) {
               color={toneColor(item.tone, theme)}
               numberOfLines={1}
               adjustsFontSizeToFit
-              style={styles.ruleValue}
+              style={[styles.ruleValue, shouldCompactMetricValue(item.value, width) ? styles.compactValue : null]}
             >
               {item.value}
             </AppText>
@@ -184,7 +186,7 @@ function MetricsBody({ items }: { items: MetricItem[] }) {
               numberOfLines={1}
               adjustsFontSizeToFit
               minimumFontScale={0.78}
-              style={styles.metricValue}
+              style={[styles.metricValue, shouldCompactMetricValue(item.value, width) ? styles.compactValue : null]}
             >
               {item.value}
             </AppText>
@@ -355,6 +357,7 @@ const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   metric: { flexGrow: 1, flexBasis: 150, minWidth: 140, padding: spacing.lg, gap: spacing.xs },
   metricValue: { fontSize: 21, lineHeight: 27 },
+  compactValue: { fontSize: 15, lineHeight: 22 },
   rulesCard: { paddingVertical: spacing.xs, gap: 0 },
   rule: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md },
   ruleValue: { maxWidth: '55%', fontSize: 20, lineHeight: 26 },

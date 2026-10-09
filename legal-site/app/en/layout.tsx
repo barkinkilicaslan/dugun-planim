@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: 'Düğün Planım privacy policy, terms of use and support center.',
   openGraph: {
     title: 'Düğün Planım',
-    description: 'Your data stays on your device.',
+    description: 'Planning data is stored locally; operating system device-backup settings may apply.',
     type: 'website',
     locale: 'en_US',
     images: [
@@ -17,14 +17,14 @@ export const metadata: Metadata = {
         url: `${siteUrl}/og.png`,
         width: 1200,
         height: 630,
-        alt: 'Düğün Planım — Your data stays on your device.',
+        alt: 'Düğün Planım — Local storage; operating system device-backup settings may apply.',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Düğün Planım',
-    description: 'Your data stays on your device.',
+    description: 'Planning data is stored locally; operating system device-backup settings may apply.',
     images: [`${siteUrl}/og.png`],
   },
 };

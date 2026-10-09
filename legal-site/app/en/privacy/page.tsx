@@ -1,11 +1,14 @@
 import type { Metadata } from 'next';
 import { LegalLayout } from '../../legal-layout';
 import { pageMetadata } from '../../metadata';
+
+export const dynamic = 'force-static';
+
 export const metadata: Metadata = pageMetadata(
   'en',
   'privacy',
   'Privacy Policy',
-  'Düğün Planım privacy policy: your data stays on your device; there are no accounts or tracking.',
+  'Düğün Planım privacy policy: planning data is stored locally; device backups depend on operating system settings. No accounts or tracking.',
 );
 export default function PrivacyPageEn() {
   return (
@@ -14,7 +17,7 @@ export default function PrivacyPageEn() {
       page="privacy"
       eyebrow="Privacy"
       title="Privacy Policy"
-      intro="Düğün Planım is designed to keep your personal planning data on your device."
+      intro="Düğün Planım stores planning data in the app's local device area. Your operating system may include it in device backups depending on your settings."
     >
       <h2>1. Information collected and stored</h2>
       <p>
@@ -43,14 +46,18 @@ export default function PrivacyPageEn() {
       </p>
       <h2>4. Backups and sharing</h2>
       <p>
-        When you create a JSON backup, CSV or PDF, you choose the destination yourself on the operating system’s secure
-        share screen. These files are subject to the rules of the destination you choose and cannot be managed remotely
-        by the app.
+        When you create a JSON backup, CSV or PDF, you choose the destination yourself on the operating system’s share
+        sheet. JSON backup files are not encrypted by the app and may contain personal details such as guest names,
+        phone numbers and email addresses. Store or share them only somewhere you trust. These files are subject to the
+        rules of the destination you choose and cannot be managed remotely by the app. Depending on your device backup
+        settings, the operating system may include app data in an iCloud or Android device backup. Those backups are
+        managed by Apple or Google; they are not received by a Düğün Planım account or developer server.
       </p>
       <h2>5. Retention and deletion</h2>
       <p>
         Data is kept locally until you delete it or uninstall the app. The “Delete all my data” action in Settings
-        clears app data and local reminders after two confirmations.
+        clears app data, the invitation images and photos you added on this device, local reminders, the temporary
+        export files the app keeps in its cache and your chosen visual style after two confirmations.
       </p>
       <h2>6. Children’s privacy and changes</h2>
       <p>

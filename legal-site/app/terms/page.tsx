@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import { LegalLayout } from '../legal-layout';
 import { pageMetadata } from '../metadata';
+
+export const dynamic = 'force-static';
+
 export const metadata: Metadata = pageMetadata(
   'tr',
   'terms',

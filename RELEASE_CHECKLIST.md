@@ -6,11 +6,12 @@ Son güncelleme: 9 Ekim 2026. Build 7 App Store Connect’e yüklendi ve Apple t
 
 - [x] Expo SDK 57 / React Native 0.86 / TypeScript strict
 - [x] Typecheck, lint ve formatter kontrolü
-- [x] Birim, component, migration, onboarding, yedek ve silme testleri (46 suite, 635 test)
+- [x] Birim, component, migration, onboarding, yedek ve silme testleri (47 suite, 638 test)
 - [x] Expo Doctor 20/20
 - [x] Web production export
 - [x] Hukuki site statik build ve rota testleri (30/30; son yerel değişiklikler henüz yayımlanmadı)
 - [x] Gerçek çalışan web uygulamasında onboarding, persistence ve CRUD smoke testi
+- [x] Telefon genişliği web önizlemesinde ana sayfa/bütçe uzun tutarları kesilmeden gösteriyor; gerçek iPhone'da yeni build ile tekrar doğrulanmalı
 - [x] Özelleştirilebilir salon planında hızlı yerleşim, özellik düzenleme, kilitleme, önizleme ve yeniden açılış kalıcılık testi
 - [ ] Fiziksel Android telefon/tablet smoke testi
 - [ ] Fiziksel iPhone/iPad smoke testi
@@ -33,8 +34,9 @@ Son güncelleme: 9 Ekim 2026. Build 7 App Store Connect’e yüklendi ve Apple t
 - [x] App Privacy ve Data Safety taslakları gerçek veri akışıyla eşleştirildi
 - [x] Uygulama içi iki aşamalı tüm veri silme mevcut
 - [x] Bildirim izni onboarding açıklamasından sonra ve isteğe bağlı
-- [x] İkonlar, screenshotlar, feature graphic ve kaynak kayıtları hazır
-- [ ] EAS iOS archive içindeki birleştirilmiş `PrivacyInfo.xcprivacy` ve üçüncü taraf SDK manifest/imzalarını doğrula
+- [x] Uygulama ikonları ve feature graphic boyut/içerik doğrulamasından geçti
+- [ ] App Store ekran görüntülerini tema ve kurdele marka değişikliklerinden sonraki gerçek arayüzle yeniden doğrula; yerelleştirilmiş set son olarak `fc5d38a` commit'inde üretildi, tema `0f94474` ve marka `8f8c720` daha sonra değişti
+- [x] Build 7 IPA arşivindeki uygulama ve üçüncü taraf SDK gizlilik manifestlerini, gerekli API reason kodlarını ve imza/profile dosyalarının varlığını doğrula (13 manifest; hepsinde tracking=false ve toplanan veri yok; Apple build'i TestFlight için geçerli kabul etti)
 - [ ] EAS Android AAB manifestinde yalnız beklenen izinleri doğrula
 - [ ] App Store yaş derecelendirme ve Google IARC sonuçlarını taslak cevaplarla karşılaştır
 - [x] Gerçek URL yayımlandıktan sonra uygulama, mağaza ve site linklerinde kırık bağlantı kontrolü yap
@@ -68,7 +70,7 @@ Son güncelleme: 9 Ekim 2026. Build 7 App Store Connect’e yüklendi ve Apple t
 
    - [x] Apple Developer hesabına EAS üzerinden giriş yap
    - [x] Distribution certificate ve App Store provisioning profile seç/oluştur
-   - [ ] Build logunda Xcode 26.4+ ve iOS 26 SDK doğrula
+   - [x] Build 7 EAS/Xcode günlüğünde Xcode 26.6 ve iOS 26.5 SDK doğrulandı
    - [ ] IPA/archive içinde bundle ID, build `1`, ikon, privacy manifest ve imzayı kontrol et
 
 İmzalama anahtarları, `.p8`, `.p12`, `.mobileprovision`, keystore ve mağaza parolaları Git'e eklenmez.
@@ -104,6 +106,10 @@ npx eas-cli@latest submit --platform android --profile production
 - [ ] TestFlight internal smoke testi ve App Review notları
 
 Build 7 için mevcut verileri silmeden uygulanacak cihaz test sırası: [TESTFLIGHT_QA_BUILD7.md](./TESTFLIGHT_QA_BUILD7.md).
+
+Son App Store Connect okuması (`eas metadata:pull`, 9 Ekim 2026): sürüm kaydında yalnızca Türkçe uygulama adı vardı; İngilizce mağaza yerelleştirmesi, alt başlık, açıklama ve gizlilik URL'si yoktu. Türkçe/İngilizce mağaza metni yerel [store.config.json](./store.config.json) dosyasında hazırlandı; kaynak Markdown alanlarıyla birebir eşleşti ve `eas metadata:lint` geçti. **App Store Connect'e gönderilmedi.** İnceleme iletişim telefonu kaynak taslağında hâlâ yer tutucudur. Mevcut sürüm ayarı onaydan sonra otomatik yayındır; bu davranış kullanıcı kararı bekliyor. Hukuki sayfalardaki yedekleme açıklamaları da yerel taslakta güncellendi, GitHub Pages'e yayımlanmadı.
+
+Apple'ın güncel şartı, iPhone Dynamic Island orta boyutlu ekran için en az bir; iPadOS destekleniyorsa 13 inç iPad için en az bir ekran görüntüsüdür. Mevcut PNG boyutları (iPhone 1290×2796, iPad 2048×2732) kabul edilen ölçüler arasında; içerik/marka güncelliği ise yukarıdaki maddede yeniden doğrulanmalı. Kaynak: [Apple screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications).
 
 Son TestFlight paketi 9 Ekim 2026 tarihinde oluşturuldu ve App Store Connect'e yüklendi:
 

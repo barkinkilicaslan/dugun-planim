@@ -600,7 +600,7 @@ export const en: { [K in keyof typeof tr]: Widen<(typeof tr)[K]> } = {
   'legal.privacy.title': 'Privacy Policy',
   'legal.privacy.s1.title': 'Summary',
   'legal.privacy.s1.body':
-    'Düğün Planım works without an account. The couple, task, guest, budget, table, vendor and note data you enter is stored in the local database on your device and is not sent to any server we operate.',
+    'Düğün Planım works without an account. The couple, task, guest, budget, table, vendor and note data you enter is stored in the local database on your device and is not sent to any server we operate. Depending on your operating system settings, device data may be included in iCloud or Android device backups; those copies are managed by the platform, not received by us.',
   'legal.privacy.s2.title': 'Permissions',
   'legal.privacy.s2.body':
     'Notification permission is only requested after an explanation and only if you choose it, for task reminders. Contacts permission is only requested when you tap “Add guests from contacts” and after you read why; only the contacts you select are saved to your guest list, and your contacts are never sent to a server. The file picker, share sheet, email, SMS and WhatsApp screens only open when you tap the relevant button; the app never sends a message without your confirmation. Location, camera, microphone or tracking permissions are not requested.',
@@ -620,10 +620,10 @@ export const en: { [K in keyof typeof tr]: Widen<(typeof tr)[K]> } = {
   'legal.data.title': 'Data Retention and Deletion',
   'legal.data.s1.title': 'Retention',
   'legal.data.s1.body':
-    'App data is kept in the device storage reserved for the app until you delete it or uninstall the app. There is no automatic server copy.',
+    'App data is kept in the device storage reserved for the app until you delete it or uninstall the app. There is no automatic server copy. Depending on your operating system settings, this data may be included in iCloud or Android device backups; those copies are managed by the platform, not received by us.',
   'legal.data.s2.title': 'Backups',
   'legal.data.s2.body':
-    'JSON, CSV and PDF files you export stay in the destination you choose and cannot be deleted automatically from within the app. Invitation photos are not included in the backup file.',
+    'The JSON backup is not encrypted and may contain personal details such as guest names, phone numbers or email addresses; store it securely and share it only with people you trust. JSON, CSV and PDF files you export remain in the destination you choose; the app cannot delete them from there. Temporary app copies created for sharing are cleaned automatically. Invitation photos are not included in the JSON backup.',
   'legal.data.s3.title': 'Deletion',
   'legal.data.s3.body':
     'Settings → Delete all my data clears local app data, invitation images you added on this device, scheduled reminders, temporary export files and your chosen visual style after two confirmations.',
@@ -637,7 +637,7 @@ export const en: { [K in keyof typeof tr]: Widen<(typeof tr)[K]> } = {
   'legal.support.title': 'Support and FAQ',
   'legal.support.s1.title': 'Where is my data?',
   'legal.support.s1.body':
-    'Your data is stored on this device. Before moving to a new device, create a backup in Settings.',
+    'Your data is stored on this device and is not sent to a server we operate. Depending on your operating system settings, it may be included in iCloud or Android device backups. Before moving to a new device, create an unencrypted backup in Settings and store it securely.',
   'legal.support.s2.title': 'I am not getting notifications',
   'legal.support.s2.body':
     'Check the notification permission for Düğün Planım in system settings and confirm that the task has a future due date with a reminder selected.',

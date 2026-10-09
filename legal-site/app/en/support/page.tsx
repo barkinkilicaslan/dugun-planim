@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import { LegalLayout } from '../../legal-layout';
 import { pageMetadata } from '../../metadata';
+
+export const dynamic = 'force-static';
+
 import { siteConfig } from '../../../site-config';
 export const metadata: Metadata = pageMetadata(
   'en',

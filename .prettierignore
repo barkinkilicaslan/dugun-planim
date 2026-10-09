@@ -9,3 +9,13 @@ legal-site/dist
 legal-site/.next
 legal-site/.vinext
 legal-site/.wrangler
+legal-site/next-env.d.ts
+.claude/
+.jest-cache/
+/abyss-audio-stage/
+/abyss-cap-stage/
+/abyss-crates-stage/
+/abyss-eur-stage/
+/abyss-game/
+/abyss-layout-stage/
+/abyss-release-stage/

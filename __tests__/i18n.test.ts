@@ -157,6 +157,22 @@ describe('active locale', () => {
     expect(turkish('tabs.home')).toBe('Ana Sayfa');
     expect(english('tabs.home')).toBe('Home');
   });
+
+  it('discloses platform backups and unencrypted exports in both legal catalogs', () => {
+    const turkish = createTranslator('tr');
+    const english = createTranslator('en');
+
+    expect(turkish('legal.privacy.s1.body')).toContain('iCloud');
+    expect(turkish('legal.privacy.s1.body')).toContain('Android');
+    expect(turkish('legal.data.s2.body')).toContain('şifrelenmez');
+    expect(turkish('legal.data.s2.body')).toContain('geçici uygulama kopyaları otomatik temizlenir');
+    expect(english('legal.privacy.s1.body')).toContain('iCloud');
+    expect(english('legal.privacy.s1.body')).toContain('Android');
+    expect(english('legal.data.s2.body')).toContain('not encrypted');
+    expect(english('legal.data.s2.body')).toContain(
+      'Temporary app copies created for sharing are cleaned automatically',
+    );
+  });
 });
 
 describe('date, time, number and money formats', () => {

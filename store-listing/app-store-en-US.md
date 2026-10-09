@@ -8,7 +8,7 @@ Character/byte counts and Apple limits are verified by `npm run metadata:check`.
 - Subtitle: `Wedding plan, guests, seating`
 - Primary category: `Lifestyle`
 - Secondary category: `Productivity`
-- Promotional text: `Plan tasks, guests, invitations, seating and budget in one place. No account needed, and your data stays on your device.`
+- Promotional text: `Plan wedding tasks, guests, invitations, seating and budget. No account; local data may be included in OS device backups per your settings.`
 - Keywords: `marriage,bride,groom,rsvp,budget,checklist,vendors,engagement,organizer,calendar,invites,venue,tasks`
 - Support URL: `https://barkinkilicaslan.github.io/dugun-planim/en/support/`
 - Privacy Policy URL: `https://barkinkilicaslan.github.io/dugun-planim/en/privacy/`
@@ -47,7 +47,7 @@ BUDGET AND VENDORS
 - See task and payment dates together in the calendar.
 
 PRIVACY
-- There is no user account or data server; your planning data stays on your device.
+- There is no user account or developer-operated data server. Planning data is stored in the app's local device area; your operating system may include it in a device backup depending on your settings.
 - No advertising, third-party analytics or tracking SDKs are used.
 - There is no online RSVP service.
 - You choose the destination of JSON backups, CSV and PDF files yourself. Invitation photos are not included in the JSON backup.
@@ -112,8 +112,8 @@ Encryption: the app uses no custom (non-standard) encryption; ITSAppUsesNonExemp
 | ----------- | -------: | ---: | ------------- |
 | name        |       12 |   16 | 30 karakter   |
 | subtitle    |       29 |   29 | 30 karakter   |
-| promo       |      120 |  120 | 170 karakter  |
-| description |     2315 | 2319 | 4000 karakter |
+| promo       |      139 |  139 | 170 karakter  |
+| description |     2433 | 2437 | 4000 karakter |
 | keywords    |      100 |  100 | 100 bayt      |
 | whatsNew    |      547 |  551 | 4000 karakter |
 | review      |     1589 | 1591 | 4000 bayt     |

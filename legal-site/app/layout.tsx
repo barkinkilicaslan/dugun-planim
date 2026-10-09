@@ -15,7 +15,8 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Düğün Planım',
-    description: 'Verileriniz cihazınızda kalır.',
+    description:
+      'Planlama verileri uygulama alanında yerel saklanır; cihaz yedekleri işletim sistemi ayarlarına bağlıdır.',
     type: 'website',
     locale: 'tr_TR',
     images: [
@@ -23,14 +24,15 @@ export const metadata: Metadata = {
         url: `${siteUrl}/og.png`,
         width: 1200,
         height: 630,
-        alt: 'Düğün Planım — Verileriniz cihazınızda kalır.',
+        alt: 'Düğün Planım — Yerel saklama; cihaz yedekleri işletim sistemi ayarlarına bağlıdır.',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Düğün Planım',
-    description: 'Verileriniz cihazınızda kalır.',
+    description:
+      'Planlama verileri uygulama alanında yerel saklanır; cihaz yedekleri işletim sistemi ayarlarına bağlıdır.',
     images: [`${siteUrl}/og.png`],
   },
 };
