@@ -38,6 +38,7 @@ yarn-error.*
 /legal-site/
 /store-listing/
 /abyss-*/
+/.claude/
 *.md
 
 # Tasarım referansları ve tema kaynak görselleri GitHub'da kalır; mobil build'e yalnızca
